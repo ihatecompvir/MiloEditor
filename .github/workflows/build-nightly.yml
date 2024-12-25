@@ -1,0 +1,82 @@
+name: Nightly Builds
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+        arch: [x64, x86, arm64]
+        exclude:
+          - os: ubuntu-latest
+            arch: x86
+          - os: macos-latest
+            arch: x86
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0.x'
+      
+      - name: Build
+        run: |
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            dotnet build MiloEditor/MiloEditor.csproj --configuration Release -r win-${{ matrix.arch }}
+          fi
+          dotnet build MiloLib/MiloLib.csproj --configuration Release -r ${{ runner.os }}-${{ matrix.arch }}
+          dotnet build MiloUtil/MiloUtil.csproj --configuration Release -r ${{ runner.os }}-${{ matrix.arch }}
+
+      - name: Package
+        run: |
+          mkdir build
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            cp -r MiloEditor/bin/Release/net8.0/win-${{ matrix.arch }}/ build/MiloEditor/
+          fi
+          cp -r MiloLib/bin/Release/net8.0/${{ runner.os }}-${{ matrix.arch }}/ build/MiloLib/
+          cp -r MiloUtil/bin/Release/net8.0/${{ runner.os }}-${{ matrix.arch }}/ build/MiloUtil/
+        
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.os }}-${{ matrix.arch }}
+          path: build
+          if-no-files-found: error
+
+  release:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: release-artifacts
+
+      - name: Install GitHub CLI
+        uses: actions/setup-gh-cli@v1
+
+      - name: Recreate "nightly" Release
+        run: |
+          # Delete existing 'nightly' if it exists
+          if gh release view nightly --repo "${{ github.repository }}" >/dev/null 2>&1; then
+            gh release delete nightly --yes --repo "${{ github.repository }}"
+          fi
+
+          # Create a new 'nightly' release
+          gh release create nightly \
+            --title "Nightly" \
+            --notes "Nightly build artifacts" \
+            --repo "${{ github.repository }}"
+
+          # Upload artifacts
+          gh release upload nightly release-artifacts/**/* \
+            --clobber \
+            --repo "${{ github.repository }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
