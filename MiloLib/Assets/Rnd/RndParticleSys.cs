@@ -249,7 +249,7 @@ namespace MiloLib.Assets.Rnd
                 preserveParticles = reader.ReadBoolean();
 
             if (standalone)
-                reader.BaseStream.Position += 4;
+                if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");
             return this;
         }
 
