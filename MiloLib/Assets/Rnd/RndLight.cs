@@ -14,7 +14,8 @@ namespace MiloLib.Assets.Rnd
             kDirectional = 2
         }
 
-        public uint revision;
+        public ushort altRevision;
+        public ushort revision;
         [Name("Color"), Description("Color of light")]
         public HmxColor color = new();
         [Name("Color Owner"), Description("Master for light color and intensity")]
@@ -54,7 +55,8 @@ namespace MiloLib.Assets.Rnd
 
         public RndLight Read(EndianReader reader, bool standalone)
         {
-            revision = reader.ReadUInt32();
+            altRevision = reader.ReadUInt16();
+            revision = reader.ReadUInt16();
 
             base.objFields.Read(reader);
 
@@ -90,7 +92,8 @@ namespace MiloLib.Assets.Rnd
 
         public override void Write(EndianWriter writer, bool standalone)
         {
-            writer.WriteUInt32(revision);
+            writer.WriteUInt16(altRevision);
+            writer.WriteUInt16(revision);
             base.Write(writer, false);
 
             color.Write(writer);

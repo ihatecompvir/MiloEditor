@@ -160,7 +160,8 @@ namespace MiloLib.Assets.Rnd
             kColorModNum = 3
         }
 
-        public uint revision; // constant for version 68
+        public ushort altRevision;
+        public ushort revision; // constant for version 68
 
         [Name("Base Color"), Description("Base material color")]
         public HmxColor mColor = new HmxColor(1f, 1f, 1f, 1f);
@@ -265,7 +266,8 @@ namespace MiloLib.Assets.Rnd
 
         public RndMat Read(EndianReader reader, bool standalone)
         {
-            revision = reader.ReadUInt32();
+            altRevision = reader.ReadUInt16();
+            revision = reader.ReadUInt16();
 
             if (revision != 68)
             {
@@ -367,7 +369,8 @@ namespace MiloLib.Assets.Rnd
         public override void Write(EndianWriter writer, bool standalone)
         {
             base.Write(writer, standalone);
-            writer.WriteUInt32(revision);
+            writer.WriteUInt16(altRevision);
+            writer.WriteUInt16(revision);
             writer.WriteInt32((int)mBlend);
             mColor.Write(writer);
             writer.WriteByte((byte)(mUseEnviron ? 1 : 0));

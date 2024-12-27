@@ -7,7 +7,8 @@ namespace MiloLib.Assets
     [Name("P9 Director"), Description("P9 Director, sits in each song file and manages camera + scene changes")]
     public class P9Director : Object
     {
-        public uint revision;
+        public ushort altRevision;
+        public ushort revision;
 
         public ObjectFields objFields1 = new();
         public ObjectFields objFields2 = new();
@@ -18,7 +19,8 @@ namespace MiloLib.Assets
 
         public P9Director Read(EndianReader reader, bool standalone)
         {
-            revision = reader.ReadUInt32();
+            altRevision = reader.ReadUInt16();
+            revision = reader.ReadUInt16();
 
             if (revision != 5)
                 throw new UnsupportedAssetRevisionException("P9Director", revision);
@@ -36,7 +38,8 @@ namespace MiloLib.Assets
 
         public override void Write(EndianWriter writer, bool standalone)
         {
-            writer.WriteUInt32(revision);
+            writer.WriteUInt16(altRevision);
+            writer.WriteUInt16(revision);
 
             objFields1.Write(writer);
             objFields2.Write(writer);

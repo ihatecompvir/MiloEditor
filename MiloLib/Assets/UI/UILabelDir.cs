@@ -8,7 +8,8 @@ namespace MiloLib.Assets.UI
     [Name("UIFontImporter")]
     public class UIFontImporter
     {
-        public uint revision;
+        public ushort altRevision;
+        public ushort revision;
 
         public bool includeLowerCase;
         public bool includeUpperCase;
@@ -60,7 +61,8 @@ namespace MiloLib.Assets.UI
 
         public UIFontImporter Read(EndianReader reader, bool standalone)
         {
-            revision = reader.ReadUInt32();
+            altRevision = reader.ReadUInt16();
+            revision = reader.ReadUInt16();
 
             if (revision != 9)
             {
@@ -131,7 +133,8 @@ namespace MiloLib.Assets.UI
 
         public void Write(EndianWriter writer, bool standalone)
         {
-            writer.WriteUInt32(revision);
+            writer.WriteUInt16(altRevision);
+            writer.WriteUInt16(revision);
 
             writer.WriteBoolean(includeLowerCase);
             writer.WriteBoolean(includeUpperCase);
@@ -199,7 +202,8 @@ namespace MiloLib.Assets.UI
     [Name("UILabelDir"), Description("Top-level resource object for UILabels")]
     public class UILabelDir : RndDir
     {
-        public new uint revision;
+        public ushort altRevision;
+        public ushort revision;
 
         public Symbol textObject = new(0, "");
 
@@ -227,7 +231,8 @@ namespace MiloLib.Assets.UI
 
         public UILabelDir Read(EndianReader reader, bool standalone)
         {
-            revision = reader.ReadUInt32();
+            altRevision = reader.ReadUInt16();
+            revision = reader.ReadUInt16();
 
             base.Read(reader, false);
 
@@ -279,7 +284,8 @@ namespace MiloLib.Assets.UI
 
         public override void Write(EndianWriter writer, bool standalone)
         {
-            writer.WriteUInt32(revision);
+            writer.WriteUInt16(altRevision);
+            writer.WriteUInt16(revision);
 
             base.Write(writer, false);
 

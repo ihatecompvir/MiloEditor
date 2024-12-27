@@ -28,7 +28,8 @@ namespace MiloLib.Assets.Char
 
         public CharClipSet Read(EndianReader reader, bool standalone)
         {
-            revision = reader.ReadUInt32();
+            altRevision = reader.ReadUInt16();
+            revision = reader.ReadUInt16();
 
             base.Read(reader, false);
 

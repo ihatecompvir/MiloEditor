@@ -11,7 +11,8 @@ namespace MiloLib.Assets
     [Name("ColorPalette"), Description("List of primary/secondary colors for OutfitConfig")]
     public class ColorPalette : Object
     {
-        public uint revision;
+        public ushort altRevision;
+        public ushort revision;
 
         private uint colorCount;
 
@@ -20,7 +21,8 @@ namespace MiloLib.Assets
 
         public ColorPalette Read(EndianReader reader, bool standalone)
         {
-            revision = reader.ReadUInt32();
+            altRevision = reader.ReadUInt16();
+            revision = reader.ReadUInt16();
 
             if (revision != 1)
             {
@@ -49,7 +51,8 @@ namespace MiloLib.Assets
 
         public override void Write(EndianWriter writer, bool standalone)
         {
-            writer.WriteUInt32(revision);
+            writer.WriteUInt16(altRevision);
+            writer.WriteUInt16(revision);
             base.Write(writer, false);
 
             writer.WriteUInt32((uint)colors.Count);

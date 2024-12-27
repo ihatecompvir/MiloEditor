@@ -270,7 +270,8 @@ namespace MiloLib.Assets.Band
     [Name("BandCharDesc"), Description("Band Character Description, contains all physical appearance attributes.")]
     public class BandCharDesc : Object
     {
-        public uint revision; // Constant for version 0x11 (17)
+        public ushort altRevision;
+        public ushort revision; // Constant for version 0x11 (17)
 
         [Name("Prefab"), Description("Prefab name if this is a non-editable prefab")]
         public Symbol prefab;
@@ -303,7 +304,8 @@ namespace MiloLib.Assets.Band
 
         public BandCharDesc Read(EndianReader reader, bool standalone)
         {
-            revision = reader.ReadUInt32();
+            altRevision = reader.ReadUInt16();
+            revision = reader.ReadUInt16();
             base.Read(reader, false);
             prefab = Symbol.Read(reader);
 
@@ -346,7 +348,8 @@ namespace MiloLib.Assets.Band
 
         public override void Write(EndianWriter writer, bool standalone)
         {
-            writer.WriteUInt32(revision);
+            writer.WriteUInt16(altRevision);
+            writer.WriteUInt16(revision);
             base.Write(writer, false);
             Symbol.Write(writer, prefab);
             Symbol.Write(writer, gender);

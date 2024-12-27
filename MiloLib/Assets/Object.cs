@@ -177,8 +177,11 @@ namespace MiloLib.Assets
             }
         }
 
+        [Name("Alt Revision"), Description("The alternate revision of the Object.")]
+        public ushort metadataAltRevision;
+
         [Name("Revision"), Description("The revision of the Object.")]
-        public uint metadataRevision;
+        public ushort metadataRevision;
 
         [Name("Type"), Description("The subtype of the object. Not the same as the asset type.")]
         public Symbol type = new Symbol(0, "");
@@ -196,7 +199,8 @@ namespace MiloLib.Assets
 
         public ObjectFields Read(EndianReader reader)
         {
-            metadataRevision = reader.ReadUInt32();
+            metadataAltRevision = reader.ReadUInt16();
+            metadataRevision = reader.ReadUInt16();
             type = Symbol.Read(reader);
             hasTree = reader.ReadBoolean();
 
@@ -212,7 +216,8 @@ namespace MiloLib.Assets
 
         public void Write(EndianWriter writer)
         {
-            writer.WriteUInt32(metadataRevision);
+            writer.WriteUInt16(metadataAltRevision);
+            writer.WriteUInt16(metadataRevision);
             Symbol.Write(writer, type);
             writer.WriteByte(hasTree ? (byte)1 : (byte)0);
 

@@ -7,7 +7,8 @@ namespace MiloLib.Assets.Rnd
     [Name("RndParticleSys"), Description("A particle system")]
     public class RndParticleSys : Object
     {
-        public uint revision;
+        public ushort altRevision;
+        public ushort revision;
 
         public ObjectFields obj1 = new();
         public ObjectFields obj2 = new();
@@ -108,7 +109,8 @@ namespace MiloLib.Assets.Rnd
 
         public RndParticleSys Read(EndianReader reader, bool standalone)
         {
-            revision = reader.ReadUInt32();
+            altRevision = reader.ReadUInt16();
+            revision = reader.ReadUInt16();
 
             obj1.Read(reader);
             obj2.Read(reader);
@@ -255,7 +257,8 @@ namespace MiloLib.Assets.Rnd
 
         public override void Write(EndianWriter writer, bool standalone)
         {
-            writer.WriteUInt32(revision);
+            writer.WriteUInt16(altRevision);
+            writer.WriteUInt16(revision);
 
             obj1.Write(writer);
             obj2.Write(writer);

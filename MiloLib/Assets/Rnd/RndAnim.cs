@@ -15,7 +15,8 @@ namespace MiloLib.Assets.Rnd
             k30_fps_tutorial
         }
 
-        public uint revision;
+        public ushort altRevision;
+        public ushort revision;
 
         [Name("Frame"), Description("Frame of animation")]
         public float frame;
@@ -25,7 +26,8 @@ namespace MiloLib.Assets.Rnd
 
         public RndAnim Read(EndianReader reader)
         {
-            revision = reader.ReadUInt32();
+            altRevision = reader.ReadUInt16();
+            revision = reader.ReadUInt16();
 
             if (revision != 4)
             {
@@ -39,7 +41,8 @@ namespace MiloLib.Assets.Rnd
 
         public void Write(EndianWriter writer)
         {
-            writer.WriteUInt32(revision);
+            writer.WriteUInt16(altRevision);
+            writer.WriteUInt16(revision);
             writer.WriteFloat(frame);
             writer.WriteUInt32((uint)rate);
         }

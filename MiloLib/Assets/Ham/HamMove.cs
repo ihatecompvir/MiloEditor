@@ -54,7 +54,8 @@ namespace MiloLib.Assets.Ham
             public uint unk5;
         }
 
-        public uint revision;
+        public ushort altRevision;
+        public ushort revision;
 
         // TODO: add propanim template
         // public PropAnim propAnim;
@@ -85,7 +86,8 @@ namespace MiloLib.Assets.Ham
 
         public HamMove Read(EndianReader reader, bool standalone)
         {
-            revision = reader.ReadUInt32();
+            altRevision = reader.ReadUInt16();
+            revision = reader.ReadUInt16();
             // propAnim = PropAnim.Read(reader);
 
             unk = reader.ReadUInt32();

@@ -17,7 +17,8 @@ namespace MiloLib.Assets
             SubDir = 3,
         }
 
-        public uint revision;
+        public ushort altRevision;
+        public ushort revision;
 
         [Name("Viewport Count"), Description("The number of viewports.")]
         private uint viewportCount;
@@ -66,7 +67,8 @@ namespace MiloLib.Assets
 
         public ObjectDir Read(EndianReader reader, bool standalone)
         {
-            revision = reader.ReadUInt32();
+            altRevision = reader.ReadUInt16();
+            revision = reader.ReadUInt16();
 
             if (revision < 22)
             {
@@ -77,7 +79,8 @@ namespace MiloLib.Assets
             }
             else
             {
-                objFields.metadataRevision = reader.ReadUInt32();
+                objFields.metadataAltRevision = reader.ReadUInt16();
+                objFields.metadataRevision = reader.ReadUInt16();
                 objFields.type = Symbol.Read(reader);
             }
 
@@ -251,7 +254,8 @@ namespace MiloLib.Assets
 
         public override void Write(EndianWriter writer, bool standalone)
         {
-            writer.WriteUInt32(revision);
+            writer.WriteUInt16(altRevision);
+            writer.WriteUInt16(revision);
             writer.WriteUInt32(objFields.metadataRevision);
             Symbol.Write(writer, objFields.type);
 

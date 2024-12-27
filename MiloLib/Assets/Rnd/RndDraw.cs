@@ -18,7 +18,8 @@ namespace MiloLib.Assets.Rnd
             kOverrideIncludeInDepthOnlyPass_DontInclude
         }
 
-        public uint revision;
+        public ushort altRevision;
+        public ushort revision;
 
         public bool showing;
 
@@ -32,7 +33,8 @@ namespace MiloLib.Assets.Rnd
 
         public RndDraw Read(EndianReader reader)
         {
-            revision = reader.ReadUInt32();
+            altRevision = reader.ReadUInt16();
+            revision = reader.ReadUInt16();
 
             showing = reader.ReadBoolean();
 
@@ -77,7 +79,8 @@ namespace MiloLib.Assets.Rnd
 
         public void Write(EndianWriter writer)
         {
-            writer.WriteUInt32(revision);
+            writer.WriteUInt16(altRevision);
+            writer.WriteUInt16(revision);
 
             writer.WriteBoolean(showing);
 

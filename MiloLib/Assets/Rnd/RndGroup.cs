@@ -6,7 +6,8 @@ namespace MiloLib.Assets.Rnd
     [Name("Group"), Description("Represents a group of objects to which to propogate animation and messages.")]
     public class RndGroup : Object
     {
-        public uint revision;
+        public ushort altRevision;
+        public ushort revision;
 
         public RndAnim anim;
 
@@ -33,7 +34,8 @@ namespace MiloLib.Assets.Rnd
 
         public RndGroup Read(EndianReader reader, bool standalone)
         {
-            revision = reader.ReadUInt32();
+            altRevision = reader.ReadUInt16();
+            revision = reader.ReadUInt16();
 
             if (revision != 14)
             {
@@ -72,7 +74,8 @@ namespace MiloLib.Assets.Rnd
 
         public override void Write(EndianWriter writer, bool standalone)
         {
-            writer.WriteUInt32(revision);
+            writer.WriteUInt16(altRevision);
+            writer.WriteUInt16(revision);
             base.Write(writer, false);
             anim.Write(writer);
             trans.Write(writer, false);

@@ -9,7 +9,8 @@ namespace MiloLib.Assets
     [Name("Sfx"), Description("Basic sound effect object.  Plays several samples with a given volume, pan, transpose, and envelope settings.")]
     public class Sfx : Object
     {
-        public uint revision { get; set; }
+        public ushort altRevision;
+        public ushort revision;
 
         [MinVersion(4), Name("Send"), Description("Effect chain to use")]
         public Symbol sendObj;
@@ -39,7 +40,8 @@ namespace MiloLib.Assets
 
         public Sfx Read(EndianReader reader, bool standalone)
         {
-            revision = reader.ReadUInt32();
+            altRevision = reader.ReadUInt16();
+            revision = reader.ReadUInt16();
 
             sequence = sequence.Read(reader);
 
@@ -87,7 +89,8 @@ namespace MiloLib.Assets
 
         public override void Write(EndianWriter writer, bool standalone)
         {
-            writer.WriteUInt32(revision);
+            writer.WriteUInt16(altRevision);
+            writer.WriteUInt16(revision);
             base.Write(writer, standalone);
 
             sequence.Write(writer, standalone);
@@ -126,7 +129,8 @@ namespace MiloLib.Assets
 
     public class Sequence : Object
     {
-        public uint revision;
+        public ushort altRevision;
+        public ushort revision;
         public float avgVol;
         public float volSpread;
         public float avgTranspose;
@@ -137,7 +141,8 @@ namespace MiloLib.Assets
 
         public Sequence Read(EndianReader reader)
         {
-            revision = reader.ReadUInt32();
+            altRevision = reader.ReadUInt16();
+            revision = reader.ReadUInt16();
 
             if (2 < revision)
                 base.Read(reader, false);
@@ -157,7 +162,8 @@ namespace MiloLib.Assets
 
         public override void Write(EndianWriter writer, bool standalone)
         {
-            writer.WriteUInt32(revision);
+            writer.WriteUInt16(altRevision);
+            writer.WriteUInt16(revision);
 
             if (2 < revision)
                 base.Write(writer, standalone);
@@ -220,14 +226,16 @@ namespace MiloLib.Assets
 
 public class FaderGroup
 {
-    public uint revision;
+    public ushort altRevision;
+    public ushort revision;
     private int fadersCount;
     [Name("Faders"), Description("Faders affecting this sound effect")]
     public List<Symbol> faders = new List<Symbol>();
 
     public FaderGroup Read(EndianReader reader)
     {
-        revision = reader.ReadUInt32();
+        altRevision = reader.ReadUInt16();
+        revision = reader.ReadUInt16();
         fadersCount = reader.ReadInt32();
 
         // sanity check on faders count
@@ -246,7 +254,8 @@ public class FaderGroup
     public void Write(EndianWriter writer)
     {
 
-        writer.WriteUInt32(revision);
+        writer.WriteUInt16(altRevision);
+        writer.WriteUInt16(revision);
         writer.WriteInt32(faders.Count);
         foreach (var fader in faders)
             Symbol.Write(writer, fader);
@@ -255,7 +264,8 @@ public class FaderGroup
 
 public class ADSR
 {
-    public uint revision;
+    public ushort altRevision;
+    public ushort revision;
     [Name("Sustain Level"), Description("Level of sustain volume (0-1)")]
     public float sustainLevel;
     [Name("Release Rate"), Description("Duration of release in seconds")]
@@ -275,7 +285,8 @@ public class ADSR
 
     public void Read(EndianReader reader)
     {
-        revision = reader.ReadUInt32();
+        altRevision = reader.ReadUInt16();
+        revision = reader.ReadUInt16();
 
         if (revision != 1)
         {
@@ -295,7 +306,8 @@ public class ADSR
 
     public void Write(EndianWriter writer)
     {
-        writer.WriteUInt32(revision);
+        writer.WriteUInt16(altRevision);
+        writer.WriteUInt16(revision);
         writer.WriteFloat(sustainLevel);
         writer.WriteFloat(releaseRate);
         writer.WriteFloat(sustainRate);

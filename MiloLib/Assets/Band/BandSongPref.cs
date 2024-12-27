@@ -6,12 +6,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MiloLib.Assets
+namespace MiloLib.Assets.Band
 {
     [Name("BandSongPref"), Description("Band Song Preferences, per song file settable properties")]
     public class BandSongPref : Object
     {
-        public uint revision;
+        public ushort altRevision;
+        public ushort revision;
 
         [Name("Part 2 Instrument"), Description("Who should sing the vocal part2?")]
         public Symbol part2Instrument = new(0, "");
@@ -27,7 +28,8 @@ namespace MiloLib.Assets
 
         public new BandSongPref Read(EndianReader reader, bool standalone)
         {
-            revision = reader.ReadUInt32();
+            altRevision = reader.ReadUInt16();
+            revision = reader.ReadUInt16();
 
             if (revision != 3)
             {
@@ -50,7 +52,8 @@ namespace MiloLib.Assets
 
         public override void Write(EndianWriter writer, bool standalone)
         {
-            writer.WriteUInt32(revision);
+            writer.WriteUInt16(altRevision);
+            writer.WriteUInt16(revision);
             objFields.Write(writer);
 
             Symbol.Write(writer, part2Instrument);

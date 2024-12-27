@@ -7,7 +7,8 @@ namespace MiloLib.Assets
     [Name("GroupSeq"), Description("A sequence which plays other sequences.  Abstract base class.")]
     public class GroupSeq : Object
     {
-        public uint revision;
+        public ushort altRevision;
+        public ushort revision;
 
         public Sequence seq = new();
 
@@ -16,7 +17,8 @@ namespace MiloLib.Assets
 
         public GroupSeq Read(EndianReader reader, bool standalone)
         {
-            revision = reader.ReadUInt32();
+            altRevision = reader.ReadUInt16();
+            revision = reader.ReadUInt16();
 
             if (1 < revision)
             {
@@ -39,7 +41,8 @@ namespace MiloLib.Assets
 
         public override void Write(EndianWriter writer, bool standalone)
         {
-            writer.WriteUInt32(revision);
+            writer.WriteUInt16(altRevision);
+            writer.WriteUInt16(revision);
 
             if (1 < revision)
             {

@@ -6,7 +6,8 @@ namespace MiloLib.Assets.Rnd
     [Name("RndDir"), Description("A RndDir specially tracks drawable and animatable objects.")]
     public class RndDir : ObjectDir
     {
-        public uint revision;
+        public ushort altRevision;
+        public ushort revision;
 
         [Name("Anim")]
         public RndAnim anim = new();
@@ -26,7 +27,8 @@ namespace MiloLib.Assets.Rnd
 
         public RndDir Read(EndianReader reader, bool standalone)
         {
-            revision = reader.ReadUInt32();
+            altRevision = reader.ReadUInt16();
+            revision = reader.ReadUInt16();
 
             base.Read(reader, false);
 
@@ -61,7 +63,8 @@ namespace MiloLib.Assets.Rnd
 
         public override void Write(EndianWriter writer, bool standalone)
         {
-            writer.WriteUInt32(revision);
+            writer.WriteUInt16(altRevision);
+            writer.WriteUInt16(revision);
 
             base.Write(writer, false);
 
