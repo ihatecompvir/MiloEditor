@@ -285,11 +285,11 @@ namespace MiloEditor
             }
 
         }
-        private void ReplaceAsset(TreeNode node) { }
+        private void ReplaceAsset(TreeNode node) { MessageBox.Show("Unimplemented"); }
 
-        private void DeleteDirectory(TreeNode node) { /* Implement delete directory logic */ }
-        private void DuplicateDirectory(TreeNode node) { /* Implement duplicate directory logic */ }
-        private void RenameDirectory(TreeNode node) { /* Implement rename directory logic */ }
+        private void DeleteDirectory(TreeNode node) { MessageBox.Show("Unimplemented"); }
+        private void DuplicateDirectory(TreeNode node) { MessageBox.Show("Unimplemented"); }
+        private void RenameDirectory(TreeNode node) { MessageBox.Show("Unimplemented"); }
         private void ImportAsset(TreeNode node)
         {
             // create a popup to ask for the file to import
@@ -370,25 +370,37 @@ namespace MiloEditor
 
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            // just for testing so we don't overwrite the original milo
-            // TODO: make it actually save to the original file in the future when we know we didn't break anything
-            currentMiloScene.Save("test.milo_xbox");
+            if (currentMiloScene != null)
+            {
+                // just for testing so we don't overwrite the original milo
+                // TODO: make it actually save to the original file in the future when we know we didn't break anything
+                currentMiloScene.Save("test.milo_xbox", MiloFile.Type.Uncompressed);
+            } else
+            {
+                MessageBox.Show("No Milo scene loaded to save!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void saveAsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            // open Save As panel
-            SaveFileDialog saveFileDialog = new SaveFileDialog
+            if (currentMiloScene != null)
             {
-                Filter = "Milo Files (*.milo_xbox)|*.milo_xbox",
-                Title = "Save Milo File As...",
-                FileName = currentMiloScene.dirMeta.name
-            };
+                // open Save As panel
+                SaveFileDialog saveFileDialog = new SaveFileDialog
+                {
+                    Filter = "Xbox 360 Milo Scenes (milo.xbox)|*.milo_xbox|PlayStation 3 Milo Scenes (milo_ps3)|*.milo_ps3|PlayStation 2 Milo Scenes (milo_ps2)|*.milo_ps2|Wii Milo Scenes (milo_wii)|*.milo_wii|PC/iPod Milo Scenes (milo_pc)|*.milo_pc|Rnd Scenes (.rnd)|*.rnd",
+                    Title = "Save Milo Scene As...",
+                    FileName = currentMiloScene.dirMeta.name
+                };
 
-            // present it
-            if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                // present it
+                if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    currentMiloScene.Save(saveFileDialog.FileName, MiloFile.Type.Uncompressed);
+                }
+            } else
             {
-                currentMiloScene.Save(saveFileDialog.FileName);
+                MessageBox.Show("No Milo scene loaded to save!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -397,8 +409,8 @@ namespace MiloEditor
             // open file dialog and then open the selected file
             OpenFileDialog openFileDialog = new OpenFileDialog
             {
-                Filter = "Milo Files (*.milo_xbox)|*.milo_xbox",
-                Title = "Open Milo File"
+                Filter = "Xbox 360 Milo Scenes (milo.xbox)|*.milo_xbox|PlayStation 3 Milo Scenes (milo_ps3)|*.milo_ps3|PlayStation 2 Milo Scenes (milo_ps2)|*.milo_ps2|Wii Milo Scenes (milo_wii)|*.milo_wii|PC/iPod Milo Scenes (milo_pc)|*.milo_pc|Rnd Scenes (.rnd)|*.rnd",
+                Title = "Open Milo Scene"
             };
 
             if (openFileDialog.ShowDialog() == DialogResult.OK)
