@@ -244,7 +244,31 @@ namespace MiloEditor
             // redraw the UI
             PopulateListWithEntries();
         }
-        private void DuplicateAsset(TreeNode node) { /* Implement duplicate logic */ }
+        private void DuplicateAsset(TreeNode node)
+        {
+            // get the parent dir of the node
+            TreeNode parent = node.Parent;
+
+            DirectoryMeta directoryEntry = (DirectoryMeta)parent.Tag;
+
+            // convert our node's tag to an Object
+            DirectoryMeta.Entry entry = (DirectoryMeta.Entry)node.Tag;
+
+            // create a new entry
+            DirectoryMeta.Entry newEntry = new DirectoryMeta.Entry(entry);
+
+            // bring up a dialog to get the new name
+            string newName = Microsoft.VisualBasic.Interaction.InputBox("Enter the new name for the asset", "Duplicate Asset", entry.name.value);
+
+            // set the new name
+            newEntry.name = newName;
+
+            // add the entry to the parent dir
+            directoryEntry.entries.Add(newEntry);
+
+            // redraw the UI
+            PopulateListWithEntries();
+        }
         private void RenameAsset(TreeNode node)
         {
             // get the parent dir of the node
@@ -375,7 +399,8 @@ namespace MiloEditor
                 // just for testing so we don't overwrite the original milo
                 // TODO: make it actually save to the original file in the future when we know we didn't break anything
                 currentMiloScene.Save("test.milo_xbox", MiloFile.Type.Uncompressed);
-            } else
+            }
+            else
             {
                 MessageBox.Show("No Milo scene loaded to save!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
@@ -398,7 +423,8 @@ namespace MiloEditor
                 {
                     currentMiloScene.Save(saveFileDialog.FileName, MiloFile.Type.Uncompressed);
                 }
-            } else
+            }
+            else
             {
                 MessageBox.Show("No Milo scene loaded to save!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }

@@ -1,5 +1,6 @@
 ﻿using MiloLib.Assets.Band;
 using MiloLib.Assets.Char;
+using MiloLib.Assets.P9;
 using MiloLib.Assets.Rnd;
 using MiloLib.Assets.UI;
 using MiloLib.Classes;
@@ -224,6 +225,13 @@ namespace MiloLib.Assets
                         entry.dir = new DirectoryMeta().Read(reader);
                         break;
 
+                    case "P9Character":
+                        Debug.WriteLine("Reading entry P9Character " + entry.name.value);
+                        entry.obj = new P9Character().Read(reader, true);
+
+                        entry.dir = new DirectoryMeta().Read(reader);
+                        break;
+
                     case "CharClipSet":
                         Debug.WriteLine("Reading entry CharClipSet " + entry.name.value);
                         entry.obj = new CharClipSet().Read(reader, true);
@@ -252,6 +260,10 @@ namespace MiloLib.Assets
                     case "Group":
                         Debug.WriteLine("Reading entry Group " + entry.name.value);
                         entry.obj = new RndGroup().Read(reader, true);
+                        break;
+                    case "P9Director":
+                        Debug.WriteLine("Reading entry P9Director " + entry.name.value);
+                        entry.obj = new P9Director().Read(reader, true);
                         break;
                     // TODO: figure out how to read textures properly
                     //case "Tex":
@@ -357,6 +369,9 @@ namespace MiloLib.Assets
                 case "Character":
                     ((Character)dirObj).Write(writer, true);
                     break;
+                case "P9Character":
+                    ((P9Character)dirObj).Write(writer, true);
+                    break;
                 case "CharClipSet":
                     ((CharClipSet)dirObj).Write(writer, true);
                     break;
@@ -394,6 +409,9 @@ namespace MiloLib.Assets
                         break;
                     case "Character":
                         ((Character)entry.obj).Write(writer, false);
+                        break;
+                    case "P9Character":
+                        ((P9Character)entry.obj).Write(writer, false);
                         break;
                     case "CharClipSet":
                         ((CharClipSet)entry.obj).Write(writer, false);
@@ -469,6 +487,9 @@ namespace MiloLib.Assets
                     break;
                 case "Character":
                     dir.dirObj = new Character();
+                    break;
+                case "P9Character":
+                    dir.dirObj = new P9Character();
                     break;
                 case "CharClipSet":
                     dir.dirObj = new CharClipSet();

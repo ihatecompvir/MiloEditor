@@ -2,7 +2,7 @@ using MiloLib.Assets.Rnd;
 using MiloLib.Classes;
 using MiloLib.Utils;
 
-namespace MiloLib.Assets
+namespace MiloLib.Assets.P9
 {
     [Name("P9 Director"), Description("P9 Director, sits in each song file and manages camera + scene changes")]
     public class P9Director : Object

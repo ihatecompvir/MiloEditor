@@ -22,8 +22,8 @@ namespace MiloLib.Assets.Char
             public Symbol teleportTo = new(0, "");
             public Symbol teleportFrom = new(0, "");
             public Symbol distMap = new(0, "");
-            public uint unk;
-            public bool unkBool1;
+            public uint transition;
+            public bool cycleTransition;
             public bool unkBool2;
             public bool unkBool3;
             public bool unkBool4;
@@ -54,8 +54,8 @@ namespace MiloLib.Assets.Char
                     return this;
                 }
 
-                unk = reader.ReadUInt32();
-                unkBool1 = reader.ReadBoolean();
+                transition = reader.ReadUInt32();
+                cycleTransition = reader.ReadBoolean();
                 unk3 = reader.ReadUInt32();
 
                 if (revision == 15)
@@ -103,8 +103,8 @@ namespace MiloLib.Assets.Char
                     return;
                 }
 
-                writer.WriteUInt32(unk);
-                writer.WriteByte(unkBool1 ? (byte)1 : (byte)0);
+                writer.WriteUInt32(transition);
+                writer.WriteByte(cycleTransition ? (byte)1 : (byte)0);
                 writer.WriteUInt32(unk3);
                 writer.WriteByte(unk4 ? (byte)1 : (byte)0);
                 writer.WriteUInt32(unk5);
@@ -185,8 +185,8 @@ namespace MiloLib.Assets.Char
             if (revision > 0x10)
                 translucentGroup = Symbol.Read(reader);
 
-            if (revision <= 15)
-                charTest = new CharacterTest().Read(reader);
+
+            charTest = new CharacterTest().Read(reader);
 
             if (standalone)
                 if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");
