@@ -24,15 +24,11 @@ namespace MiloLib.Assets.Char
 
         [Name("Still Clip"), Description("Set this to view drummer play anims")]
         public Symbol stillClip = new(0, "");
+        public Symbol unkSymbol = new(0, "");
 
         public CharClipSet Read(EndianReader reader, bool standalone)
         {
             revision = reader.ReadUInt32();
-
-            if (revision != 25)
-            {
-                throw new UnsupportedAssetRevisionException("CharClipSet", revision);
-            }
 
             base.Read(reader, false);
 
@@ -42,6 +38,11 @@ namespace MiloLib.Assets.Char
             bpm = reader.ReadUInt32();
             previewWalk = reader.ReadBoolean();
             stillClip = Symbol.Read(reader);
+
+            if (revision >= 25)
+            {
+                unkSymbol = Symbol.Read(reader);
+            }
 
             if (standalone)
             {

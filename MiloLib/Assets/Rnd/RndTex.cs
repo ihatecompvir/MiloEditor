@@ -21,7 +21,7 @@ namespace MiloLib.Assets.Rnd
         [Name("External Path"), Description("Path to the texture to be loaded externally.")]
         public Symbol externalPath = new(0, "");
 
-        public float index;
+        public float indexFloat;
         public uint index2;
 
         public bool unk;
@@ -36,13 +36,8 @@ namespace MiloLib.Assets.Rnd
         {
             revision = reader.ReadUInt32();
 
-            if (revision != 11)
-            {
-                throw new UnsupportedAssetRevisionException("RndTex", revision);
-            }
-
-
-            base.Read(reader, false);
+            if (revision > 8)
+                base.Read(reader, false);
 
             width = reader.ReadUInt32();
             height = reader.ReadUInt32();
@@ -51,11 +46,17 @@ namespace MiloLib.Assets.Rnd
 
             externalPath = Symbol.Read(reader);
 
-            index = reader.ReadFloat();
+            if (revision >= 8)
+                indexFloat = reader.ReadFloat();
             index2 = reader.ReadUInt32();
 
-            unk = reader.ReadBoolean();
-            useExternalPath = reader.ReadBoolean();
+            if (revision >= 11)
+                unk = reader.ReadBoolean();
+
+            if (revision != 7)
+                useExternalPath = reader.ReadBoolean();
+            else
+                useExternalPath = reader.ReadUInt32() == 1;
 
             bitmap = new RndBitmap().Read(reader, false);
 
@@ -80,7 +81,7 @@ namespace MiloLib.Assets.Rnd
 
             Symbol.Write(writer, externalPath);
 
-            writer.WriteFloat(index);
+            writer.WriteFloat(indexFloat);
             writer.WriteUInt32(index2);
 
             writer.WriteByte(unk ? (byte)1 : (byte)0);

@@ -253,10 +253,11 @@ namespace MiloLib.Assets
                         Debug.WriteLine("Reading entry Group " + entry.name.value);
                         entry.obj = new RndGroup().Read(reader, true);
                         break;
-                    case "Tex":
-                        Debug.WriteLine("Reading entry Tex " + entry.name.value);
-                        entry.obj = new RndTex().Read(reader, true);
-                        break;
+                    // TODO: figure out how to read textures properly
+                    //case "Tex":
+                    //    Debug.WriteLine("Reading entry Tex " + entry.name.value);
+                    //    entry.obj = new RndTex().Read(reader, true);
+                    //    break;
                     case "ColorPalette":
                         Debug.WriteLine("Reading entry ColorPalette " + entry.name.value);
                         entry.obj = new ColorPalette().Read(reader, true);

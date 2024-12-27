@@ -22,10 +22,20 @@ namespace MiloLib.Assets.Char
             public Symbol teleportFrom = new(0, "");
             public Symbol distMap = new(0, "");
             public uint unk;
-            public bool unk2;
+            public bool unkBool1;
+            public bool unkBool2;
+            public bool unkBool3;
+            public bool unkBool4;
+            public bool unkBool5;
+            public bool unkBool6;
             public uint unk3;
             public bool unk4;
             public uint unk5;
+            public uint unk6;
+            public uint bpm;
+            public float unkFloat;
+            public Symbol unkSymbol = new(0, "");
+            public Symbol unkSymbol2 = new(0, "");
 
             public CharacterTest Read(EndianReader reader)
             {
@@ -36,11 +46,42 @@ namespace MiloLib.Assets.Char
                 teleportTo = Symbol.Read(reader);
                 teleportFrom = Symbol.Read(reader);
                 distMap = Symbol.Read(reader);
+
+                if (revision <= 6)
+                {
+                    return this;
+                }
+
                 unk = reader.ReadUInt32();
-                unk2 = reader.ReadBoolean();
+                unkBool1 = reader.ReadBoolean();
                 unk3 = reader.ReadUInt32();
-                unk4 = reader.ReadBoolean();
-                unk5 = reader.ReadUInt32();
+
+                if (revision == 15)
+                {
+                    unk4 = reader.ReadBoolean();
+                    unk5 = reader.ReadUInt32();
+                }
+
+                if (revision == 8)
+                {
+
+                    unk6 = reader.ReadUInt32();
+
+                    unkBool2 = reader.ReadBoolean();
+                    unkBool3 = reader.ReadBoolean();
+                    unkBool4 = reader.ReadBoolean();
+
+                    unkSymbol = Symbol.Read(reader);
+
+                    unkBool5 = reader.ReadBoolean();
+                    unkBool6 = reader.ReadBoolean();
+
+                    bpm = reader.ReadUInt32();
+
+                    unkSymbol2 = Symbol.Read(reader);
+
+                    unkFloat = reader.ReadFloat();
+                }
                 return this;
             }
 
@@ -53,13 +94,21 @@ namespace MiloLib.Assets.Char
                 Symbol.Write(writer, teleportTo);
                 Symbol.Write(writer, teleportFrom);
                 Symbol.Write(writer, distMap);
+
+                if (revision <= 6)
+                {
+                    return;
+                }
+
                 writer.WriteUInt32(unk);
-                writer.WriteByte(unk2 ? (byte)1 : (byte)0);
+                writer.WriteByte(unkBool1 ? (byte)1 : (byte)0);
                 writer.WriteUInt32(unk3);
                 writer.WriteByte(unk4 ? (byte)1 : (byte)0);
                 writer.WriteUInt32(unk5);
             }
         }
+
+        public uint revision;
 
         private uint lodCount;
         public List<Symbol> lods = new();
@@ -75,21 +124,16 @@ namespace MiloLib.Assets.Char
 
         public bool frozen;
 
+        [Name("Minimum LOD"), Description("Forces LOD, kLODPerFrame is normal behavior of picking per frame, the others force the lod (0 is highest res lod, 2 is lowest res lod)")]
         public int minLod;
 
-        public Symbol transGroup = new(0, "");
+        public Symbol translucentGroup = new(0, "");
 
         public CharacterTest charTest = new();
 
         public Character Read(EndianReader reader, bool standalone)
         {
             revision = reader.ReadUInt32();
-
-            // only revisions 17 and 18 are supported
-            if (revision != 17 && revision != 18)
-            {
-                throw new UnsupportedAssetRevisionException("Character", revision);
-            }
 
             base.Read(reader, false);
 
@@ -99,31 +143,48 @@ namespace MiloLib.Assets.Char
                 lods.Add(Symbol.Read(reader));
             }
 
-            shadowCount = reader.ReadUInt32();
-            for (int i = 0; i < shadowCount; i++)
+            if (revision < 18)
             {
+                shadowCount = 1;
                 shadows.Add(Symbol.Read(reader));
             }
+            else
+            {
+                shadowCount = reader.ReadUInt32();
+                for (int i = 0; i < shadowCount; i++)
+                {
+                    shadows.Add(Symbol.Read(reader));
+                }
+            }
 
-            selfShadow = reader.ReadBoolean();
+            if (revision > 2)
+                selfShadow = reader.ReadBoolean();
 
             sphereBase = Symbol.Read(reader);
 
-            bounding = new();
-            bounding.Read(reader);
+            if (revision <= 9)
+                return this;
 
-            frozen = reader.ReadBoolean();
+            if (revision > 10)
+            {
+                bounding = new();
+                bounding.Read(reader);
+            }
 
-            minLod = reader.ReadInt32();
+            if (revision > 0xC)
+                frozen = reader.ReadBoolean();
 
-            transGroup = Symbol.Read(reader);
+            if (revision > 0xE)
+                minLod = reader.ReadInt32();
 
-            charTest = new CharacterTest().Read(reader);
+            if (revision > 0x10)
+                translucentGroup = Symbol.Read(reader);
+
+            if (revision <= 15)
+                charTest = new CharacterTest().Read(reader);
 
             if (standalone)
-            {
                 if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");
-            }
 
             return this;
         }
@@ -156,7 +217,7 @@ namespace MiloLib.Assets.Char
 
             writer.WriteInt32(minLod);
 
-            Symbol.Write(writer, transGroup);
+            Symbol.Write(writer, translucentGroup);
 
             charTest.Write(writer);
 

@@ -29,7 +29,7 @@ namespace MiloLib.Assets
         {
             revision = reader.ReadUInt32();
 
-            if (revision != 1)
+            if (revision != 3)
             {
                 throw new UnsupportedAssetRevisionException("BandSongPref", revision);
             }
