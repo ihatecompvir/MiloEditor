@@ -54,10 +54,13 @@ namespace MiloLib.Assets
         public Symbol type = new(0, "");
         public Symbol name = new(0, "");
 
-        private int stringTableCount;
-        private int stringTableSize;
+        private uint stringTableCount;
+        private uint stringTableSize;
 
-        private int entryCount;
+        private uint externalResourceCount;
+        private List<Symbol> externalResources = new List<Symbol>();
+
+        private uint entryCount;
         public List<Entry> entries = new List<Entry>();
 
         public Object dirObj;
@@ -66,7 +69,17 @@ namespace MiloLib.Assets
         {
             version = reader.ReadUInt32();
 
-            if (version != 0x1C)
+            // if the version is over 50, switch to little endian and attempt the read again to guess endianness
+            // this works well since the highest known version before switch to Forge was 32
+            if (version > 50)
+            {
+                reader.Endianness = Endian.LittleEndian;
+                reader.SeekTo(0);
+                version = reader.ReadUInt32();
+            }
+
+            // support freq<-->dc3 versions
+            if (version != 6 && version != 10 && version != 24 && version != 25 && version != 26 && version != 28 && version != 32)
             {
                 throw new UnsupportedMiloSceneRevision(version);
             }
@@ -74,15 +87,25 @@ namespace MiloLib.Assets
             type = Symbol.Read(reader);
             name = Symbol.Read(reader);
 
-            stringTableCount = reader.ReadInt32();
-            stringTableSize = reader.ReadInt32();
+            stringTableCount = reader.ReadUInt32();
+            stringTableSize = reader.ReadUInt32();
 
-            entryCount = reader.ReadInt32();
+            entryCount = reader.ReadUInt32();
 
             for (int i = 0; i < entryCount; i++)
             {
                 Entry entry = new Entry(Symbol.Read(reader), Symbol.Read(reader), null);
                 entries.Add(entry);
+            }
+
+            // only gh1-era stuff seems to have this
+            if (version == 10)
+            {
+                externalResourceCount = reader.ReadUInt32();
+                for (int i = 0; i < externalResourceCount; i++)
+                {
+                    externalResources.Add(Symbol.Read(reader));
+                }
             }
 
             // figure out how to read this directory depending on the type
@@ -306,7 +329,7 @@ namespace MiloLib.Assets
             Symbol.Write(writer, name);
 
             writer.WriteInt32((entries.Count * 2) + 2);
-            writer.WriteInt32(stringTableSize);
+            writer.WriteUInt32(stringTableSize);
 
             writer.WriteInt32(entries.Count);
 

@@ -23,7 +23,7 @@ namespace MiloLib
             CompressedGzip = 0xCCBEDEAF,
 
             // zlib compressed, with uncompressed size before the start of blocks
-            CompressedZlibAlt = 0xCDBEDEAF
+            CompressedZlibAlt = 0xCDBEDEAF,
         }
 
         /// <summary>
@@ -64,6 +64,15 @@ namespace MiloLib
             {
                 compressionType = (Type)reader.ReadUInt32();
 
+                // detect if the type is one of the compressed types
+                if (compressionType != Type.Uncompressed && compressionType != Type.CompressedZlib && compressionType != Type.CompressedGzip && compressionType != Type.CompressedZlibAlt)
+                {
+                    // this might be a headerless milo (e.g. Phase .milo_pc) so treat it as such and just start reading the root directory
+                    reader.SeekTo(0);
+                    dirMeta = new DirectoryMeta().Read(reader);
+                    return;
+                }
+
                 startOffset = reader.ReadUInt32();
 
                 uint numBlocks = reader.ReadUInt32();
@@ -85,25 +94,10 @@ namespace MiloLib
 
                         for (int i = 0; i < numBlocks; i++)
                         {
-                            bool compressed = (blockSizes[i] & 0xFF000000) != 0;
-
-                            if (compressed)
-                            {
-                                blockSizes[i] &= 0x00FFFFFF;
-                            }
-
                             MemoryStream blockStream = new MemoryStream(reader.ReadBlock((int)blockSizes[i]));
 
-
-                            if (compressed)
-                            {
-                                InflaterInputStream inflater = new InflaterInputStream(blockStream);
-                                inflater.CopyTo(compressedStream);
-                            }
-                            else
-                            {
-                                blockStream.CopyTo(compressedStream);
-                            }
+                            InflaterInputStream inflater = new InflaterInputStream(blockStream, new Inflater(true));
+                            inflater.CopyTo(compressedStream);
                         }
 
                         EndianReader decompressedReader = new EndianReader(compressedStream, Endian.BigEndian);

@@ -239,9 +239,6 @@ namespace MiloLib.Assets
         }
     }
 
-    /// <summary>
-    /// The Object class is the root of the class hierarchy. Every class has Object as a superclass.
-    /// </summary>
     [Name("Object"), Description("The Object class is the root of the class hierarchy. Every class has Object as a superclass.")]
     public class Object
     {

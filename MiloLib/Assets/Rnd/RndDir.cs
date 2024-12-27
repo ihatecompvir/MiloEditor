@@ -8,23 +8,25 @@ namespace MiloLib.Assets.Rnd
     {
         public uint revision;
 
+        [Name("Anim")]
         public RndAnim anim = new();
+        [Name("Draw")]
         public RndDraw draw = new();
+        [Name("Trans")]
         public RndTrans trans = new();
 
+        [Name("Environ"), MinVersion(9)]
         public Symbol environ = new(0, "");
 
-        [Name("Test Event"), Description("Test event")]
+        [Name("Test Event"), Description("Test event"), MinVersion(10)]
         public Symbol testEvent = new(0, "");
+
+        [Name("Unknown Floats"), Description("Unknown floats only found in the GH2 4-song demo."), MinVersion(6), MaxVersion(6)]
+        public List<float> unknownFloats = new();
 
         public RndDir Read(EndianReader reader, bool standalone)
         {
             revision = reader.ReadUInt32();
-
-            if (revision != 10)
-            {
-                throw new UnsupportedAssetRevisionException("RndDir", revision);
-            }
 
             base.Read(reader, false);
 
@@ -32,14 +34,27 @@ namespace MiloLib.Assets.Rnd
             draw = draw.Read(reader);
             trans = trans.Read(reader, false);
 
-            environ = Symbol.Read(reader);
+            if (revision < 9)
+            {
+                // TODO: add Poll and read it here
+            }
+            else
+            {
+                environ = Symbol.Read(reader);
+                if (revision >= 10)
+                    testEvent = Symbol.Read(reader);
+            }
 
-            testEvent = Symbol.Read(reader);
+            if (revision == 6)
+            {
+                for (int i = 0; i < 8; i++)
+                {
+                    unknownFloats.Add(reader.ReadFloat());
+                }
+            }
 
             if (standalone)
-            {
                 if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");
-            }
 
             return this;
         }
@@ -54,8 +69,24 @@ namespace MiloLib.Assets.Rnd
             draw.Write(writer);
             trans.Write(writer, false);
 
-            Symbol.Write(writer, environ);
-            Symbol.Write(writer, testEvent);
+            if (revision < 9)
+            {
+                // TODO: add Poll and write it here
+            }
+            else
+            {
+                Symbol.Write(writer, environ);
+                if (revision >= 10)
+                    Symbol.Write(writer, testEvent);
+            }
+
+            if (revision == 6)
+            {
+                for (int i = 0; i < 8; i++)
+                {
+                    writer.WriteFloat(unknownFloats[i]);
+                }
+            }
 
             if (standalone)
             {

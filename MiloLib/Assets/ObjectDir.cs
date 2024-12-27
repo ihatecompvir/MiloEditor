@@ -57,101 +57,188 @@ namespace MiloLib.Assets
         public Symbol unknownString = new(0, "");
         public Symbol unknownString2 = new(0, "");
 
+        public Symbol unknownObjRef1 = new(0, "");
+        public Symbol unknownObjRef2 = new(0, "");
+
+        public Symbol unknownString3 = new(0, "");
+        public Symbol unknownString4 = new(0, "");
+        public Symbol unknownString5 = new(0, "");
+
         public ObjectDir Read(EndianReader reader, bool standalone)
         {
             revision = reader.ReadUInt32();
-            objFields.metadataRevision = reader.ReadUInt32();
-            objFields.type = Symbol.Read(reader);
 
-            // skip forward 8 bytes
-            reader.BaseStream.Position += 8;
-
-            viewportCount = reader.ReadUInt32();
-
-            // sanity check, there should be no more than 7 viewports
-            if (viewportCount > 7)
+            if (revision < 22)
             {
-                throw new InvalidDataException("Viewport count is too high, ObjectDir is invalid");
+                if (revision >= 2 && revision < 17)
+                {
+                    objFields.Read(reader);
+                }
+            }
+            else
+            {
+                objFields.metadataRevision = reader.ReadUInt32();
+                objFields.type = Symbol.Read(reader);
             }
 
-            for (int i = 0; i < viewportCount; i++)
+            if (revision > 1)
             {
-                Matrix viewport = new Matrix();
-                viewport.Read(reader);
-                viewports.Add(viewport);
+
+                if (revision >= 27)
+                {
+                    // skip forward 8 bytes
+                    reader.BaseStream.Position += 8;
+                }
+
+                viewportCount = reader.ReadUInt32();
+
+                // sanity check, there should be no more than 7 viewports
+                if (viewportCount > 7)
+                {
+                    throw new InvalidDataException("Viewport count is too high at " + reader.BaseStream.Position + ", ObjectDir is invalid");
+                }
+
+                for (int i = 0; i < viewportCount; i++)
+                {
+                    Matrix viewport = new Matrix();
+                    viewport.Read(reader);
+                    viewports.Add(viewport);
+                }
+
+                // sanity check, the current viewport index should be less than the viewport count but it can also be 0
+                if (currentViewportIdx >= viewportCount && currentViewportIdx != 0)
+                {
+                    throw new InvalidDataException("Current viewport index is invalid at " + reader.BaseStream.Position + ", ObjectDir is invalid");
+                }
+
+                currentViewportIdx = reader.ReadUInt32();
             }
 
-            // sanity check, the current viewport index should be less than the viewport count but it can also be 0
-            if (currentViewportIdx >= viewportCount && currentViewportIdx != 0)
+            if (revision > 12)
             {
-                throw new InvalidDataException("Current viewport index is invalid, ObjectDir is invalid");
+                if (revision > 19)
+                    inlineProxy = reader.ReadBoolean();
+                proxyPath = Symbol.Read(reader);
             }
 
-            currentViewportIdx = reader.ReadUInt32();
-
-            inlineProxy = reader.ReadBoolean();
-            proxyPath = Symbol.Read(reader);
-
-            subDirCount = reader.ReadUInt32();
-
-            // sanity check, there should be no more than 100 subdirs
-            // TODO: double check if the game has an assert for this and use that if present
-            if (subDirCount > 100)
+            if (revision >= 2 && revision < 11)
             {
-                throw new InvalidDataException("Subdir count is too high, ObjectDir is invalid");
+                unknownObjRef1 = Symbol.Read(reader);
             }
 
-            for (int i = 0; i < subDirCount; i++)
+            if (revision >= 4 && revision < 11)
             {
-                Symbol subDir = Symbol.Read(reader);
-                subDirs.Add(subDir);
+                unknownObjRef2 = Symbol.Read(reader);
             }
 
-            inlineSubDir = reader.ReadBoolean();
-            inlineSubDirCount = reader.ReadUInt32();
-
-            // sanity check, there should be no more than 100 inlined subdirs
-            if (inlineSubDirCount > 100)
+            if (revision == 5)
             {
-                throw new InvalidDataException("Inlined subdir count is too high, ObjectDir is invalid");
+                unknownString3 = Symbol.Read(reader);
             }
 
-            for (int i = 0; i < inlineSubDirCount; i++)
+            if (revision > 2)
             {
-                Symbol inlineSubDirName = Symbol.Read(reader);
-                inlineSubDirNames.Add(inlineSubDirName);
+                subDirCount = reader.ReadUInt32();
+
+                // sanity check, there should be no more than 100 subdirs
+                // TODO: double check if the game has an assert for this and use that if present
+                if (subDirCount > 100)
+                {
+                    throw new InvalidDataException("Subdir count is too high at " + reader.BaseStream.Position + ", ObjectDir is invalid");
+                }
+
+                for (int i = 0; i < subDirCount; i++)
+                {
+                    Symbol subDir = Symbol.Read(reader);
+                    subDirs.Add(subDir);
+                }
+
+                if (revision >= 21)
+                {
+                    inlineSubDir = reader.ReadBoolean();
+                    inlineSubDirCount = reader.ReadUInt32();
+
+                    // sanity check, there should be no more than 100 inlined subdirs
+                    if (inlineSubDirCount > 100)
+                    {
+                        throw new InvalidDataException("Inlined subdir count is too high at " + reader.BaseStream.Position + ", ObjectDir is invalid");
+                    }
+
+                    if (inlineSubDirCount > 0)
+                    {
+                        for (int i = 0; i < inlineSubDirCount; i++)
+                        {
+                            Symbol inlineSubDirName = Symbol.Read(reader);
+                            inlineSubDirNames.Add(inlineSubDirName);
+                        }
+
+                        if (revision >= 27)
+                        {
+                            for (int i = 0; i < inlineSubDirCount; i++)
+                            {
+                                ReferenceType referenceType = (ReferenceType)reader.ReadByte();
+                                referenceTypes.Add(referenceType);
+                            }
+
+                            for (int i = 0; i < inlineSubDirCount; i++)
+                            {
+                                ReferenceType referenceTypeAlt = (ReferenceType)reader.ReadByte();
+                                referenceTypesAlt.Add(referenceTypeAlt);
+                            }
+                        }
+
+                        for (int i = 0; i < inlineSubDirCount; i++)
+                        {
+                            DirectoryMeta inlineSubDir = new DirectoryMeta();
+                            inlineSubDir.Read(reader);
+                            inlineSubDirs.Add(inlineSubDir);
+                        }
+
+                    }
+                }
             }
 
-            for (int i = 0; i < inlineSubDirCount; i++)
+            if (revision < 19)
             {
-                ReferenceType referenceType = (ReferenceType)reader.ReadByte();
-                referenceTypes.Add(referenceType);
+                if (revision < 16)
+                {
+                    if (revision > 14)
+                    {
+                        unknownString4 = Symbol.Read(reader);
+                    }
+                }
+                else
+                {
+                    unknownString5 = Symbol.Read(reader);
+                }
             }
 
-            for (int i = 0; i < inlineSubDirCount; i++)
-            {
-                ReferenceType referenceTypeAlt = (ReferenceType)reader.ReadByte();
-                referenceTypesAlt.Add(referenceTypeAlt);
-            }
 
-            for (int i = 0; i < inlineSubDirCount; i++)
-            {
-                DirectoryMeta inlineSubDir = new DirectoryMeta();
-                inlineSubDir.Read(reader);
-                inlineSubDirs.Add(inlineSubDir);
-            }
 
             unknownString = Symbol.Read(reader);
             unknownString2 = Symbol.Read(reader);
 
-            objFields.hasTree = reader.ReadBoolean();
-
-            if (objFields.hasTree)
+            if (revision < 22)
             {
-                objFields.root.Read(reader);
+                if (revision > 16)
+                {
+                    objFields.Read(reader);
+                }
             }
+            else
+            {
+                objFields.hasTree = reader.ReadBoolean();
 
-            objFields.note = Symbol.Read(reader);
+                if (objFields.hasTree)
+                {
+                    objFields.root.Read(reader);
+                }
+
+                if (revision >= 25)
+                {
+                    objFields.note = Symbol.Read(reader);
+                }
+            }
 
             if (standalone)
             {

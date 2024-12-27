@@ -8,10 +8,10 @@ namespace MiloLib.Assets.UI
     public class PanelDir : RndDir
     {
         [Name("Camera"), Description("Camera to use in game, else standard UI cam")]
-        public Symbol cam = new(0, ""); // 0x194
+        public Symbol cam = new(0, "");
 
         [Name("Use Specified Camera"), Description("Forces the usage of the 'cam' property to render in milo. This is a milo only feature.")]
-        public bool useSpecifiedCam; // 0x1b1
+        public bool useSpecifiedCam;
 
         [Name("Back View Only Panels"), Description("Additional panels to display behind this panel.")]
         public List<Symbol> backPanels = new List<Symbol>();
@@ -21,9 +21,13 @@ namespace MiloLib.Assets.UI
         public List<Symbol> frontFilenames = new List<Symbol>();
         [Name("Post Processes Before Draw"), Description("Trigger postprocs before drawing this panel. If checked, this panel will not be affected by the postprocs.")]
 
-        public bool postProcsBeforeDraw; // 0x1d4
+        public bool postProcsBeforeDraw;
         [Name("Show View Only Panels"), Description("Whether or no this panel displays its view only panels")]
-        public bool showViewOnlyPanels; // 0x1d5
+        public bool showViewOnlyPanels;
+
+        public bool canEndWorld;
+
+        public Symbol testEvent = new(0, "");
 
         public PanelDir Read(EndianReader reader, bool standalone)
         {
@@ -33,7 +37,24 @@ namespace MiloLib.Assets.UI
 
             cam = Symbol.Read(reader);
 
-            useSpecifiedCam = reader.ReadBoolean();
+            if (revision <= 1)
+            {
+                return this;
+            }
+
+            if (revision == 2)
+            {
+                testEvent = Symbol.Read(reader);
+                return this;
+            }
+            else if (revision <= 7)
+            {
+                canEndWorld = reader.ReadBoolean();
+            }
+            else
+            {
+                useSpecifiedCam = reader.ReadBoolean();
+            }
 
             int frontPanelCount = reader.ReadInt32();
             frontPanels = new List<Symbol>();
@@ -49,7 +70,9 @@ namespace MiloLib.Assets.UI
                 backPanels.Add(Symbol.Read(reader));
             }
 
-            postProcsBeforeDraw = reader.ReadBoolean();
+            if (revision >= 8)
+                postProcsBeforeDraw = reader.ReadBoolean();
+
             showViewOnlyPanels = reader.ReadBoolean();
 
             if (standalone)
