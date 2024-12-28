@@ -28,8 +28,9 @@ namespace MiloLib.Assets.Band
 
         public new BandSongPref Read(EndianReader reader, bool standalone)
         {
-            altRevision = reader.ReadUInt16();
-            revision = reader.ReadUInt16();
+            uint combinedRevision = reader.ReadUInt32();
+            if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
+            else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
 
             if (revision != 3)
             {
@@ -52,8 +53,7 @@ namespace MiloLib.Assets.Band
 
         public override void Write(EndianWriter writer, bool standalone)
         {
-            writer.WriteUInt16(altRevision);
-            writer.WriteUInt16(revision);
+            writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
             objFields.Write(writer);
 
             Symbol.Write(writer, part2Instrument);
@@ -62,9 +62,7 @@ namespace MiloLib.Assets.Band
             Symbol.Write(writer, animationGenre);
 
             if (standalone)
-            {
                 writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
-            }
         }
 
     }

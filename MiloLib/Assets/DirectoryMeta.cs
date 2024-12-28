@@ -75,7 +75,7 @@ namespace MiloLib.Assets
             if (version > 50)
             {
                 reader.Endianness = Endian.LittleEndian;
-                reader.SeekTo(0);
+                reader.BaseStream.Position -= 4;
                 version = reader.ReadUInt32();
             }
 
@@ -85,11 +85,19 @@ namespace MiloLib.Assets
                 throw new UnsupportedMiloSceneRevision(version);
             }
 
-            type = Symbol.Read(reader);
-            name = Symbol.Read(reader);
+            if (version > 10)
+            {
+                type = Symbol.Read(reader);
+                name = Symbol.Read(reader);
 
-            stringTableCount = reader.ReadUInt32();
-            stringTableSize = reader.ReadUInt32();
+                stringTableCount = reader.ReadUInt32();
+                stringTableSize = reader.ReadUInt32();
+
+                if (version >= 32)
+                {
+                    reader.ReadBoolean();
+                }
+            }
 
             entryCount = reader.ReadUInt32();
 
@@ -154,6 +162,9 @@ namespace MiloLib.Assets
                     uiLabelDir.Read(reader, true);
                     dirObj = uiLabelDir;
                     break;
+                case "":
+                    Debug.WriteLine("GH1-style empty directory, just read children");
+                    break;
                 default:
                     throw new Exception("Unknown directory type: " + type.value + ", cannot continue reading Milo scene");
             }
@@ -204,6 +215,7 @@ namespace MiloLib.Assets
                         entry.dir = new DirectoryMeta().Read(reader);
                         break;
 
+                    case "UIPanel":
                     case "PanelDir":
                         Debug.WriteLine("Reading entry PanelDir " + entry.name.value);
                         entry.obj = new PanelDir().Read(reader, true);
@@ -257,6 +269,7 @@ namespace MiloLib.Assets
                         Debug.WriteLine("Reading entry Trans " + entry.name.value);
                         entry.obj = new RndTrans().Read(reader, true);
                         break;
+                    case "View":
                     case "Group":
                         Debug.WriteLine("Reading entry Group " + entry.name.value);
                         entry.obj = new RndGroup().Read(reader, true);
@@ -300,7 +313,11 @@ namespace MiloLib.Assets
                         // read revision and then an empty object
                         // this allows the editor to display at least *some* fields on every object
                         reader.ReadUInt32();
-                        entry.obj = new Object().Read(reader, false);
+                        if (version != 10)
+                        {
+                            // no object fields to read in version 10
+                            entry.obj = new Object().Read(reader, false);
+                        }
 
                         // TODO: improve this shit
                         while (true)

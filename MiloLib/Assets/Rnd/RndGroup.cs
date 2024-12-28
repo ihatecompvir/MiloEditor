@@ -9,11 +9,11 @@ namespace MiloLib.Assets.Rnd
         public ushort altRevision;
         public ushort revision;
 
-        public RndAnim anim;
+        public RndAnimatable anim;
 
         public RndTrans trans;
 
-        public RndDraw draw;
+        public RndDrawable draw;
 
         private uint objectsCount;
         public List<Symbol> objects = new List<Symbol>();
@@ -32,40 +32,70 @@ namespace MiloLib.Assets.Rnd
         [Name("Sort In World"), DescriptionAttribute("Sort by distance to current camera per frame. This has a CPU cost if there are many objects.")]
         public bool sortInWorld;
 
+        public Symbol unknownSymbol = new(0, "");
+        public float lodWidth;
+        public float lodHeight;
+
         public RndGroup Read(EndianReader reader, bool standalone)
         {
-            altRevision = reader.ReadUInt16();
-            revision = reader.ReadUInt16();
+            uint combinedRevision = reader.ReadUInt32();
+            if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
+            else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
 
-            if (revision != 14)
-            {
-                throw new UnsupportedAssetRevisionException("Group", revision);
-            }
+            if (revision > 7)
+                base.Read(reader, false);
 
-            base.Read(reader, false);
-
-            anim = new RndAnim().Read(reader);
+            anim = new RndAnimatable().Read(reader);
             trans = new RndTrans().Read(reader, false);
-            draw = new RndDraw().Read(reader);
+            draw = new RndDrawable().Read(reader);
 
-            objectsCount = reader.ReadUInt32();
-            for (int i = 0; i < objectsCount; i++)
+            if (revision > 10)
             {
-                objects.Add(Symbol.Read(reader));
+                objectsCount = reader.ReadUInt32();
+                for (int i = 0; i < objectsCount; i++)
+                {
+                    objects.Add(Symbol.Read(reader));
+                }
+
+                if (revision < 16)
+                    environ = Symbol.Read(reader);
+
+                if (revision > 13)
+                    drawOnly = Symbol.Read(reader);
             }
 
-            environ = Symbol.Read(reader);
-            drawOnly = Symbol.Read(reader);
-            lod = Symbol.Read(reader);
+            if (revision > 11 && revision < 16)
+            {
+                lod = Symbol.Read(reader);
+                lodScreenSize = reader.ReadFloat();
+            }
+            else if (revision == 4)
+            {
+                reader.ReadUInt32();
 
-            lodScreenSize = reader.ReadFloat();
+                objectsCount = reader.ReadUInt32();
+                for (int i = 0; i < objectsCount; i++)
+                {
+                    objects.Add(Symbol.Read(reader));
+                }
 
-            sortInWorld = reader.ReadBoolean();
+                unknownSymbol = Symbol.Read(reader);
+                reader.ReadUInt32();
+                reader.ReadUInt32();
+            }
+
+            if (revision == 7)
+            {
+                unknownSymbol = Symbol.Read(reader);
+                lodWidth = reader.ReadFloat();
+                lodHeight = reader.ReadFloat();
+            }
+
+            if (revision > 13)
+                sortInWorld = reader.ReadBoolean();
 
             if (standalone)
-            {
                 if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");
-            }
 
 
             return this;
@@ -74,8 +104,7 @@ namespace MiloLib.Assets.Rnd
 
         public override void Write(EndianWriter writer, bool standalone)
         {
-            writer.WriteUInt16(altRevision);
-            writer.WriteUInt16(revision);
+            writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
             base.Write(writer, false);
             anim.Write(writer);
             trans.Write(writer, false);

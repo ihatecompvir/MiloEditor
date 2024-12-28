@@ -61,8 +61,9 @@ namespace MiloLib.Assets.UI
 
         public UIFontImporter Read(EndianReader reader, bool standalone)
         {
-            altRevision = reader.ReadUInt16();
-            revision = reader.ReadUInt16();
+            uint combinedRevision = reader.ReadUInt32();
+            if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
+            else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
 
             if (revision != 9)
             {
@@ -133,8 +134,7 @@ namespace MiloLib.Assets.UI
 
         public void Write(EndianWriter writer, bool standalone)
         {
-            writer.WriteUInt16(altRevision);
-            writer.WriteUInt16(revision);
+            writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
 
             writer.WriteBoolean(includeLowerCase);
             writer.WriteBoolean(includeUpperCase);
@@ -231,8 +231,9 @@ namespace MiloLib.Assets.UI
 
         public UILabelDir Read(EndianReader reader, bool standalone)
         {
-            altRevision = reader.ReadUInt16();
-            revision = reader.ReadUInt16();
+            uint combinedRevision = reader.ReadUInt32();
+            if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
+            else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
 
             base.Read(reader, false);
 
@@ -284,8 +285,7 @@ namespace MiloLib.Assets.UI
 
         public override void Write(EndianWriter writer, bool standalone)
         {
-            writer.WriteUInt16(altRevision);
-            writer.WriteUInt16(revision);
+            writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
 
             base.Write(writer, false);
 

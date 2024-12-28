@@ -8,8 +8,8 @@ using System.Threading.Tasks;
 
 namespace MiloLib.Assets.Rnd
 {
-    [Name("Draw"), Description("Base class for drawable objects. Draw objects either render polys or determine rendering state.")]
-    public class RndDraw
+    [Name("Drawable"), Description("Base class for drawable objects. Draw objects either render polys or determine rendering state.")]
+    public class RndDrawable : Object
     {
         public enum OverrideIncludeInDepthOnlyPass
         {
@@ -23,6 +23,7 @@ namespace MiloLib.Assets.Rnd
 
         public bool showing;
 
+        [Name("Sphere"), Description("Represents a bounding sphere around this object and its drawn children, which is used for culling of draw and collision commands. X, Y, Z are the sphere center in local coordinates, R is the sphere radius in world coordinates. Culling is not performed when the radius is zero. The world transform of the object must be baked into the radius.")]
         public Sphere sphere = new();
 
         public float drawOrder;
@@ -31,10 +32,16 @@ namespace MiloLib.Assets.Rnd
         public List<Symbol> drawables = new();
         public List<string> drawablesNullTerminated = new();
 
-        public RndDraw Read(EndianReader reader)
+        public RndDrawable Read(EndianReader reader)
         {
-            altRevision = reader.ReadUInt16();
-            revision = reader.ReadUInt16();
+            uint combinedRevision = reader.ReadUInt32();
+            if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
+            else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
+
+            if (revision != 1)
+            {
+                objFields = objFields.Read(reader);
+            }
 
             showing = reader.ReadBoolean();
 
@@ -43,6 +50,7 @@ namespace MiloLib.Assets.Rnd
                 drawableCount = reader.ReadUInt32();
                 if (drawableCount > 0)
                 {
+                    /*
                     if (revision <= 6)
                     {
                         for (int i = 0; i < drawableCount; i++)
@@ -52,11 +60,12 @@ namespace MiloLib.Assets.Rnd
                     }
                     else
                     {
-                        for (int i = 0; i < drawableCount; i++)
-                        {
-                            drawables.Add(Symbol.Read(reader));
-                        }
+                    */
+                    for (int i = 0; i < drawableCount; i++)
+                    {
+                        drawables.Add(Symbol.Read(reader));
                     }
+                    //}
                 }
             }
 
@@ -79,8 +88,7 @@ namespace MiloLib.Assets.Rnd
 
         public void Write(EndianWriter writer)
         {
-            writer.WriteUInt16(altRevision);
-            writer.WriteUInt16(revision);
+            writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
 
             writer.WriteBoolean(showing);
 
@@ -89,6 +97,7 @@ namespace MiloLib.Assets.Rnd
                 writer.WriteUInt32((uint)drawables.Count);
                 if (drawables.Count > 0)
                 {
+                    /*
                     if (revision <= 6)
                     {
                         foreach (var drawable in drawablesNullTerminated)
@@ -98,11 +107,12 @@ namespace MiloLib.Assets.Rnd
                     }
                     else
                     {
-                        foreach (var drawable in drawables)
-                        {
-                            Symbol.Write(writer, drawable);
-                        }
+                    */
+                    foreach (var drawable in drawables)
+                    {
+                        Symbol.Write(writer, drawable);
                     }
+                    //}
                 }
             }
 

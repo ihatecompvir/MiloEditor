@@ -91,6 +91,7 @@ namespace MiloLib.Assets.Char
             {
                 writer.WriteUInt16(altRevision);
                 writer.WriteUInt16(revision);
+
                 Symbol.Write(writer, driver);
                 Symbol.Write(writer, clip1);
                 Symbol.Write(writer, clip2);
@@ -104,10 +105,34 @@ namespace MiloLib.Assets.Char
                 }
 
                 writer.WriteUInt32(transition);
-                writer.WriteByte(cycleTransition ? (byte)1 : (byte)0);
+                writer.WriteBoolean(cycleTransition);
                 writer.WriteUInt32(unk3);
-                writer.WriteByte(unk4 ? (byte)1 : (byte)0);
-                writer.WriteUInt32(unk5);
+
+                if (revision == 15)
+                {
+                    writer.WriteBoolean(unk4);
+                    writer.WriteUInt32(unk5);
+                }
+
+                if (revision == 8)
+                {
+                    writer.WriteUInt32(unk6);
+
+                    writer.WriteBoolean(unkBool2);
+                    writer.WriteBoolean(unkBool3);
+                    writer.WriteBoolean(unkBool4);
+
+                    Symbol.Write(writer, unkSymbol);
+
+                    writer.WriteBoolean(unkBool5);
+                    writer.WriteBoolean(unkBool6);
+
+                    writer.WriteUInt32(bpm);
+
+                    Symbol.Write(writer, unkSymbol2);
+
+                    writer.WriteFloat(unkFloat);
+                }
             }
         }
 
@@ -137,8 +162,9 @@ namespace MiloLib.Assets.Char
 
         public Character Read(EndianReader reader, bool standalone)
         {
-            altRevision = reader.ReadUInt16();
-            revision = reader.ReadUInt16();
+            uint combinedRevision = reader.ReadUInt32();
+            if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
+            else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
 
             base.Read(reader, false);
 
@@ -196,8 +222,7 @@ namespace MiloLib.Assets.Char
 
         public override void Write(EndianWriter writer, bool standalone)
         {
-            writer.WriteUInt16(altRevision);
-            writer.WriteUInt16(revision);
+            writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
 
             base.Write(writer, false);
 
@@ -207,30 +232,43 @@ namespace MiloLib.Assets.Char
                 Symbol.Write(writer, lod);
             }
 
-            writer.WriteUInt32((uint)shadows.Count);
-            foreach (var shadow in shadows)
+            if (revision < 18)
             {
-                Symbol.Write(writer, shadow);
+                Symbol.Write(writer, shadows[0]);
+            }
+            else
+            {
+                writer.WriteUInt32((uint)shadows.Count);
+                foreach (var shadow in shadows)
+                {
+                    Symbol.Write(writer, shadow);
+                }
             }
 
-            writer.WriteBoolean(selfShadow);
+            if (revision > 2)
+                writer.WriteBoolean(selfShadow);
 
             Symbol.Write(writer, sphereBase);
 
-            bounding.Write(writer);
+            if (revision <= 9)
+                return;
 
-            writer.WriteBoolean(frozen);
+            if (revision > 10)
+                bounding.Write(writer);
 
-            writer.WriteInt32(minLod);
+            if (revision > 0xC)
+                writer.WriteBoolean(frozen);
 
-            Symbol.Write(writer, translucentGroup);
+            if (revision > 0xE)
+                writer.WriteInt32(minLod);
+
+            if (revision > 0x10)
+                Symbol.Write(writer, translucentGroup);
 
             charTest.Write(writer);
 
             if (standalone)
-            {
                 writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
-            }
         }
 
 

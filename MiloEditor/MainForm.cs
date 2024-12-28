@@ -255,7 +255,7 @@ namespace MiloEditor
             DirectoryMeta.Entry entry = (DirectoryMeta.Entry)node.Tag;
 
             // create a new entry
-            DirectoryMeta.Entry newEntry = new DirectoryMeta.Entry(entry);
+            DirectoryMeta.Entry newEntry = new DirectoryMeta.Entry(entry.type, entry.name, entry.obj);
 
             // bring up a dialog to get the new name
             string newName = Microsoft.VisualBasic.Interaction.InputBox("Enter the new name for the asset", "Duplicate Asset", entry.name.value);

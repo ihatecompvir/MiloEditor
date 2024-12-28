@@ -28,8 +28,9 @@ namespace MiloLib.Assets.Char
 
         public CharClipSet Read(EndianReader reader, bool standalone)
         {
-            altRevision = reader.ReadUInt16();
-            revision = reader.ReadUInt16();
+            uint combinedRevision = reader.ReadUInt32();
+            if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
+            else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
 
             base.Read(reader, false);
 
@@ -49,6 +50,28 @@ namespace MiloLib.Assets.Char
                 if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");
 
             return this;
+        }
+
+        public override void Write(EndianWriter writer, bool standalone)
+        {
+            writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
+
+            base.Write(writer, false);
+
+            Symbol.Write(writer, charFilePath);
+            Symbol.Write(writer, previewClip);
+            writer.WriteUInt32(filterFlags);
+            writer.WriteUInt32(bpm);
+            writer.WriteBoolean(previewWalk);
+            Symbol.Write(writer, stillClip);
+
+            if (revision >= 25)
+            {
+                Symbol.Write(writer, unkSymbol);
+            }
+
+            if (standalone)
+                writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
         }
     }
 }

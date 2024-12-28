@@ -71,7 +71,7 @@ namespace MiloLib.Assets.Rnd
                 // this algo needs to scale down each mip map since only the first one will be the original size
                 int mippedHeight = height >> i;
                 int mippedWidth = width >> i;
-                int dataSize = (mippedWidth * mippedHeight * bpp) / 8;
+                int dataSize = mippedWidth * mippedHeight * bpp / 8;
 
 
                 List<byte> texture = new List<byte>();

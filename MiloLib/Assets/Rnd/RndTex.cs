@@ -35,8 +35,9 @@ namespace MiloLib.Assets.Rnd
 
         public RndTex Read(EndianReader reader, bool standalone)
         {
-            altRevision = reader.ReadUInt16();
-            revision = reader.ReadUInt16();
+            uint combinedRevision = reader.ReadUInt32();
+            if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
+            else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
 
             if (revision > 8)
                 base.Read(reader, false);
@@ -72,10 +73,10 @@ namespace MiloLib.Assets.Rnd
 
         public override void Write(EndianWriter writer, bool standalone)
         {
-            writer.WriteUInt16(altRevision);
-            writer.WriteUInt16(revision);
+            writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
 
-            base.Write(writer, false);
+            if (revision > 8)
+                base.Write(writer, false);
 
             writer.WriteUInt32(width);
             writer.WriteUInt32(height);
@@ -84,11 +85,17 @@ namespace MiloLib.Assets.Rnd
 
             Symbol.Write(writer, externalPath);
 
-            writer.WriteFloat(indexFloat);
+            if (revision >= 8)
+                writer.WriteFloat(indexFloat);
             writer.WriteUInt32(index2);
 
-            writer.WriteByte(unk ? (byte)1 : (byte)0);
-            writer.WriteByte(useExternalPath ? (byte)1 : (byte)0);
+            if (revision >= 11)
+                writer.WriteBoolean(unk);
+
+            if (revision != 7)
+                writer.WriteBoolean(useExternalPath);
+            else
+                writer.WriteUInt32(useExternalPath ? 1u : 0u);
 
             bitmap.Write(writer, false);
 

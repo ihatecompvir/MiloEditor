@@ -53,78 +53,109 @@ namespace MiloLib.Assets
         public float mTestAnimationTime;
         [Name("HUD"), Description("hud to be drawn last")]
         public Symbol mHud = new(0, "");
+        public Symbol mCam = new(0, "");
 
 
         public WorldDir Read(EndianReader reader, bool standalone)
         {
-            altRevision = reader.ReadUInt16();
-            revision = reader.ReadUInt16();
-            fakeHUDFilename = Symbol.Read(reader);
+            uint combinedRevision = reader.ReadUInt32();
+            if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
+            else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
+
+            if (revision != 0 && revision < 5)
+            {
+                mCam = Symbol.Read(reader);
+            }
+
+            if (revision > 9)
+            {
+                fakeHUDFilename = Symbol.Read(reader);
+            }
+
             base.Read(reader, false);
 
 
-            uint hideOverrideCount = reader.ReadUInt32();
-            for (int i = 0; i < hideOverrideCount; i++)
+            if (revision > 0xB)
             {
-                var hideOverride = Symbol.Read(reader);
-                hideOverrides.Add(hideOverride);
+                uint hideOverrideCount = reader.ReadUInt32();
+                for (int i = 0; i < hideOverrideCount; i++)
+                {
+                    var hideOverride = Symbol.Read(reader);
+                    hideOverrides.Add(hideOverride);
+                }
+
+                int bitmapOverrideSize = reader.ReadInt32();
+                for (int i = 0; i < bitmapOverrideSize; i++)
+                {
+                    BitmapOverride bitmapOverride = new BitmapOverride();
+
+                    bitmapOverrides.Add(bitmapOverride);
+                }
             }
 
-            int bitmapOverrideSize = reader.ReadInt32();
-            for (int i = 0; i < bitmapOverrideSize; i++)
+            if (revision > 0xD)
             {
-                BitmapOverride bitmapOverride = new BitmapOverride();
-
-                bitmapOverrides.Add(bitmapOverride);
-
+                int matOverrideSize = reader.ReadInt32();
+                for (int i = 0; i < matOverrideSize; i++)
+                {
+                    MatOverride matOverride = new MatOverride();
+                    matOverride.mesh = Symbol.Read(reader);
+                    matOverride.mat = Symbol.Read(reader);
+                    matOverrides.Add(matOverride);
+                }
             }
 
-            int matOverrideSize = reader.ReadInt32();
-            for (int i = 0; i < matOverrideSize; i++)
+            if (revision > 0xE)
             {
-                MatOverride matOverride = new MatOverride();
-                matOverride.mesh = Symbol.Read(reader);
-                matOverride.mat = Symbol.Read(reader);
-                matOverrides.Add(matOverride);
+                int presetOverrideSize = reader.ReadInt32();
+                for (int i = 0; i < presetOverrideSize; i++)
+                {
+                    PresetOverride presetOverride = new PresetOverride();
+                    presetOverride.preset = Symbol.Read(reader);
+                    presetOverride.hue = Symbol.Read(reader);
 
+                    presetOverrides.Add(presetOverride);
+                }
             }
 
-            int presetOverrideSize = reader.ReadInt32();
-            for (int i = 0; i < presetOverrideSize; i++)
+            if (revision > 0xF)
             {
-                PresetOverride presetOverride = new PresetOverride();
-                presetOverride.preset = Symbol.Read(reader);
-                presetOverride.hue = Symbol.Read(reader);
-
-                presetOverrides.Add(presetOverride);
+                uint camShotOverrideCount = reader.ReadUInt32();
+                for (int i = 0; i < camShotOverrideCount; i++)
+                {
+                    Symbol camShot = Symbol.Read(reader);
+                    camShotOverrides.Add(camShot);
+                }
             }
 
-            uint camShotOverrideCount = reader.ReadUInt32();
-            for (int i = 0; i < camShotOverrideCount; i++)
+            if (revision > 0x10 && revision != 0x17)
             {
-                Symbol camShot = Symbol.Read(reader);
-                camShotOverrides.Add(camShot);
+                uint ps3PerPixelHidesCount = reader.ReadUInt32();
+                for (int i = 0; i < ps3PerPixelHidesCount; i++)
+                {
+                    Symbol perPixelHide = Symbol.Read(reader);
+                    PS3PerPixelHides.Add(perPixelHide);
+                }
+
+                uint ps3PerPixelShowsCount = reader.ReadUInt32();
+                for (int i = 0; i < ps3PerPixelShowsCount; i++)
+                {
+                    Symbol perPixelShow = Symbol.Read(reader);
+                    PS3PerPixelShows.Add(perPixelShow);
+                }
             }
 
-            uint ps3PerPixelHidesCount = reader.ReadUInt32();
-            for (int i = 0; i < ps3PerPixelHidesCount; i++)
+            if (revision > 0x12)
             {
-                Symbol perPixelHide = Symbol.Read(reader);
-                PS3PerPixelHides.Add(perPixelHide);
+                mTestPreset1 = Symbol.Read(reader);
+                mTestPreset2 = Symbol.Read(reader);
+                mTestAnimationTime = reader.ReadFloat();
             }
 
-            uint ps3PerPixelShowsCount = reader.ReadUInt32();
-            for (int i = 0; i < ps3PerPixelShowsCount; i++)
+            if (revision > 0x13)
             {
-                Symbol perPixelShow = Symbol.Read(reader);
-                PS3PerPixelShows.Add(perPixelShow);
+                mHud = Symbol.Read(reader);
             }
-
-            mTestPreset1 = Symbol.Read(reader);
-            mTestPreset2 = Symbol.Read(reader);
-            mTestAnimationTime = reader.ReadFloat();
-
-            mHud = Symbol.Read(reader);
 
 
             if (standalone)
@@ -137,8 +168,7 @@ namespace MiloLib.Assets
 
         public override void Write(EndianWriter writer, bool standalone)
         {
-            writer.WriteUInt16(altRevision);
-            writer.WriteUInt16(revision);
+            writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
             Symbol.Write(writer, fakeHUDFilename);
 
             base.Write(writer, false);

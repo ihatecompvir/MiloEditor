@@ -47,44 +47,67 @@ namespace MiloLib.Assets.Rnd
         [Name("Parent"), Description("Object this is linked to.")]
         public Symbol parent = new(0, "");
 
+        private uint transCount;
+        public List<Symbol> transObjects = new();
+        public List<string> transObjectsNullTerminated = new();
+
         public RndTrans Read(EndianReader reader, bool standalone)
         {
-            altRevision = reader.ReadUInt16();
-            revision = reader.ReadUInt16();
+            uint combinedRevision = reader.ReadUInt32();
+            if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
+            else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
 
-            if (revision != 9)
-            {
-                throw new UnsupportedAssetRevisionException("RndTrans", revision);
-            }
-
-            if (standalone)
-            {
-                base.objFields.Read(reader);
-            }
+            if (revision != 8)
+                objFields = objFields.Read(reader);
 
             localXfm = localXfm.Read(reader);
             worldXfm = worldXfm.Read(reader);
 
-            constraint = (Constraint)reader.ReadUInt32();
+            if (revision < 9)
+            {
+                transCount = reader.ReadUInt32();
+                if (transCount > 0)
+                {
+                    /*
+                    if (revision <= 6)
+                    {
+                        for (int i = 0; i < transCount; i++)
+                        {
+                            transObjectsNullTerminated.Add(reader.ReadUTF8());
+                        }
+                    }
+                    else
+                    {
+                    */
+                    for (int i = 0; i < transCount; i++)
+                    {
+                        transObjects.Add(Symbol.Read(reader));
+                    }
+                    //}
+                }
+            }
 
-            target = Symbol.Read(reader);
+            if (revision > 6)
+                constraint = (Constraint)reader.ReadUInt32();
 
-            preserveScale = reader.ReadBoolean();
+            if (revision > 5)
+                target = Symbol.Read(reader);
+
+            if (revision > 6)
+                preserveScale = reader.ReadBoolean();
 
             parent = Symbol.Read(reader);
 
+
             if (standalone)
-            {
                 if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");
-            }
 
             return this;
         }
 
         public override void Write(EndianWriter writer, bool standalone)
         {
-            writer.WriteUInt16(altRevision);
-            writer.WriteUInt16(revision);
+            writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
 
             if (standalone)
             {

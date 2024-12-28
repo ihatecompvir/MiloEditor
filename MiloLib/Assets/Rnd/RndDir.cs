@@ -10,9 +10,9 @@ namespace MiloLib.Assets.Rnd
         public ushort revision;
 
         [Name("Anim")]
-        public RndAnim anim = new();
+        public RndAnimatable anim = new();
         [Name("Draw")]
-        public RndDraw draw = new();
+        public RndDrawable draw = new();
         [Name("Trans")]
         public RndTrans trans = new();
 
@@ -25,10 +25,15 @@ namespace MiloLib.Assets.Rnd
         [Name("Unknown Floats"), Description("Unknown floats only found in the GH2 4-song demo."), MinVersion(6), MaxVersion(6)]
         public List<float> unknownFloats = new();
 
+        public RndPollable poll = new();
+        public Symbol unkSymbol1 = new(0, "");
+        public Symbol unkSymbol2 = new(0, "");
+
         public RndDir Read(EndianReader reader, bool standalone)
         {
-            altRevision = reader.ReadUInt16();
-            revision = reader.ReadUInt16();
+            uint combinedRevision = reader.ReadUInt32();
+            if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
+            else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
 
             base.Read(reader, false);
 
@@ -38,7 +43,9 @@ namespace MiloLib.Assets.Rnd
 
             if (revision < 9)
             {
-                // TODO: add Poll and read it here
+                poll = poll.Read(reader, false);
+                unkSymbol1 = Symbol.Read(reader);
+                unkSymbol2 = Symbol.Read(reader);
             }
             else
             {
@@ -63,8 +70,7 @@ namespace MiloLib.Assets.Rnd
 
         public override void Write(EndianWriter writer, bool standalone)
         {
-            writer.WriteUInt16(altRevision);
-            writer.WriteUInt16(revision);
+            writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
 
             base.Write(writer, false);
 
