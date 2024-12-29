@@ -1,39 +1,46 @@
-using MiloLib.Assets.Rnd;
+using System.Numerics;
 using MiloLib.Classes;
 using MiloLib.Utils;
 
-namespace MiloLib.Assets.P9
+namespace MiloLib.Assets.Rnd
 {
-    [Name("P9 Director"), Description("P9 Director, sits in each song file and manages camera + scene changes")]
-    public class P9Director : Object
+    [Name("ScreenMask"), Description("Draws full screen quad with material and color.")]
+    public class RndScreenMask : Object
     {
         public ushort altRevision;
         public ushort revision;
 
-        public ObjectFields objFields1 = new();
-        public ObjectFields objFields2 = new();
-
         public RndDrawable draw = new();
 
-        public Symbol venue = new(0, "");
+        public Symbol material = new(0, "");
+        public HmxColor color = new();
+        public float alpha;
 
-        public P9Director Read(EndianReader reader, bool standalone)
+        public Rect rect = new();
+
+        public bool useCamRect;
+
+        public RndScreenMask Read(EndianReader reader, bool standalone)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
             else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
 
-            if (revision != 5)
-                throw new UnsupportedAssetRevisionException("P9Director", revision);
+            base.Read(reader, false);
 
-            objFields1 = objFields1.Read(reader);
-            objFields2 = objFields2.Read(reader);
+            draw = draw.Read(reader, false);
 
-            draw = new RndDrawable().Read(reader, false);
-            venue = Symbol.Read(reader);
+            material = Symbol.Read(reader);
+            color = color.Read(reader);
+            alpha = reader.ReadFloat();
+
+            rect = rect.Read(reader);
+
+            useCamRect = reader.ReadBoolean();
 
             if (standalone)
                 if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");
+
             return this;
         }
 
@@ -41,11 +48,17 @@ namespace MiloLib.Assets.P9
         {
             writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
 
-            objFields1.Write(writer);
-            objFields2.Write(writer);
+            base.Write(writer, false);
 
             draw.Write(writer, false);
-            Symbol.Write(writer, venue);
+
+            Symbol.Write(writer, material);
+            color.Write(writer);
+            writer.WriteFloat(alpha);
+
+            rect.Write(writer);
+
+            writer.WriteBoolean(useCamRect);
 
             if (standalone)
                 writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });

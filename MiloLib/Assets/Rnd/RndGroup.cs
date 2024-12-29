@@ -46,8 +46,8 @@ namespace MiloLib.Assets.Rnd
                 base.Read(reader, false);
 
             anim = new RndAnimatable().Read(reader);
-            trans = new RndTrans().Read(reader, false);
-            draw = new RndDrawable().Read(reader);
+            trans = new RndTrans().Read(reader, false, true);
+            draw = new RndDrawable().Read(reader, false, true);
 
             if (revision > 10)
             {
@@ -108,7 +108,7 @@ namespace MiloLib.Assets.Rnd
             base.Write(writer, false);
             anim.Write(writer);
             trans.Write(writer, false);
-            draw.Write(writer);
+            draw.Write(writer, false);
 
             writer.WriteUInt32(objectsCount);
 

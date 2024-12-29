@@ -7,6 +7,8 @@ namespace MiloLib.Assets.UI
     [Name("PanelDir"), Description("Top-level UI Object, contains UI components and an optional camera")]
     public class PanelDir : RndDir
     {
+        public ushort altRevision;
+        public ushort revision;
         [Name("Camera"), Description("Camera to use in game, else standard UI cam")]
         public Symbol cam = new(0, "");
 

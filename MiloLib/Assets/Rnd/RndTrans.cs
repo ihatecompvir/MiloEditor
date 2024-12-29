@@ -51,13 +51,13 @@ namespace MiloLib.Assets.Rnd
         public List<Symbol> transObjects = new();
         public List<string> transObjectsNullTerminated = new();
 
-        public RndTrans Read(EndianReader reader, bool standalone)
+        public RndTrans Read(EndianReader reader, bool standalone, bool skipMetadata = false)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
             else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
 
-            if (revision != 8)
+            if (revision != 8 && !skipMetadata)
                 objFields = objFields.Read(reader);
 
             localXfm = localXfm.Read(reader);
@@ -105,11 +105,11 @@ namespace MiloLib.Assets.Rnd
             return this;
         }
 
-        public override void Write(EndianWriter writer, bool standalone)
+        public void Write(EndianWriter writer, bool standalone, bool skipMetadata = false)
         {
             writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
 
-            if (standalone)
+            if (standalone && !skipMetadata)
             {
                 base.objFields.Write(writer);
             }

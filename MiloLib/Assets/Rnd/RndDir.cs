@@ -38,8 +38,8 @@ namespace MiloLib.Assets.Rnd
             base.Read(reader, false);
 
             anim = anim.Read(reader);
-            draw = draw.Read(reader);
-            trans = trans.Read(reader, false);
+            draw = draw.Read(reader, false, true);
+            trans = trans.Read(reader, false, true);
 
             if (revision < 9)
             {
@@ -75,7 +75,7 @@ namespace MiloLib.Assets.Rnd
             base.Write(writer, false);
 
             anim.Write(writer);
-            draw.Write(writer);
+            draw.Write(writer, false);
             trans.Write(writer, false);
 
             if (revision < 9)

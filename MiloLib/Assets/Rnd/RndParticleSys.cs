@@ -118,7 +118,7 @@ namespace MiloLib.Assets.Rnd
 
             anim.Read(reader);
             trans.Read(reader, false);
-            draw.Read(reader);
+            draw.Read(reader, false);
 
             life.Read(reader);
 
@@ -265,7 +265,7 @@ namespace MiloLib.Assets.Rnd
 
             anim.Write(writer);
             trans.Write(writer, false);
-            draw.Write(writer);
+            draw.Write(writer, false);
 
             life.Write(writer);
 

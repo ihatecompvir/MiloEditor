@@ -67,7 +67,14 @@ class Program
         MiloFile file = new MiloFile(filePath);
 
         Console.WriteLine("Milo scene information:");
-        Console.WriteLine($"    Name / Type: {file.dirMeta.name} ({file.dirMeta.type})");
+        if (file.dirMeta.type == "")
+        {
+            Console.WriteLine("    Root directory does not exist as this is a GH1-style scene");
+        }
+        else
+        {
+            Console.WriteLine($"    Name / Type: {file.dirMeta.name} ({file.dirMeta.type})");
+        }
         Console.WriteLine($"    Number of entries: {file.dirMeta.entries.Count}");
         foreach (var entry in file.dirMeta.entries)
         {
@@ -85,17 +92,20 @@ class Program
 
         }
 
-        ObjectDir dir = (ObjectDir)file.dirMeta.dirObj;
-
-
-        Console.WriteLine($"    Inlined Sub Directories: {dir.inlineSubDirs.Count}");
-        foreach (var subDir in dir.inlineSubDirs)
+        if (file.dirMeta.type != "")
         {
-            Console.WriteLine($"        {subDir.name}");
+            ObjectDir dir = (ObjectDir)file.dirMeta.dirObj;
 
-            foreach (var entry in subDir.entries)
+
+            Console.WriteLine($"    Inlined Sub Directories: {dir.inlineSubDirs.Count}");
+            foreach (var subDir in dir.inlineSubDirs)
             {
-                Console.WriteLine($"            {entry.name} ({entry.type})");
+                Console.WriteLine($"        {subDir.name}");
+
+                foreach (var entry in subDir.entries)
+                {
+                    Console.WriteLine($"            {entry.name} ({entry.type})");
+                }
             }
         }
     }

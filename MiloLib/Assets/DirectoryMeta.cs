@@ -162,8 +162,14 @@ namespace MiloLib.Assets
                     uiLabelDir.Read(reader, true);
                     dirObj = uiLabelDir;
                     break;
+                case "UIListDir":
+                    Debug.WriteLine("Reading UIListDir " + name.value);
+                    UIListDir uiListDir = new UIListDir();
+                    uiListDir.Read(reader, true);
+                    dirObj = uiListDir;
+                    break;
                 case "":
-                    Debug.WriteLine("GH1-style empty directory, just read children");
+                    Debug.WriteLine("GH1-style empty directory detected, just reading children");
                     break;
                 default:
                     throw new Exception("Unknown directory type: " + type.value + ", cannot continue reading Milo scene");
@@ -251,6 +257,13 @@ namespace MiloLib.Assets
                         entry.dir = new DirectoryMeta().Read(reader);
                         break;
 
+                    case "UIListDir":
+                        Debug.WriteLine("Reading entry UIListDir " + entry.name.value);
+                        entry.obj = new UIListDir().Read(reader, true);
+
+                        entry.dir = new DirectoryMeta().Read(reader);
+                        break;
+
                     // OBJECTS
 
                     case "Object":
@@ -306,6 +319,22 @@ namespace MiloLib.Assets
                     case "ParticleSys":
                         Debug.WriteLine("Reading entry ParticleSys " + entry.name.value);
                         entry.obj = new RndParticleSys().Read(reader, true);
+                        break;
+                    case "AnimFilter":
+                        Debug.WriteLine("Reading entry AnimFilter " + entry.name.value);
+                        entry.obj = new RndAnimFilter().Read(reader, true);
+                        break;
+                    case "BandPlacer":
+                        Debug.WriteLine("Reading entry BandPlacer " + entry.name.value);
+                        entry.obj = new BandPlacer().Read(reader, true);
+                        break;
+                    case "ScreenMask":
+                        Debug.WriteLine("Reading entry ScreenMask " + entry.name.value);
+                        entry.obj = new RndScreenMask().Read(reader, true);
+                        break;
+                    case "TexMovie":
+                        Debug.WriteLine("Reading entry TexMovie " + entry.name.value);
+                        entry.obj = new TexMovie().Read(reader, true);
                         break;
                     default:
                         Debug.WriteLine("Unknown entry type " + entry.type.value + " of name " + entry.name.value + ", read an Object and then read until we see 0xADDEADDE to skip over it, curpos" + reader.BaseStream.Position);
@@ -395,6 +424,9 @@ namespace MiloLib.Assets
                 case "UILabelDir":
                     ((UILabelDir)dirObj).Write(writer, true);
                     break;
+                case "UIListDir":
+                    ((UIListDir)dirObj).Write(writer, true);
+                    break;
                 default:
                     throw new Exception("Unknown directory type: " + type.value + ", cannot continue writing Milo scene");
             }
@@ -436,6 +468,9 @@ namespace MiloLib.Assets
                     case "UILabelDir":
                         ((UILabelDir)entry.obj).Write(writer, false);
                         break;
+                    case "UIListDir":
+                        ((UIListDir)entry.obj).Write(writer, false);
+                        break;
                     case "BandSongPref":
                         ((BandSongPref)entry.obj).Write(writer, true);
                         break;
@@ -465,6 +500,18 @@ namespace MiloLib.Assets
                         break;
                     case "ParticleSys":
                         ((RndParticleSys)entry.obj).Write(writer, true);
+                        break;
+                    case "AnimFilter":
+                        ((RndAnimFilter)entry.obj).Write(writer, true);
+                        break;
+                    case "BandPlacer":
+                        ((BandPlacer)entry.obj).Write(writer, true);
+                        break;
+                    case "ScreenMask":
+                        ((RndScreenMask)entry.obj).Write(writer, true);
+                        break;
+                    case "TexMovie":
+                        ((TexMovie)entry.obj).Write(writer, true);
                         break;
                     //case "Mat":
                     //    ((RndMat)entry.obj).Write(writer, false);
@@ -510,6 +557,12 @@ namespace MiloLib.Assets
                     break;
                 case "CharClipSet":
                     dir.dirObj = new CharClipSet();
+                    break;
+                case "UILabelDir":
+                    dir.dirObj = new UILabelDir();
+                    break;
+                case "UIListDir":
+                    dir.dirObj = new UIListDir();
                     break;
                 default:
                     throw new Exception("Unknown directory type: " + type.GetType().Name + ", cannot continue creating directory");

@@ -59,9 +59,11 @@ namespace MiloLib.Assets.Rnd
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
             else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
 
-            base.objFields.Read(reader);
 
-            base.Read(reader, false);
+            if (revision > 3)
+                base.objFields.Read(reader);
+
+            base.Read(reader, false, true);
 
             color = color.Read(reader);
             range = reader.ReadFloat();
