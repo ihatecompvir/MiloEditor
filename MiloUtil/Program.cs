@@ -94,7 +94,7 @@ class Program
 
         if (file.dirMeta.type != "")
         {
-            ObjectDir dir = (ObjectDir)file.dirMeta.dirObj;
+            ObjectDir dir = (ObjectDir)file.dirMeta.directory;
 
 
             Console.WriteLine($"    Inlined Sub Directories: {dir.inlineSubDirs.Count}");
@@ -149,7 +149,7 @@ class Program
         }
 
         // if we didn't find it in the entries, look through all inlined subdirectories
-        foreach (var dir in ((ObjectDir)miloFile.dirMeta.dirObj).inlineSubDirs)
+        foreach (var dir in ((ObjectDir)miloFile.dirMeta.directory).inlineSubDirs)
         {
             foreach (var entry in dir.entries)
             {

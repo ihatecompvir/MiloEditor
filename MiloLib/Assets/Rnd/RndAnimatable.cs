@@ -3,7 +3,7 @@ using MiloLib.Utils;
 
 namespace MiloLib.Assets.Rnd
 {
-    [Name("Anim"), Description("Base class for animatable objects. Anim objects change their state or other objects.")]
+    [Name("Animatable"), Description("Base class for animatable objects. Anim objects change their state or other objects.")]
     public class RndAnimatable
     {
         public class AnimEntry
@@ -39,7 +39,7 @@ namespace MiloLib.Assets.Rnd
         public ushort altRevision;
         public ushort revision;
 
-        [Name("Frame"), Description("Frame of animation")]
+        [Name("Frame"), Description("Frame of animation"), MinVersion(2)]
         public float frame;
 
         [Name("Rate"), Description("Rate to animate")]
@@ -48,7 +48,7 @@ namespace MiloLib.Assets.Rnd
         private uint animEntryCount;
         public List<AnimEntry> animEntries = new();
 
-        public uint animCount;
+        private uint animCount;
         public List<Symbol> anims = new();
 
         public RndAnimatable Read(EndianReader reader)
@@ -96,8 +96,32 @@ namespace MiloLib.Assets.Rnd
         public void Write(EndianWriter writer)
         {
             writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
-            writer.WriteFloat(frame);
-            writer.WriteUInt32((uint)rate);
+            if (revision > 1)
+                writer.WriteFloat(frame);
+
+            if (revision < 4)
+            {
+                if (revision > 2)
+                {
+                    writer.WriteByte((byte)(rate == Rate.k30_fps ? 0 : 1));
+                }
+            }
+            else
+            {
+                writer.WriteUInt32((uint)rate);
+            }
+
+            writer.WriteUInt32(animEntryCount);
+            foreach (var entry in animEntries)
+            {
+                entry.Write(writer);
+            }
+
+            writer.WriteUInt32(animCount);
+            foreach (var anim in anims)
+            {
+                Symbol.Write(writer, anim);
+            }
         }
     }
 }

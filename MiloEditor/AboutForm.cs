@@ -19,7 +19,7 @@ namespace MiloEditor
 
         private void AboutForm_Load(object sender, EventArgs e)
         {
-            // update label1 with version of application in parentheses like Milo Editor (version)
+            // update label1 with revision of application in parentheses like Milo Editor (revision)
             label1.Text = "Milo Editor (" + Application.ProductVersion + ")";
         }
 

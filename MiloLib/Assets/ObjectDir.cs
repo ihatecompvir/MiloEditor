@@ -20,49 +20,64 @@ namespace MiloLib.Assets
         public ushort altRevision;
         public ushort revision;
 
-        [Name("Viewport Count"), Description("The number of viewports.")]
+        [Name("Viewport Count"), Description("The number of viewports."), MinVersion(2)]
         private uint viewportCount;
-        [Name("Viewports")]
+
+        [Name("Viewports"), MinVersion(2)]
         public List<Matrix> viewports = new List<Matrix>();
-        [Name("Current Viewport Index"), Description("The index of the current viewport.")]
+
+        [Name("Current Viewport Index"), Description("The index of the current viewport."), MinVersion(2)]
         public uint currentViewportIdx;
 
-        [Name("Inline Proxy"), Description("Can this proxy be inlined?")]
+        [Name("Inline Proxy"), Description("Can this proxy be inlined?"), MinVersion(20)]
         public bool inlineProxy;
-        [Name("Proxy Path"), Description("The path to the proxy.")]
+
+        [Name("Proxy Path"), Description("The path to the proxy."), MinVersion(13)]
         public Symbol proxyPath = new(0, "");
 
-        [Name("Sub Directory Count"), Description("The number of subdirectories in the directory.")]
+        [Name("Sub Directory Count"), Description("The number of subdirectories in the directory."), MinVersion(3)]
         private uint subDirCount;
 
-        [Name("Sub Directories"), Description("Subdirectories of objects")]
+        [Name("Sub Directories"), Description("Subdirectories of objects"), MinVersion(3)]
         public List<Symbol> subDirs = new List<Symbol>();
 
-        [Name("Inline Sub Directory"), Description("How is this inlined as a subdir?  Note that when you change this, you must resave everything subdiring this file for it to take effect")]
+        [Name("Inline Sub Directory"), Description("How is this inlined as a subdir? Note that when you change this, you must resave everything subdiring this file for it to take effect"), MinVersion(21)]
         public bool inlineSubDir;
 
-        [Name("Inline Sub Directory Count"), Description("The number of inlined subdirectories in the directory.")]
+        [Name("Inline Sub Directory Count"), Description("The number of inlined subdirectories in the directory."), MinVersion(21)]
         private uint inlineSubDirCount;
 
-        [Name("Inline Sub Directory Names")]
+        [Name("Inline Sub Directory Names"), MinVersion(21)]
         public List<Symbol> inlineSubDirNames = new List<Symbol>();
 
-        [Name("Reference Types")]
+        [Name("Reference Types"), MinVersion(27)]
         public List<ReferenceType> referenceTypes = new List<ReferenceType>();
-        [Name("Reference Types Alt")]
+
+        [Name("Reference Types Alt"), MinVersion(27)]
         public List<ReferenceType> referenceTypesAlt = new List<ReferenceType>();
 
-        [Name("Inline Sub Directories")]
+        [Name("Inline Sub Directories"), MinVersion(21)]
         public List<DirectoryMeta> inlineSubDirs = new List<DirectoryMeta>();
 
+        [Name("Unknown String 1"), MinVersion(3), MaxVersion(10)]
         public Symbol unknownString = new(0, "");
+
+        [Name("Unknown String 2"), MinVersion(3), MaxVersion(10)]
         public Symbol unknownString2 = new(0, "");
 
+        [Name("Unknown Object Reference 1"), MinVersion(2), MaxVersion(10)]
         public Symbol unknownObjRef1 = new(0, "");
+
+        [Name("Unknown Object Reference 2"), MinVersion(4), MaxVersion(10)]
         public Symbol unknownObjRef2 = new(0, "");
 
+        [Name("Unknown String 3"), MinVersion(5), MaxVersion(5)]
         public Symbol unknownString3 = new(0, "");
+
+        [Name("Unknown String 4"), MinVersion(15), MaxVersion(15)]
         public Symbol unknownString4 = new(0, "");
+
+        [Name("Unknown String 5"), MinVersion(16), MaxVersion(18)]
         public Symbol unknownString5 = new(0, "");
 
         public ObjectDir Read(EndianReader reader, bool standalone)
@@ -107,8 +122,10 @@ namespace MiloLib.Assets
                     Matrix viewport = new Matrix();
                     viewport.Read(reader);
                     viewports.Add(viewport);
-                }
+                    if (revision <= 17)
+                        reader.BaseStream.Position += 4;
 
+                }
                 // sanity check, the current viewport index should be less than the viewport count but it can also be 0
                 if (currentViewportIdx >= viewportCount && currentViewportIdx != 0)
                 {
@@ -266,6 +283,8 @@ namespace MiloLib.Assets
             foreach (Matrix viewport in viewports)
             {
                 viewport.Write(writer);
+                if (revision <= 17)
+                    writer.WriteUInt32(0);
             }
             writer.WriteUInt32(currentViewportIdx);
 

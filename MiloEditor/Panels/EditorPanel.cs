@@ -15,7 +15,7 @@ public class EditorPanel : Panel
 {
     private object targetObject;
     private bool drawTypeLabels;
-    public uint version;
+    public uint revision;
 
     // Cache for Reflection info
     private static Dictionary<Type, List<FieldInfo>> _fieldCache = new Dictionary<Type, List<FieldInfo>>();
@@ -25,12 +25,30 @@ public class EditorPanel : Panel
     // Cache for UI Elements
     private static Dictionary<Type, (Label NameLabel, Label DescriptionLabel)> _uiElementCache = new Dictionary<Type, (Label, Label)>();
 
-    public EditorPanel(object target, bool drawTypeLabels = true)
+    public EditorPanel(object target, uint objRevision, bool drawTypeLabels = true)
     {
+        this.revision = objRevision;
         this.targetObject = target;
         this.AutoScroll = true;
         this.drawTypeLabels = drawTypeLabels;
-        BuildUI(targetObject, 10, 10, drawTypeLabels);
+
+        if (targetObject != null)
+        {
+            BuildUI(targetObject, 10, 10, drawTypeLabels);
+        }
+        else
+        {
+            Label emptyMessage = new Label
+            {
+                Text = "The current object type does not yet have a definition and cannot be edited.",
+                Font = new Font(FontFamily.GenericSansSerif, 10, FontStyle.Regular),
+                TextAlign = ContentAlignment.TopCenter,
+                Dock = DockStyle.Fill,
+                AutoSize = false,
+                Padding = new Padding(10)
+            };
+            this.Controls.Add(emptyMessage);
+        }
     }
 
     private List<FieldInfo> GetCachedFields(Type type)
@@ -182,6 +200,17 @@ public class EditorPanel : Panel
 
             foreach (var field in fields)
             {
+                var minVersionAttr = field.GetCustomAttribute<MinVersionAttribute>();
+                var maxVersionAttr = field.GetCustomAttribute<MaxVersionAttribute>();
+
+                int minVersion = minVersionAttr?.Version ?? 0;
+                int maxVersion = maxVersionAttr?.Version ?? ushort.MaxValue;
+
+                if (revision < minVersion || revision > maxVersion)
+                {
+                    continue;
+                }
+
                 var nameAttr = field.GetCustomAttribute<NameAttribute>();
                 var descriptionAttr = field.GetCustomAttribute<DescriptionAttribute>();
 
@@ -234,9 +263,28 @@ public class EditorPanel : Panel
                 // this is where we will display custom or more complex UIs (e.g., Color picker)
                 switch (fieldValue)
                 {
-                    // color pickers (inside ColorPalettes, mainly, but can appear other places)
+                    // color pickers for a HmxColor List (inside ColorPalettes, mainly, but can appear other places)
                     case List<HmxColor> colorList:
                         inputControl = BuildColorPicker(colorList, field);
+                        break;
+                    case HmxColor color:
+                        inputControl = BuildColorPicker(new List<HmxColor> { color }, field);
+                        break;
+                    // list of bytes
+                    case List<byte> byteValue:
+                        var byteListPanel = new ByteListPanel();
+                        byteListPanel.ByteList = byteValue;
+                        byteListPanel.ByteListChanged += (sender, args) =>
+                        {
+                            var control = (ByteListPanel)sender;
+                            object ownerObject = ResolveFieldOwner(targetObject, field);
+                            if (ownerObject != null)
+                            {
+                                field.SetValue(ownerObject, control.ByteList);
+                            }
+                        };
+
+                        inputControl = byteListPanel;
                         break;
                     // generic, view only collections
                     // all objects get cased ToString to be displayed
@@ -297,12 +345,12 @@ public class EditorPanel : Panel
         {
             Dock = DockStyle.Top,
             AutoSize = false,
-            Height = 200,  // Fixed Height, Adjust as needed for the maximum visible height of the colors
+            Height = 200,
             AutoScroll = true
         };
         var flowLayoutPanel = new FlowLayoutPanel
         {
-            Dock = DockStyle.Top, // Keep the Dock for auto-sizing width
+            Dock = DockStyle.Top,
             AutoSize = true,
             FlowDirection = FlowDirection.LeftToRight,
             Padding = new Padding(0),
@@ -319,7 +367,7 @@ public class EditorPanel : Panel
                 Margin = new Padding(5),
             };
 
-            colorPicker.BorderStyle = BorderStyle.FixedSingle; // Add a fixed single border
+            colorPicker.BorderStyle = BorderStyle.FixedSingle;
 
             colorPicker.Color = Color.FromArgb(255, (int)(hmxColor.r * 255), (int)(hmxColor.g * 255), (int)(hmxColor.b * 255));
 
@@ -351,7 +399,7 @@ public class EditorPanel : Panel
             colorPickerIndex++;
         }
 
-        return scrollingPanel; // Return the scrolling panel
+        return scrollingPanel;
     }
     private Control BuildDataGridView(IEnumerable collection)
     {
@@ -394,7 +442,7 @@ public class EditorPanel : Panel
         return checkBox;
     }
 
-    private Control BuildTextField(object fieldValue) // Accept object instead of string
+    private Control BuildTextField(object fieldValue)
     {
         return new TextBox
         {
@@ -554,15 +602,18 @@ public class EditorPanel : Panel
 
         bool nestedDrawLabels = nestedNameAttr != null || nestedDescriptionAttr != null;
 
-        BuildUI(nestedObject, 0, 0, nestedDrawLabels);
-
-        foreach (Control control in this.Controls)
+        if (nestedObject != null)
         {
-            nestedPanel.Controls.Add(control);
-        }
-        this.Controls.Clear();
+            BuildUI(nestedObject, 0, 0, nestedDrawLabels);
 
-        nestedTableLayout.Controls.Add(nestedPanel, 0, 0);
+            foreach (Control control in this.Controls)
+            {
+                nestedPanel.Controls.Add(control);
+            }
+            this.Controls.Clear();
+
+            nestedTableLayout.Controls.Add(nestedPanel, 0, 0);
+        }
         return nestedTableLayout;
     }
 }

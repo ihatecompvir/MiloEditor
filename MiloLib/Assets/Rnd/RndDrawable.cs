@@ -21,14 +21,20 @@ namespace MiloLib.Assets.Rnd
         public ushort altRevision;
         public ushort revision;
 
+        [Name("Showing"), Description("Whether the object and its Draw children are drawn or collided with.")]
         public bool showing;
 
-        [Name("Sphere"), Description("Represents a bounding sphere around this object and its drawn children, which is used for culling of draw and collision commands. X, Y, Z are the sphere center in local coordinates, R is the sphere radius in world coordinates. Culling is not performed when the radius is zero. The world transform of the object must be baked into the radius.")]
+        [Name("Sphere"), Description("Represents a bounding sphere around this object and its drawn children, which is used for culling of draw and collision commands. X, Y, Z are the sphere center in local coordinates, R is the sphere radius in world coordinates. Culling is not performed when the radius is zero. The world transform of the object must be baked into the radius."), MinVersion(1)]
         public Sphere sphere = new();
 
+        [Name("Draw Order"), Description("Draw order within proxies, lower numbers are drawn first, so assign numbers from the outside-in (unless translucent), to minimize overdraw.  In groups, draw_order will be ignored unless you explicitly click the sort button."), MinVersion(3)]
         public float drawOrder;
+
+        [Name("Override Include In Depth Only Pass"), MinVersion(4)]
         public OverrideIncludeInDepthOnlyPass overrideIncludeInDepthOnlyPass;
+
         private uint drawableCount;
+        [Name("Drawables"), MaxVersion(1)]
         public List<Symbol> drawables = new();
         public List<string> drawablesNullTerminated = new();
 

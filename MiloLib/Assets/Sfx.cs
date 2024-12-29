@@ -12,19 +12,20 @@ namespace MiloLib.Assets
         public ushort altRevision;
         public ushort revision;
 
-        [MinVersion(4), Name("Send"), Description("Effect chain to use")]
+        [Name("Send"), Description("Effect chain to use"), MinVersion(4), MaxVersion(8)]
         public Symbol sendObj;
 
+        [Name("Fader Group"), Description("Group for controlling levels"), MinVersion(4), MaxVersion(11)]
         public FaderGroup faderGroup = new();
 
         private uint moggClipCount;
-        [MinVersion(9), Name("Mogg Clips"), Description("List of mogg clips to play")]
+        [Name("Mogg Clips"), Description("List of mogg clips to play"), MinVersion(9)]
         public List<Symbol> MoggClips;
 
-        [MinVersion(12), Name("Reverb Mix DB"), Description("Reverb send for this sfx")]
+        [Name("Reverb Mix DB"), Description("Reverb send for this sfx"), MinVersion(12)]
         public float reverbMixDb;
 
-        [MinVersion(12), Name("Reverb Enable"), Description("Enable reverb send")]
+        [Name("Reverb Enable"), Description("Enable reverb send"), MinVersion(12)]
         public bool reverbSendEnable;
 
         private uint sfxMapsCount;
@@ -44,7 +45,15 @@ namespace MiloLib.Assets
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
             else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
 
-            sequence = sequence.Read(reader);
+            if (revision < 6)
+            {
+                if (1 < revision)
+                    objFields.Read(reader);
+            }
+            else
+            {
+                sequence = sequence.Read(reader);
+            }
 
             sfxMapsCount = reader.ReadUInt32();
 
@@ -61,24 +70,34 @@ namespace MiloLib.Assets
                 sfxMaps.Add(map);
             }
 
-            moggClipCount = reader.ReadUInt32();
-
-            // sanity check on moggClip count
-            if (moggClipCount > 100)
+            if (9 < revision)
             {
-                throw new InvalidDataException("MoggClip count is too high, Sfx is invalid");
+                moggClipCount = reader.ReadUInt32();
+
+                // sanity check on moggClip count
+                if (moggClipCount > 100)
+                {
+                    throw new InvalidDataException("MoggClip count is too high, Sfx is invalid");
+                }
+
+
+                for (int i = 0; i < moggClipCount; i++)
+                {
+                    MoggClips.Add(Symbol.Read(reader));
+                }
             }
 
-            for (int i = 0; i < moggClipCount; i++)
+            if (4 < revision)
+                sendObj = Symbol.Read(reader);
+
+            if (8 < revision)
+                faderGroup = faderGroup.Read(reader);
+
+            if (revision > 11)
             {
-                MoggClips.Add(Symbol.Read(reader));
+                reverbMixDb = reader.ReadFloat();
+                reverbSendEnable = reader.ReadBoolean();
             }
-
-            sendObj = Symbol.Read(reader);
-            faderGroup = faderGroup.Read(reader);
-
-            reverbMixDb = reader.ReadFloat();
-            reverbSendEnable = reader.ReadBoolean();
 
             if (standalone)
                 if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");

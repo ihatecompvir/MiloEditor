@@ -18,40 +18,45 @@ namespace MiloLib.Assets.Rnd
         public ushort revision;
         [Name("Color"), Description("Color of light")]
         public HmxColor color = new();
-        [Name("Color Owner"), Description("Master for light color and intensity")]
+        [Name("Color Owner"), Description("Master for light color and intensity"), MinVersion(11)]
         public Symbol colorOwner = new(0, "");
-        [Name("Range"), Description("Falloff distance for point lights")]
+        [Name("Range"), Description("Falloff distance for point lights"), MinVersion(0)]
         public float range;
-        [Name("Falloff Start"), Description("Distance at which falloff starts for point lights")]
+        [Name("Falloff Start"), Description("Distance at which falloff starts for point lights"), MinVersion(12)]
         public float falloffStart;
-        [Name("Light Type"), Description("Type of dynamic lighting")]
+        [Name("Light Type"), Description("Type of dynamic lighting"), MinVersion(1)]
         public Type type;
-        [Name("Animate Color From Preset"), Description("Animation authority for LightPreset")]
+        [Name("Animate Color From Preset"), Description("Animation authority for LightPreset"), MinVersion(6)]
         public bool animateColorFromPreset;
-        [Name("Animate Position From Preset"), Description("Animation authority for LightPreset")]
+        [Name("Animate Position From Preset"), Description("Animation authority for LightPreset"), MinVersion(6)]
         public bool animatePositionFromPreset;
-        [Name("Animate Range From Preset"), Description("Animate light's range from a LightPreset")]
+        [Name("Animate Range From Preset"), Description("Animate light's range from a LightPreset"), MinVersion(16)]
         public bool animateRangeFromPreset;
-        public bool showing;
-        [Name("Texture"), Description("Projected texture")]
+
+        [Name("Texture"), Description("Projected texture"), MinVersion(8)]
         public Symbol texture = new(0, "");
-        [Name("Cube Texture"), Description("Projected cube map texture")]
+        [Name("Cube Texture"), Description("Projected cube map texture"), MinVersion(14)]
         public Symbol cubeTex = new(0, "");
 
         private uint shadowObjectsCount;
 
-        [Name("Shadow Objects"), Description("These objects will cast shadows for the projected light")]
+        [Name("Shadow Objects"), Description("These objects will cast shadows for the projected light"), MinVersion(15)]
         public List<Symbol> shadowObjects = new();
 
+        [MinVersion(13)]
         public Matrix textureTransform = new();
-        [Name("Top Radius"), Description("Fake cone small radius at the source")]
+        [Name("Top Radius"), Description("Fake cone small radius at the source"), MinVersion(7)]
         public float topRadius;
-        [Name("Bottom Radius"), Description("Fake cone big radius at the far end")]
+        [Name("Bottom Radius"), Description("Fake cone big radius at the far end"), MinVersion(7)]
         public float bottomRadius;
-        [Name("Projected Blend"), Description("Specifies blending for the projected light")]
+        [Name("Projected Blend"), Description("Specifies blending for the projected light"), MinVersion(15)]
         public int projectedBlend;
-        [Name("Only Projection"), Description("Only render the projected light")]
-        public bool onlyProjection;
+
+        private uint drawCount;
+        [MinVersion(9), MaxVersion(9)]
+        public List<Symbol> drawList = new();
+        [MinVersion(8), MaxVersion(8)]
+        public Symbol draw = new(0, "");
 
         public RndLight Read(EndianReader reader, bool standalone)
         {
@@ -67,23 +72,65 @@ namespace MiloLib.Assets.Rnd
 
             color = color.Read(reader);
             range = reader.ReadFloat();
-            type = (Type)reader.ReadInt32();
-            falloffStart = reader.ReadFloat();
-            animateColorFromPreset = reader.ReadBoolean();
-            animatePositionFromPreset = reader.ReadBoolean();
-            topRadius = reader.ReadFloat();
-            bottomRadius = reader.ReadFloat();
-            texture = Symbol.Read(reader);
-            colorOwner = Symbol.Read(reader);
-            textureTransform = textureTransform.Read(reader);
-            cubeTex = Symbol.Read(reader);
-            shadowObjectsCount = reader.ReadUInt32();
-            for (int i = 0; i < shadowObjectsCount; i++)
+
+            if (revision != 0)
+                type = (Type)reader.ReadInt32();
+
+            if (revision > 0xB)
+                falloffStart = reader.ReadFloat();
+
+            if (revision > 5)
             {
-                shadowObjects.Add(Symbol.Read(reader));
+                animateColorFromPreset = reader.ReadBoolean();
+                animatePositionFromPreset = reader.ReadBoolean();
             }
-            projectedBlend = reader.ReadInt32();
-            animateRangeFromPreset = reader.ReadBoolean();
+
+            if (revision > 6)
+            {
+                topRadius = reader.ReadFloat();
+                bottomRadius = reader.ReadFloat();
+            }
+
+            if (revision > 7)
+            {
+                texture = Symbol.Read(reader);
+                if (revision == 9)
+                {
+                    drawCount = reader.ReadUInt32();
+                    for (int i = 0; i < drawCount; i++)
+                    {
+                        drawList.Add(Symbol.Read(reader));
+                    }
+                }
+                else if (revision == 8)
+                {
+                    draw = Symbol.Read(reader);
+                }
+            }
+
+            if (revision > 10)
+            {
+                colorOwner = Symbol.Read(reader);
+            }
+
+            if (revision > 0xC)
+                textureTransform = textureTransform.Read(reader);
+
+            if (revision > 0xD)
+                cubeTex = Symbol.Read(reader);
+
+            if (revision > 0xE)
+            {
+                shadowObjectsCount = reader.ReadUInt32();
+                for (int i = 0; i < shadowObjectsCount; i++)
+                {
+                    shadowObjects.Add(Symbol.Read(reader));
+                }
+                projectedBlend = reader.ReadInt32();
+            }
+
+            if (revision > 0xF)
+                animateRangeFromPreset = reader.ReadBoolean();
 
             if (standalone)
             {

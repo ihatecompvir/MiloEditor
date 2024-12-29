@@ -209,7 +209,11 @@ namespace MiloLib.Assets
                 root = new DTBParent();
                 root.Read(reader);
             }
-            note = Symbol.Read(reader);
+
+            if (metadataRevision > 0)
+            {
+                note = Symbol.Read(reader);
+            }
 
             return this;
         }
@@ -227,12 +231,15 @@ namespace MiloLib.Assets
             }
 
             // write note
-            Symbol.Write(writer, note);
+            if (metadataRevision > 0)
+            {
+                Symbol.Write(writer, note);
+            }
         }
 
         public override string ToString()
         {
-            // ternary operator based on version
+            // ternary operator based on revision
             if (metadataRevision < 1)
             {
                 return type.ToString();

@@ -161,7 +161,7 @@ namespace MiloLib.Assets.Rnd
         }
 
         public ushort altRevision;
-        public ushort revision; // constant for version 68
+        public ushort revision; // constant for revision 68
 
         [Name("Base Color"), Description("Base material color")]
         public HmxColor mColor = new HmxColor(1f, 1f, 1f, 1f);

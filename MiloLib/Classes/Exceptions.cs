@@ -17,7 +17,7 @@ namespace MiloLib.Classes
     {
         public uint Revision { get; }
 
-        public UnsupportedMiloSceneRevision(uint version) : base($"Unsupported Milo scene version: {version}")
+        public UnsupportedMiloSceneRevision(uint version) : base($"Unsupported Milo scene revision: {version}")
         {
             Revision = version;
         }

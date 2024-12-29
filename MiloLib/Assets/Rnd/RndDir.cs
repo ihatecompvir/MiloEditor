@@ -25,8 +25,11 @@ namespace MiloLib.Assets.Rnd
         [Name("Unknown Floats"), Description("Unknown floats only found in the GH2 4-song demo."), MinVersion(6), MaxVersion(6)]
         public List<float> unknownFloats = new();
 
+        [MinVersion(0), MaxVersion(8)]
         public RndPollable poll = new();
+        [MinVersion(0), MaxVersion(8)]
         public Symbol unkSymbol1 = new(0, "");
+        [MinVersion(0), MaxVersion(8)]
         public Symbol unkSymbol2 = new(0, "");
 
         public RndDir Read(EndianReader reader, bool standalone)

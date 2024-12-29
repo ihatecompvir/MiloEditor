@@ -12,9 +12,12 @@
 
   <ItemGroup>
     <None Remove="Images\BandCharDesc.png" />
+    <None Remove="Images\BandCrowdMeterDir.png" />
+    <None Remove="Images\Camera.png" />
     <None Remove="Images\Character.png" />
     <None Remove="Images\ColorPalette.png" />
     <None Remove="Images\default.png" />
+    <None Remove="Images\NoDir.png" />
     <None Remove="Images\ObjectDir.png" />
     <None Remove="Images\RndAnim.png" />
     <None Remove="Images\RndDir.png" />
@@ -24,7 +27,9 @@
     <None Remove="Images\RndMultiMesh.png" />
     <None Remove="Images\RndTex.png" />
     <None Remove="Images\RndTrans.png" />
+    <None Remove="Images\ScreenMask.png" />
     <None Remove="Images\Sfx.png" />
+    <None Remove="Images\TexMovie.png" />
     <None Remove="Images\TransAnim.png" />
     <None Remove="Images\UIColor.png" />
     <None Remove="Images\WorldDir.png" />
@@ -34,6 +39,12 @@
     <Content Include="Images\BandCharDesc.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Images\BandCrowdMeterDir.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\Camera.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Images\Character.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -41,6 +52,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Images\default.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\NoDir.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Images\RndLight.png">
@@ -70,7 +84,13 @@
     <Content Include="Images\RndTrans.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Images\ScreenMask.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Images\Sfx.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\TexMovie.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Images\TransAnim.png">
@@ -96,6 +116,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Panels\ByteListPanel.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Update="Properties\Resources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>

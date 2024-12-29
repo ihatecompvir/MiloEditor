@@ -22,9 +22,11 @@ namespace MiloLib.Assets.Rnd
         [Name("External Path"), Description("Path to the texture to be loaded externally.")]
         public Symbol externalPath = new(0, "");
 
+        [MinVersion(8)]
         public float indexFloat;
         public uint index2;
 
+        [MinVersion(11)]
         public bool unk;
 
         [Name("Use External Path"), Description("Whether or not to use the external path.")]

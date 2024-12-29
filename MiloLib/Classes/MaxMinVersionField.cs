@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 namespace MiloLib.Classes
 {
     /// <summary>
-    /// Defines the minimum version required for a field to be read.
-    /// Milo reads the version to provide backwards compatibility for assets.
+    /// Defines the minimum revision required for a field to be read.
+    /// Milo reads the revision to provide backwards compatibility for assets.
     /// </summary>
     [AttributeUsage(AttributeTargets.Field)]
     public class MinVersionAttribute : Attribute
@@ -18,8 +18,8 @@ namespace MiloLib.Classes
     }
 
     /// <summary>
-    /// Defines the maximum version required for a field to be read.
-    /// Milo reads the version to provide backwards compatibility for assets.
+    /// Defines the maximum revision required for a field to be read.
+    /// Milo reads the revision to provide backwards compatibility for assets.
     /// </summary>
     [AttributeUsage(AttributeTargets.Field)]
     public class MaxVersionAttribute : Attribute

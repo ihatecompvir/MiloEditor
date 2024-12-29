@@ -9,31 +9,37 @@ namespace MiloLib.Assets.Rnd
         public ushort altRevision;
         public ushort revision;
 
-        public RndAnimatable anim;
+        public RndAnimatable anim = new();
 
-        public RndTrans trans;
+        public RndTrans trans = new();
 
-        public RndDrawable draw;
+        public RndDrawable draw = new();
 
         private uint objectsCount;
+
+        [Name("Objects"), Description("List of objects in the group"), MinVersion(11)]
         public List<Symbol> objects = new List<Symbol>();
 
-        public Symbol environ;
+        [Name("Environ"), MinVersion(16)]
+        public Symbol environ = new(0, "");
 
-        [Name("Draw Only"), Description("If set, only draws this member of the group")]
-        public Symbol drawOnly;
+        [Name("Draw Only"), Description("If set, only draws this member of the group"), MinVersion(14)]
+        public Symbol drawOnly = new(0, "");
 
-        [Name("LOD"), Description("Object to draw instead below lod_screen_size")]
-        public Symbol lod;
+        [Name("LOD"), Description("Object to draw instead below lod_screen_size"), MinVersion(12), MaxVersion(15)]
+        public Symbol lod = new(0, "");
 
-        [Name("LOD Screen Size"), DescriptionAttribute("Ratio of screen height for LOD")]
+        [Name("LOD Screen Size"), Description("Ratio of screen height for LOD"), MinVersion(12), MaxVersion(15)]
         public float lodScreenSize;
 
-        [Name("Sort In World"), DescriptionAttribute("Sort by distance to current camera per frame. This has a CPU cost if there are many objects.")]
+        [Name("Sort In World"), Description("Sort by distance to current camera per frame. This has a CPU cost if there are many objects."), MinVersion(14)]
         public bool sortInWorld;
 
+        [MinVersion(7), MaxVersion(7)]
         public Symbol unknownSymbol = new(0, "");
+        [MinVersion(7), MaxVersion(7)]
         public float lodWidth;
+        [MinVersion(7), MaxVersion(7)]
         public float lodHeight;
 
         public RndGroup Read(EndianReader reader, bool standalone)

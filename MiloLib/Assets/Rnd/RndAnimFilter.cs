@@ -29,9 +29,12 @@ namespace MiloLib.Assets.Rnd
 
         public AnimEnum animEnum;
 
+        [MinVersion(1)]
         public float period;
 
+        [MinVersion(2)]
         public float snap;
+        [MinVersion(2)]
         public float jitter;
 
         public RndAnimFilter Read(EndianReader reader, bool standalone)

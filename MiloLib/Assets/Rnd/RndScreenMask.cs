@@ -28,11 +28,10 @@ namespace MiloLib.Assets.Rnd
 
             base.Read(reader, false);
 
-            draw = draw.Read(reader, false);
+            draw = draw.Read(reader, false, true);
 
             material = Symbol.Read(reader);
             color = color.Read(reader);
-            alpha = reader.ReadFloat();
 
             rect = rect.Read(reader);
 

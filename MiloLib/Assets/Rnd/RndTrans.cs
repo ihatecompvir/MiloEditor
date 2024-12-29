@@ -35,20 +35,23 @@ namespace MiloLib.Assets.Rnd
         [Name("World Transform"), Description("The world transform of the object.")]
         public Matrix worldXfm = new();
 
-        [Name("Constraint"), Description("Trans constraint for the object.")]
+        [Name("Constraint"), Description("Trans constraint for the object."), MinVersion(7)]
         public Constraint constraint;
 
-        [Name("Target"), Description("Target according to the constraint.")]
+        [Name("Target"), Description("Target according to the constraint."), MinVersion(6)]
         public Symbol target = new(0, "");
 
-        [Name("Preserve Scale"), Description("Preserve scale if applying dynamic constraint.")]
+        [Name("Preserve Scale"), Description("Preserve scale if applying dynamic constraint."), MinVersion(7)]
         public bool preserveScale;
 
         [Name("Parent"), Description("Object this is linked to.")]
         public Symbol parent = new(0, "");
 
         private uint transCount;
+
+        [MaxVersion(8)]
         public List<Symbol> transObjects = new();
+        [MaxVersion(8)]
         public List<string> transObjectsNullTerminated = new();
 
         public RndTrans Read(EndianReader reader, bool standalone, bool skipMetadata = false)

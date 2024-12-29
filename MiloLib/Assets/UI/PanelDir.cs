@@ -39,7 +39,8 @@ namespace MiloLib.Assets.UI
 
             base.Read(reader, false);
 
-            cam = Symbol.Read(reader);
+            if (revision != 0)
+                cam = Symbol.Read(reader);
 
             if (revision <= 1)
             {
@@ -60,24 +61,28 @@ namespace MiloLib.Assets.UI
                 useSpecifiedCam = reader.ReadBoolean();
             }
 
-            int frontPanelCount = reader.ReadInt32();
-            frontPanels = new List<Symbol>();
-            for (int i = 0; i < frontPanelCount; i++)
+            if (revision > 4)
             {
-                frontPanels.Add(Symbol.Read(reader));
-            }
+                int frontPanelCount = reader.ReadInt32();
+                frontPanels = new List<Symbol>();
+                for (int i = 0; i < frontPanelCount; i++)
+                {
+                    frontPanels.Add(Symbol.Read(reader));
+                }
 
-            int backPanelCount = reader.ReadInt32();
-            backPanels = new List<Symbol>();
-            for (int i = 0; i < backPanelCount; i++)
-            {
-                backPanels.Add(Symbol.Read(reader));
+                int backPanelCount = reader.ReadInt32();
+                backPanels = new List<Symbol>();
+                for (int i = 0; i < backPanelCount; i++)
+                {
+                    backPanels.Add(Symbol.Read(reader));
+                }
             }
 
             if (revision >= 8)
                 postProcsBeforeDraw = reader.ReadBoolean();
 
-            showViewOnlyPanels = reader.ReadBoolean();
+            if (revision > 5)
+                showViewOnlyPanels = reader.ReadBoolean();
 
             if (standalone)
             {

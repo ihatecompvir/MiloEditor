@@ -113,12 +113,16 @@ namespace MiloLib.Assets.Rnd
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
             else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
 
-            obj1.Read(reader);
-            obj2.Read(reader);
+            // only read these if revision is greater than 22
+            if (revision > 22)
+            {
+                obj1.Read(reader);
+                obj2.Read(reader);
+            }
 
             anim.Read(reader);
-            trans.Read(reader, false);
-            draw.Read(reader, false);
+            trans.Read(reader, false, true);
+            draw.Read(reader, false, true);
 
             life.Read(reader);
 

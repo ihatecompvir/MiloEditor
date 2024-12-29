@@ -50,7 +50,7 @@ namespace MiloLib.Assets
             }
         }
 
-        private uint version;
+        private uint revision;
 
         public Symbol type = new(0, "");
         public Symbol name = new(0, "");
@@ -58,34 +58,35 @@ namespace MiloLib.Assets
         private uint stringTableCount;
         private uint stringTableSize;
 
+
         private uint externalResourceCount;
-        private List<Symbol> externalResources = new List<Symbol>();
+        public List<Symbol> externalResources = new List<Symbol>();
 
         private uint entryCount;
         public List<Entry> entries = new List<Entry>();
 
-        public Object dirObj;
+        public Object directory;
 
         public DirectoryMeta Read(EndianReader reader)
         {
-            version = reader.ReadUInt32();
+            revision = reader.ReadUInt32();
 
-            // if the version is over 50, switch to little endian and attempt the read again to guess endianness
-            // this works well since the highest known version before switch to Forge was 32
-            if (version > 50)
+            // if the revision is over 50, switch to little endian and attempt the read again to guess endianness
+            // this works well since the highest known revision before switch to Forge was 32
+            if (revision > 50)
             {
                 reader.Endianness = Endian.LittleEndian;
                 reader.BaseStream.Position -= 4;
-                version = reader.ReadUInt32();
+                revision = reader.ReadUInt32();
             }
 
             // support freq<-->dc3 versions
-            if (version != 6 && version != 10 && version != 24 && version != 25 && version != 26 && version != 28 && version != 32)
+            if (revision != 6 && revision != 10 && revision != 24 && revision != 25 && revision != 26 && revision != 28 && revision != 32)
             {
-                throw new UnsupportedMiloSceneRevision(version);
+                throw new UnsupportedMiloSceneRevision(revision);
             }
 
-            if (version > 10)
+            if (revision > 10)
             {
                 type = Symbol.Read(reader);
                 name = Symbol.Read(reader);
@@ -93,7 +94,7 @@ namespace MiloLib.Assets
                 stringTableCount = reader.ReadUInt32();
                 stringTableSize = reader.ReadUInt32();
 
-                if (version >= 32)
+                if (revision >= 32)
                 {
                     reader.ReadBoolean();
                 }
@@ -108,7 +109,7 @@ namespace MiloLib.Assets
             }
 
             // only gh1-era stuff seems to have this
-            if (version == 10)
+            if (revision == 10)
             {
                 externalResourceCount = reader.ReadUInt32();
                 for (int i = 0; i < externalResourceCount; i++)
@@ -124,49 +125,73 @@ namespace MiloLib.Assets
                     Debug.WriteLine("Reading ObjectDir " + name.value);
                     ObjectDir objectDir = new ObjectDir();
                     objectDir.Read(reader, true);
-                    dirObj = objectDir;
+                    directory = objectDir;
                     break;
                 case "RndDir":
                     Debug.WriteLine("Reading RndDir " + name.value);
                     RndDir rndDir = new RndDir();
                     rndDir.Read(reader, true);
-                    dirObj = rndDir;
+                    directory = rndDir;
                     break;
                 case "PanelDir":
                     Debug.WriteLine("Reading PanelDir " + name.value);
                     PanelDir panelDir = new PanelDir();
                     panelDir.Read(reader, true);
-                    dirObj = panelDir;
+                    directory = panelDir;
                     break;
                 case "CharClipSet":
                     Debug.WriteLine("Reading CharClipSet " + name.value);
                     CharClipSet charClipSet = new CharClipSet();
-                    charClipSet.Read(reader, true);
-                    dirObj = charClipSet;
+                    uint charClipSampleCount = 0;
+
+                    // count all "CharClipSamples" entries for use in CharClipSets of certain revisions
+                    // TODO: replace this hack with something better in the future
+                    foreach (Entry entry in entries)
+                    {
+                        if (entry.type.value == "CharClipSamples")
+                        {
+                            charClipSampleCount++;
+                        }
+                    }
+
+                    charClipSet.Read(reader, true, charClipSampleCount);
+                    directory = charClipSet;
                     break;
                 case "WorldDir":
                     Debug.WriteLine("Reading WorldDir " + name.value);
                     WorldDir worldDir = new WorldDir();
                     worldDir.Read(reader, true);
-                    dirObj = worldDir;
+                    directory = worldDir;
                     break;
                 case "Character":
                     Debug.WriteLine("Reading Character " + name.value);
                     Character character = new Character();
                     character.Read(reader, true);
-                    dirObj = character;
+                    directory = character;
                     break;
                 case "UILabelDir":
                     Debug.WriteLine("Reading UILabelDir " + name.value);
                     UILabelDir uiLabelDir = new UILabelDir();
                     uiLabelDir.Read(reader, true);
-                    dirObj = uiLabelDir;
+                    directory = uiLabelDir;
                     break;
                 case "UIListDir":
                     Debug.WriteLine("Reading UIListDir " + name.value);
                     UIListDir uiListDir = new UIListDir();
                     uiListDir.Read(reader, true);
-                    dirObj = uiListDir;
+                    directory = uiListDir;
+                    break;
+                case "BandCrowdMeterDir":
+                    Debug.WriteLine("Reading BandCrowdMeterDir " + name.value);
+                    BandCrowdMeterDir bandCrowdMeterDir = new BandCrowdMeterDir();
+                    bandCrowdMeterDir.Read(reader, true);
+                    directory = bandCrowdMeterDir;
+                    break;
+                case "CrowdMeterIcon":
+                    Debug.WriteLine("Reading CrowdMeterIcon " + name.value);
+                    CrowdMeterIcon crowdMeterIcon = new CrowdMeterIcon();
+                    crowdMeterIcon.Read(reader, true);
+                    directory = crowdMeterIcon;
                     break;
                 case "":
                     Debug.WriteLine("GH1-style empty directory detected, just reading children");
@@ -264,6 +289,27 @@ namespace MiloLib.Assets
                         entry.dir = new DirectoryMeta().Read(reader);
                         break;
 
+                    case "UILabelDir":
+                        Debug.WriteLine("Reading entry UILabelDir " + entry.name.value);
+                        entry.obj = new UILabelDir().Read(reader, true);
+
+                        entry.dir = new DirectoryMeta().Read(reader);
+                        break;
+
+                    case "BandCrowdMeterDir":
+                        Debug.WriteLine("Reading entry BandCrowdMeterDir " + entry.name.value);
+                        entry.obj = new BandCrowdMeterDir().Read(reader, true);
+
+                        entry.dir = new DirectoryMeta().Read(reader);
+                        break;
+
+                    case "CrowdMeterIcon":
+                        Debug.WriteLine("Reading entry CrowdMeterIcon " + entry.name.value);
+                        entry.obj = new CrowdMeterIcon().Read(reader, true);
+
+                        entry.dir = new DirectoryMeta().Read(reader);
+                        break;
+
                     // OBJECTS
 
                     case "Object":
@@ -339,15 +385,6 @@ namespace MiloLib.Assets
                     default:
                         Debug.WriteLine("Unknown entry type " + entry.type.value + " of name " + entry.name.value + ", read an Object and then read until we see 0xADDEADDE to skip over it, curpos" + reader.BaseStream.Position);
 
-                        // read revision and then an empty object
-                        // this allows the editor to display at least *some* fields on every object
-                        reader.ReadUInt32();
-                        if (version != 10)
-                        {
-                            // no object fields to read in version 10
-                            entry.obj = new Object().Read(reader, false);
-                        }
-
                         // TODO: improve this shit
                         while (true)
                         {
@@ -382,7 +419,7 @@ namespace MiloLib.Assets
 
         public void Write(EndianWriter writer)
         {
-            writer.WriteUInt32(version);
+            writer.WriteUInt32(revision);
 
             Symbol.Write(writer, type);
             Symbol.Write(writer, name);
@@ -401,31 +438,37 @@ namespace MiloLib.Assets
             switch (type.value)
             {
                 case "ObjectDir":
-                    ((ObjectDir)dirObj).Write(writer, true);
+                    ((ObjectDir)directory).Write(writer, true);
                     break;
                 case "RndDir":
-                    ((RndDir)dirObj).Write(writer, true);
+                    ((RndDir)directory).Write(writer, true);
                     break;
                 case "PanelDir":
-                    ((PanelDir)dirObj).Write(writer, true);
+                    ((PanelDir)directory).Write(writer, true);
                     break;
                 case "WorldDir":
-                    ((WorldDir)dirObj).Write(writer, true);
+                    ((WorldDir)directory).Write(writer, true);
                     break;
                 case "Character":
-                    ((Character)dirObj).Write(writer, true);
+                    ((Character)directory).Write(writer, true);
                     break;
                 case "P9Character":
-                    ((P9Character)dirObj).Write(writer, true);
+                    ((P9Character)directory).Write(writer, true);
                     break;
                 case "CharClipSet":
-                    ((CharClipSet)dirObj).Write(writer, true);
+                    ((CharClipSet)directory).Write(writer, true);
                     break;
                 case "UILabelDir":
-                    ((UILabelDir)dirObj).Write(writer, true);
+                    ((UILabelDir)directory).Write(writer, true);
                     break;
                 case "UIListDir":
-                    ((UIListDir)dirObj).Write(writer, true);
+                    ((UIListDir)directory).Write(writer, true);
+                    break;
+                case "BandCrowdMeterDir":
+                    ((BandCrowdMeterDir)directory).Write(writer, true);
+                    break;
+                case "CrowdMeterIcon":
+                    ((CrowdMeterIcon)directory).Write(writer, true);
                     break;
                 default:
                     throw new Exception("Unknown directory type: " + type.value + ", cannot continue writing Milo scene");
@@ -470,6 +513,9 @@ namespace MiloLib.Assets
                         break;
                     case "UIListDir":
                         ((UIListDir)entry.obj).Write(writer, false);
+                        break;
+                    case "BandCrowdMeterDir":
+                        ((BandCrowdMeterDir)entry.obj).Write(writer, false);
                         break;
                     case "BandSongPref":
                         ((BandSongPref)entry.obj).Write(writer, true);
@@ -538,31 +584,37 @@ namespace MiloLib.Assets
             switch (dir.type)
             {
                 case "ObjectDir":
-                    dir.dirObj = new ObjectDir();
+                    dir.directory = new ObjectDir();
                     break;
                 case "RndDir":
-                    dir.dirObj = new RndDir();
+                    dir.directory = new RndDir();
                     break;
                 case "PanelDir":
-                    dir.dirObj = new PanelDir();
+                    dir.directory = new PanelDir();
                     break;
                 case "WorldDir":
-                    dir.dirObj = new WorldDir();
+                    dir.directory = new WorldDir();
                     break;
                 case "Character":
-                    dir.dirObj = new Character();
+                    dir.directory = new Character();
                     break;
                 case "P9Character":
-                    dir.dirObj = new P9Character();
+                    dir.directory = new P9Character();
                     break;
                 case "CharClipSet":
-                    dir.dirObj = new CharClipSet();
+                    dir.directory = new CharClipSet();
                     break;
                 case "UILabelDir":
-                    dir.dirObj = new UILabelDir();
+                    dir.directory = new UILabelDir();
                     break;
                 case "UIListDir":
-                    dir.dirObj = new UIListDir();
+                    dir.directory = new UIListDir();
+                    break;
+                case "BandCrowdMeterDir":
+                    dir.directory = new BandCrowdMeterDir();
+                    break;
+                case "CrowdMeterIcon":
+                    dir.directory = new CrowdMeterIcon();
                     break;
                 default:
                     throw new Exception("Unknown directory type: " + type.GetType().Name + ", cannot continue creating directory");
@@ -570,7 +622,7 @@ namespace MiloLib.Assets
 
             dir.entries = new List<Entry>();
 
-            dir.version = 0x1c;
+            dir.revision = 0x1c;
             return dir;
         }
 

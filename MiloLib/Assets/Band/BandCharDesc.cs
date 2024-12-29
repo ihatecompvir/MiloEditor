@@ -271,7 +271,7 @@ namespace MiloLib.Assets.Band
     public class BandCharDesc : Object
     {
         public ushort altRevision;
-        public ushort revision; // Constant for version 0x11 (17)
+        public ushort revision; // Constant for revision 0x11 (17)
 
         [Name("Prefab"), Description("Prefab name if this is a non-editable prefab")]
         public Symbol prefab;
@@ -301,6 +301,9 @@ namespace MiloLib.Assets.Band
 
         public int unk224;
 
+        public uint head1;
+        public uint head2;
+
 
         public BandCharDesc Read(EndianReader reader, bool standalone)
         {
@@ -308,13 +311,27 @@ namespace MiloLib.Assets.Band
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
             else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
             base.Read(reader, false);
-            prefab = Symbol.Read(reader);
+
+            if (revision > 0x10)
+                prefab = Symbol.Read(reader);
+
 
             gender = Symbol.Read(reader);
-            skinColor = reader.ReadInt32();
 
-            head = new Head();
-            head.Read(reader);
+            if (revision != 0)
+            {
+                skinColor = reader.ReadInt32();
+                if (revision < 5)
+                {
+                    head1 = reader.ReadUInt32();
+                    head2 = reader.ReadUInt32();
+                }
+                else
+                {
+                    head = new Head();
+                    head.Read(reader);
+                }
+            }
 
             outfit = new Outfit();
             outfit.Read(reader);

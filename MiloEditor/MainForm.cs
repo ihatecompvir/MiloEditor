@@ -5,6 +5,7 @@ using MiloLib.Assets.Rnd;
 using MiloLib.Utils;
 using System.Diagnostics;
 using System.DirectoryServices;
+using System.Reflection;
 using System.Windows.Forms;
 using System.Xml.Linq;
 using static MiloLib.Assets.DirectoryMeta;
@@ -74,6 +75,9 @@ namespace MiloEditor
             imageList.Images.Add("ColorPalette", Image.FromFile("Images/ColorPalette.png"));
             imageList.Images.Add("Light", Image.FromFile("Images/RndLight.png"));
             imageList.Images.Add("WorldDir", Image.FromFile("Images/WorldDir.png"));
+            imageList.Images.Add("ScreenMask", Image.FromFile("Images/ScreenMask.png"));
+            imageList.Images.Add("TexMovie", Image.FromFile("Images/TexMovie.png"));
+            imageList.Images.Add("", Image.FromFile("Images/NoDir.png"));
         }
 
         private void PopulateListWithEntries()
@@ -99,36 +103,40 @@ namespace MiloEditor
 
             miloSceneItemsTree.Nodes.Add(rootNode);
 
-            // Check if there are any inline subdirectories
-            var inlineSubDirs = ((ObjectDir)currentMiloScene.dirMeta.dirObj).inlineSubDirs;
-            if (inlineSubDirs.Count > 0)
+
+            if (currentMiloScene.dirMeta.type != "")
             {
-                // Add a parent node for inline subdirectories
-                TreeNode inlineSubdirsNode = new TreeNode("Inline Subdirectories", -1, -1);
-
-                foreach (DirectoryMeta subDir in inlineSubDirs)
+                // Check if there are any inline subdirectories
+                var inlineSubDirs = ((ObjectDir)currentMiloScene.dirMeta.directory).inlineSubDirs;
+                if (inlineSubDirs.Count > 0)
                 {
-                    // Create a node for the subdirectory
-                    TreeNode subDirNode = new TreeNode(subDir.name.value, GetImageIndex(imageList, subDir.type), GetImageIndex(imageList, subDir.type))
-                    {
-                        Tag = subDir
-                    };
+                    // Add a parent node for inline subdirectories
+                    TreeNode inlineSubdirsNode = new TreeNode("Inline Subdirectories", -1, -1);
 
-                    foreach (DirectoryMeta.Entry entry in subDir.entries)
+                    foreach (DirectoryMeta subDir in inlineSubDirs)
                     {
-                        TreeNode node = new TreeNode(entry.name.value, GetImageIndex(imageList, entry.type), GetImageIndex(imageList, entry.type))
+                        // Create a node for the subdirectory
+                        TreeNode subDirNode = new TreeNode(subDir.name.value, GetImageIndex(imageList, subDir.type), GetImageIndex(imageList, subDir.type))
                         {
-                            Tag = entry
+                            Tag = subDir
                         };
-                        subDirNode.Nodes.Add(node);
+
+                        foreach (DirectoryMeta.Entry entry in subDir.entries)
+                        {
+                            TreeNode node = new TreeNode(entry.name.value, GetImageIndex(imageList, entry.type), GetImageIndex(imageList, entry.type))
+                            {
+                                Tag = entry
+                            };
+                            subDirNode.Nodes.Add(node);
+                        }
+
+                        // Add the subdirectory node to the Inline Subdirectories node
+                        inlineSubdirsNode.Nodes.Add(subDirNode);
                     }
 
-                    // Add the subdirectory node to the Inline Subdirectories node
-                    inlineSubdirsNode.Nodes.Add(subDirNode);
+                    // Add the Inline Subdirectories node to the root
+                    rootNode.Nodes.Add(inlineSubdirsNode);
                 }
-
-                // Add the Inline Subdirectories node to the root
-                rootNode.Nodes.Add(inlineSubdirsNode);
             }
 
             // add all the nodes for the children of the root dir
@@ -180,13 +188,15 @@ namespace MiloEditor
             // handle clicking on dirs
             if (e.Node.Tag is DirectoryMeta obj && e.Button == MouseButtons.Left)
             {
-                CreateEditorPanelForAsset(obj.dirObj);
+                if (obj.directory != null)
+                    CreateEditorPanelForAsset(obj.directory);
             }
 
             // handle clicking on assets
             if (e.Node.Tag is DirectoryMeta.Entry entry && e.Button == MouseButtons.Left)
             {
-                CreateEditorPanelForAsset(entry.obj);
+                if (entry.obj != null)
+                    CreateEditorPanelForAsset(entry.obj);
             }
 
             // context menu logic for right-click
@@ -387,7 +397,16 @@ namespace MiloEditor
             // anything that might already be present there
             splitContainer1.Panel2.Controls.Clear();
 
-            EditorPanel editorPanel = new EditorPanel(obj);
+            var revisionField = obj.GetType().GetField("revision", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            uint revisionValue = 0;
+
+            if (revisionField != null && revisionField.FieldType == typeof(ushort))
+            {
+                revisionValue = Convert.ToUInt32(revisionField.GetValue(obj));
+            }
+
+            EditorPanel editorPanel = new EditorPanel(obj, revisionValue);
+
             editorPanel.Dock = DockStyle.Fill;
             splitContainer1.Panel2.Controls.Add(editorPanel);
         }
@@ -413,7 +432,7 @@ namespace MiloEditor
                 // open Save As panel
                 SaveFileDialog saveFileDialog = new SaveFileDialog
                 {
-                    Filter = "Xbox 360 Milo Scenes (milo.xbox)|*.milo_xbox|PlayStation 3 Milo Scenes (milo_ps3)|*.milo_ps3|PlayStation 2 Milo Scenes (milo_ps2)|*.milo_ps2|Wii Milo Scenes (milo_wii)|*.milo_wii|PC/iPod Milo Scenes (milo_pc)|*.milo_pc|Rnd Scenes (.rnd)|*.rnd",
+                    Filter = "Milo Scenes|*.milo_ps2;*.milo_xbox;*.milo_ps3;*.milo_wii;*.milo_pc;*.rnd;*.rnd_ps2;*.rnd_xbox;*.rnd_gc",
                     Title = "Save Milo Scene As...",
                     FileName = currentMiloScene.dirMeta.name
                 };
@@ -432,10 +451,9 @@ namespace MiloEditor
 
         private void openToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            // open file dialog and then open the selected file
             OpenFileDialog openFileDialog = new OpenFileDialog
             {
-                Filter = "Xbox 360 Milo Scenes (milo.xbox)|*.milo_xbox|PlayStation 3 Milo Scenes (milo_ps3)|*.milo_ps3|PlayStation 2 Milo Scenes (milo_ps2)|*.milo_ps2|Wii Milo Scenes (milo_wii)|*.milo_wii|PC/iPod Milo Scenes (milo_pc)|*.milo_pc|Rnd Scenes (.rnd)|*.rnd",
+                Filter = "Milo Scenes|*.milo_ps2;*.milo_xbox;*.milo_ps3;*.milo_wii;*.milo_pc;*.rnd;*.rnd_ps2;*.rnd_xbox;*.rnd_gc",
                 Title = "Open Milo Scene"
             };
 
