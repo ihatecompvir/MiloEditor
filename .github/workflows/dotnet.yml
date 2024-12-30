@@ -6,8 +6,6 @@ name: .NET
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
 
 jobs:
   build:
@@ -31,7 +29,7 @@ jobs:
 
     - name: Create Zip Archive
       run: |
-        Compress-Archive -Path publish/* -DestinationPath release.zip
+        Compress-Archive -Path publish/* -DestinationPath MiloEditor.zip
 
     - name: Create Release
       id: create_release
@@ -39,10 +37,10 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: nightly-${{ github.run_number }}
-        release_name: Nightly Build ${{ github.run_number }}
+        tag_name: continuous-${{ github.run_number }}
+        release_name: Continuous Build ${{ github.run_number }}
         body: |
-          Nightly build generated from commit ${{ github.sha }}
+          Build automatically generated from commit ${{ github.sha }}. This build may have bugs and/or corrupt Milo scenes - use with caution.
         draft: false
         prerelease: true # make it a pre-release
 
@@ -53,6 +51,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: release.zip
-        asset_name: release.zip
+        asset_path: MiloEditor.zip
+        asset_name: MiloEditor.zip
         asset_content_type: application/zip
