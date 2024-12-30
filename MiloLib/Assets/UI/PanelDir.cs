@@ -31,6 +31,13 @@ namespace MiloLib.Assets.UI
 
         public Symbol testEvent = new(0, "");
 
+        public PanelDir(ushort revision, ushort altRevision = 0) : base(revision, altRevision)
+        {
+            revision = revision;
+            altRevision = altRevision;
+            return;
+        }
+
         public PanelDir Read(EndianReader reader, bool standalone)
         {
             uint combinedRevision = reader.ReadUInt32();
@@ -98,24 +105,56 @@ namespace MiloLib.Assets.UI
 
             base.Write(writer, false);
 
-            Symbol.Write(writer, cam);
+            if (revision != 0)
+                Symbol.Write(writer, cam);
 
-            writer.WriteBoolean(useSpecifiedCam);
-
-            writer.WriteInt32(frontPanels.Count);
-            foreach (var panel in frontPanels)
+            if (revision <= 1)
             {
-                Symbol.Write(writer, panel);
+                if (standalone)
+                {
+                    writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
+                }
+                return;
             }
 
-            writer.WriteInt32(backPanels.Count);
-            foreach (var panel in backPanels)
+            if (revision == 2)
             {
-                Symbol.Write(writer, panel);
+                Symbol.Write(writer, testEvent);
+                if (standalone)
+                {
+                    writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
+                }
+                return;
+            }
+            else if (revision <= 7)
+            {
+                writer.WriteBoolean(canEndWorld);
+            }
+            else
+            {
+                writer.WriteBoolean(useSpecifiedCam);
             }
 
-            writer.WriteBoolean(postProcsBeforeDraw);
-            writer.WriteBoolean(showViewOnlyPanels);
+            if (revision > 4)
+            {
+                writer.WriteInt32(frontPanels.Count);
+                foreach (var panel in frontPanels)
+                {
+                    Symbol.Write(writer, panel);
+                }
+
+                writer.WriteInt32(backPanels.Count);
+                foreach (var panel in backPanels)
+                {
+                    Symbol.Write(writer, panel);
+                }
+            }
+
+            if (revision >= 8)
+                writer.WriteBoolean(postProcsBeforeDraw);
+
+            if (revision > 5)
+                writer.WriteBoolean(showViewOnlyPanels);
 
             if (standalone)
             {

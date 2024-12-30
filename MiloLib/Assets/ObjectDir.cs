@@ -80,6 +80,13 @@ namespace MiloLib.Assets
         [Name("Unknown String 5"), MinVersion(16), MaxVersion(18)]
         public Symbol unknownString5 = new(0, "");
 
+        public ObjectDir(ushort revision, ushort altRevision = 0)
+        {
+            this.revision = (ushort)revision;
+            this.altRevision = (ushort)altRevision;
+            return;
+        }
+
         public ObjectDir Read(EndianReader reader, bool standalone)
         {
             uint combinedRevision = reader.ReadUInt32();
@@ -273,58 +280,138 @@ namespace MiloLib.Assets
         public override void Write(EndianWriter writer, bool standalone)
         {
             writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
-            writer.WriteUInt32(objFields.metadataRevision);
-            Symbol.Write(writer, objFields.type);
 
-            // write 8 empty bytes
-            writer.WriteBlock(new byte[8]);
-
-            writer.WriteUInt32(viewportCount);
-            foreach (Matrix viewport in viewports)
+            if (revision < 22)
             {
-                viewport.Write(writer);
-                if (revision <= 17)
-                    writer.WriteUInt32(0);
+                if (revision >= 2 && revision < 17)
+                {
+                    objFields.Write(writer);
+                }
             }
-            writer.WriteUInt32(currentViewportIdx);
-
-            writer.WriteBoolean(inlineProxy);
-            Symbol.Write(writer, proxyPath);
-
-            writer.WriteUInt32(subDirCount);
-            foreach (Symbol subDir in subDirs)
+            else
             {
-                Symbol.Write(writer, subDir);
+                writer.WriteUInt16(objFields.metadataAltRevision);
+                writer.WriteUInt16(objFields.metadataRevision);
+                Symbol.Write(writer, objFields.type);
             }
 
-            writer.WriteBoolean(inlineSubDir);
-            writer.WriteUInt32(inlineSubDirCount);
-            foreach (Symbol inlineSubDirName in inlineSubDirNames)
+            if (revision > 1)
             {
-                Symbol.Write(writer, inlineSubDirName);
+                if (revision >= 27)
+                {
+                    // write 8 bytes of padding
+                    writer.WriteUInt64(0);
+                }
+
+                writer.WriteUInt32((uint)viewports.Count);
+                foreach (var viewport in viewports)
+                {
+                    viewport.Write(writer);
+                    if (revision <= 17)
+                        writer.WriteUInt32(0);
+                }
+
+                writer.WriteUInt32(currentViewportIdx);
             }
 
-            foreach (ReferenceType referenceType in referenceTypes)
+            if (revision > 12)
             {
-                writer.WriteByte((byte)referenceType);
+                if (revision > 19)
+                    writer.WriteBoolean(inlineProxy);
+                Symbol.Write(writer, proxyPath);
             }
 
-            foreach (ReferenceType referenceTypeAlt in referenceTypesAlt)
+            if (revision >= 2 && revision < 11)
             {
-                writer.WriteByte((byte)referenceTypeAlt);
+                Symbol.Write(writer, unknownObjRef1);
             }
 
-            foreach (DirectoryMeta inlineSubDir in inlineSubDirs)
+            if (revision >= 4 && revision < 11)
             {
-                inlineSubDir.Write(writer);
+                Symbol.Write(writer, unknownObjRef2);
+            }
+
+            if (revision == 5)
+            {
+                Symbol.Write(writer, unknownString3);
+            }
+
+            if (revision > 2)
+            {
+                writer.WriteUInt32((uint)subDirs.Count);
+                foreach (var subDir in subDirs)
+                {
+                    Symbol.Write(writer, subDir);
+                }
+
+                if (revision >= 21)
+                {
+                    writer.WriteBoolean(inlineSubDir);
+                    writer.WriteUInt32((uint)inlineSubDirNames.Count);
+                    foreach (var inlineSubDirName in inlineSubDirNames)
+                    {
+                        Symbol.Write(writer, inlineSubDirName);
+                    }
+
+                    if (revision >= 27)
+                    {
+                        foreach (var referenceType in referenceTypes)
+                        {
+                            writer.WriteByte((byte)referenceType);
+                        }
+
+                        foreach (var referenceTypeAlt in referenceTypesAlt)
+                        {
+                            writer.WriteByte((byte)referenceTypeAlt);
+                        }
+                    }
+
+                    foreach (var inlineSubDir in inlineSubDirs)
+                    {
+                        inlineSubDir.Write(writer);
+                    }
+                }
+            }
+
+            if (revision < 19)
+            {
+                if (revision < 16)
+                {
+                    if (revision > 14)
+                    {
+                        Symbol.Write(writer, unknownString4);
+                    }
+                }
+                else
+                {
+                    Symbol.Write(writer, unknownString5);
+                }
             }
 
             Symbol.Write(writer, unknownString);
             Symbol.Write(writer, unknownString2);
 
-            writer.WriteByte(objFields.hasTree ? (byte)1 : (byte)0);
+            if (revision < 22)
+            {
+                if (revision > 16)
+                {
+                    objFields.Write(writer);
+                }
+            }
+            else
+            {
+                writer.WriteBoolean(objFields.hasTree);
 
-            Symbol.Write(writer, objFields.note);
+                if (objFields.hasTree)
+                {
+                    objFields.root.Write(writer);
+                }
+
+                if (revision >= 25)
+                {
+                    Symbol.Write(writer, objFields.note);
+                }
+            }
 
             if (standalone)
             {

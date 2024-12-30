@@ -108,231 +108,240 @@ namespace MiloLib.Assets
         public override void Write(EndianWriter writer, bool standalone)
         {
             writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
-            base.Write(writer, standalone);
 
-            sequence.Write(writer, standalone);
+            if (revision < 6)
+            {
+                if (1 < revision)
+                    objFields.Write(writer);
+            }
+            else
+            {
+                sequence.Write(writer, false);
+            }
 
-            writer.WriteInt32(sfxMaps.Count);
+            writer.WriteUInt32((uint)sfxMaps.Count);
             foreach (var map in sfxMaps)
             {
                 map.Write(writer, revision);
             }
 
-            var fields = this.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance);
-            foreach (var field in fields)
+            if (9 < revision)
             {
-                var minVersionAttr = field.GetCustomAttribute<MinVersionAttribute>();
-                if (minVersionAttr == null || revision >= minVersionAttr.Version)
+                writer.WriteUInt32((uint)MoggClips.Count);
+                foreach (var clip in MoggClips)
                 {
-                    if (field.FieldType == typeof(Symbol) && field.Name == nameof(sendObj))
-                        Symbol.Write(writer, (Symbol)field.GetValue(this));
-                    else if (field.FieldType == typeof(FaderGroup) && field.Name == nameof(FaderGroup))
-                        ((FaderGroup)field.GetValue(this))?.Write(writer);
-                    else if (field.FieldType == typeof(List<Symbol>) && field.Name == nameof(MoggClips))
-                    {
-                        var clips = (List<Symbol>)field.GetValue(this);
-                        writer.WriteInt32(clips?.Count ?? 0);
-                        foreach (var clip in clips)
-                            Symbol.Write(writer, clip);
-                    }
-                    else if (field.FieldType == typeof(float) && field.Name == nameof(reverbMixDb))
-                        writer.WriteFloat((float)field.GetValue(this));
-                    else if (field.FieldType == typeof(bool) && field.Name == nameof(reverbSendEnable))
-                        writer.WriteByte((byte)field.GetValue(this));
+                    Symbol.Write(writer, clip);
                 }
             }
-        }
-    }
 
-    public class Sequence : Object
-    {
-        public ushort altRevision;
-        public ushort revision;
-        public float avgVol;
-        public float volSpread;
-        public float avgTranspose;
-        public float transposeSpread;
-        public float avgPan;
-        public float panSpread;
-        public bool canStop;
+            if (4 < revision)
+                Symbol.Write(writer, sendObj);
 
-        public Sequence Read(EndianReader reader)
-        {
-            uint combinedRevision = reader.ReadUInt32();
-            if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
-            else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
+            if (8 < revision)
+                faderGroup.Write(writer);
 
-            if (2 < revision)
-                base.Read(reader, false);
-
-            avgVol = reader.ReadFloat();
-            volSpread = reader.ReadFloat();
-            avgTranspose = reader.ReadFloat();
-            transposeSpread = reader.ReadFloat();
-            avgPan = reader.ReadFloat();
-            panSpread = reader.ReadFloat();
-
-            if (1 < revision)
-                canStop = reader.ReadBoolean();
-
-            return this;
-        }
-
-        public override void Write(EndianWriter writer, bool standalone)
-        {
-            writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
-
-            if (2 < revision)
-                base.Write(writer, standalone);
-
-            writer.WriteFloat(avgVol);
-            writer.WriteFloat(volSpread);
-            writer.WriteFloat(avgTranspose);
-            writer.WriteFloat(transposeSpread);
-            writer.WriteFloat(avgPan);
-            writer.WriteFloat(panSpread);
-
-            if (1 < revision)
-                writer.WriteBoolean(canStop);
+            if (revision > 11)
+            {
+                writer.WriteFloat(reverbMixDb);
+                writer.WriteBoolean(reverbSendEnable);
+            }
 
             if (standalone)
             {
                 writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
             }
         }
-    }
-    public class SfxMap
-    {
-        [Name("Sample Name"), Description("Which sample to play")]
-        public Symbol sampleName = new(0, "");
-        [Name("Volume"), Description("Volume in dB (0 is full volume, -96 is silence)")]
-        public float volume { get; set; }
-        [Name("Pan"), Description("Surround pan, between -4 and 4")]
-        public float pan { get; set; }
-        [Name("Transpose"), Description("Transpose in half steps")]
-        public float transpose { get; set; }
-        [Name("FX Core"), Description("Which core's digital FX should be used in playing this sample")]
-        public uint fxCore { get; set; }
-        [Name("ADSR"), Description("Envelope settings")]
-        public ADSR ADSR = new ADSR();
 
-        public void Read(EndianReader reader, uint version)
+        public class Sequence : Object
         {
-            sampleName = Symbol.Read(reader);
+            public ushort altRevision;
+            public ushort revision;
+            public float avgVol;
+            public float volSpread;
+            public float avgTranspose;
+            public float transposeSpread;
+            public float avgPan;
+            public float panSpread;
+            public bool canStop;
 
-            volume = reader.ReadFloat();
-            pan = reader.ReadFloat();
-            transpose = reader.ReadFloat();
-            fxCore = reader.ReadUInt32();
-            ADSR = new ADSR();
-            ADSR.Read(reader);
+            public Sequence Read(EndianReader reader)
+            {
+                uint combinedRevision = reader.ReadUInt32();
+                if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
+                else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
+
+                if (2 < revision)
+                    base.Read(reader, false);
+
+                avgVol = reader.ReadFloat();
+                volSpread = reader.ReadFloat();
+                avgTranspose = reader.ReadFloat();
+                transposeSpread = reader.ReadFloat();
+                avgPan = reader.ReadFloat();
+                panSpread = reader.ReadFloat();
+
+                if (1 < revision)
+                    canStop = reader.ReadBoolean();
+
+                return this;
+            }
+
+            public override void Write(EndianWriter writer, bool standalone)
+            {
+                writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
+
+                if (2 < revision)
+                    base.Write(writer, standalone);
+
+                writer.WriteFloat(avgVol);
+                writer.WriteFloat(volSpread);
+                writer.WriteFloat(avgTranspose);
+                writer.WriteFloat(transposeSpread);
+                writer.WriteFloat(avgPan);
+                writer.WriteFloat(panSpread);
+
+                if (1 < revision)
+                    writer.WriteBoolean(canStop);
+
+                if (standalone)
+                {
+                    writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
+                }
+            }
+        }
+        public class SfxMap
+        {
+            [Name("Sample Name"), Description("Which sample to play")]
+            public Symbol sampleName = new(0, "");
+            [Name("Volume"), Description("Volume in dB (0 is full volume, -96 is silence)")]
+            public float volume { get; set; }
+            [Name("Pan"), Description("Surround pan, between -4 and 4")]
+            public float pan { get; set; }
+            [Name("Transpose"), Description("Transpose in half steps")]
+            public float transpose { get; set; }
+            [Name("FX Core"), Description("Which core's digital FX should be used in playing this sample")]
+            public uint fxCore { get; set; }
+            [Name("ADSR"), Description("Envelope settings")]
+            public ADSR ADSR = new ADSR();
+
+            public void Read(EndianReader reader, uint version)
+            {
+                sampleName = Symbol.Read(reader);
+
+                volume = reader.ReadFloat();
+                pan = reader.ReadFloat();
+                transpose = reader.ReadFloat();
+                fxCore = reader.ReadUInt32();
+                ADSR = new ADSR();
+                ADSR.Read(reader);
+            }
+
+            public void Write(EndianWriter writer, uint version)
+            {
+                Symbol.Write(writer, sampleName);
+                writer.WriteFloat(volume);
+                writer.WriteFloat(pan);
+                writer.WriteFloat(transpose);
+                writer.WriteUInt32(fxCore);
+
+                ADSR.Write(writer);
+            }
+        }
+    }
+
+    public class FaderGroup
+    {
+        public ushort altRevision;
+        public ushort revision;
+        private int fadersCount;
+        [Name("Faders"), Description("Faders affecting this sound effect")]
+        public List<Symbol> faders = new List<Symbol>();
+
+        public FaderGroup Read(EndianReader reader)
+        {
+            altRevision = reader.ReadUInt16();
+            revision = reader.ReadUInt16();
+            fadersCount = reader.ReadInt32();
+
+            // sanity check on faders count
+            if (fadersCount > 100)
+            {
+                throw new InvalidDataException("Fader count is too high, FaderGroup is invalid");
+            }
+
+            faders = new List<Symbol>();
+            for (int i = 0; i < fadersCount; i++)
+                faders.Add(Symbol.Read(reader));
+
+            return this;
         }
 
-        public void Write(EndianWriter writer, uint version)
+        public void Write(EndianWriter writer)
         {
-            Symbol.Write(writer, sampleName);
-            writer.WriteFloat(volume);
-            writer.WriteFloat(pan);
-            writer.WriteFloat(transpose);
-            writer.WriteUInt32(fxCore);
 
-            ADSR.Write(writer);
+            writer.WriteUInt16(altRevision);
+            writer.WriteUInt16(revision);
+            writer.WriteInt32(faders.Count);
+            foreach (var fader in faders)
+                Symbol.Write(writer, fader);
         }
     }
-}
 
-public class FaderGroup
-{
-    public ushort altRevision;
-    public ushort revision;
-    private int fadersCount;
-    [Name("Faders"), Description("Faders affecting this sound effect")]
-    public List<Symbol> faders = new List<Symbol>();
-
-    public FaderGroup Read(EndianReader reader)
+    public class ADSR
     {
-        altRevision = reader.ReadUInt16();
-        revision = reader.ReadUInt16();
-        fadersCount = reader.ReadInt32();
+        public ushort altRevision;
+        public ushort revision;
+        [Name("Sustain Level"), Description("Level of sustain volume (0-1)")]
+        public float sustainLevel;
+        [Name("Release Rate"), Description("Duration of release in seconds")]
+        public float releaseRate;
+        [Name("Sustain Rate"), Description("Duration of sustain in seconds")]
+        public float sustainRate;
+        [Name("Decay Rate"), Description("Duration of decay in seconds")]
+        public float decayRate;
+        [Name("Attack Rate"), Description("Duration of attack in seconds")]
+        public float attackRate;
+        [Name("Release Mode"), Description("Release mode")]
+        public uint releaseMode;
+        [Name("Sustain Mode"), Description("Sustain mode")]
+        public uint sustainMode;
+        [Name("Attack Mode"), Description("Attack mode")]
+        public uint attackMode;
 
-        // sanity check on faders count
-        if (fadersCount > 100)
+        public void Read(EndianReader reader)
         {
-            throw new InvalidDataException("Fader count is too high, FaderGroup is invalid");
+            altRevision = reader.ReadUInt16();
+            revision = reader.ReadUInt16();
+
+            if (revision != 1)
+            {
+                throw new UnsupportedAssetRevisionException("Sfx::ADSR", revision);
+            }
+
+            sustainLevel = reader.ReadFloat();
+            releaseRate = reader.ReadFloat();
+            sustainRate = reader.ReadFloat();
+            decayRate = reader.ReadFloat();
+            attackRate = reader.ReadFloat();
+            releaseMode = reader.ReadUInt32();
+            sustainMode = reader.ReadUInt32();
+            attackMode = reader.ReadUInt32();
+
         }
 
-        faders = new List<Symbol>();
-        for (int i = 0; i < fadersCount; i++)
-            faders.Add(Symbol.Read(reader));
-
-        return this;
-    }
-
-    public void Write(EndianWriter writer)
-    {
-
-        writer.WriteUInt16(altRevision);
-        writer.WriteUInt16(revision);
-        writer.WriteInt32(faders.Count);
-        foreach (var fader in faders)
-            Symbol.Write(writer, fader);
-    }
-}
-
-public class ADSR
-{
-    public ushort altRevision;
-    public ushort revision;
-    [Name("Sustain Level"), Description("Level of sustain volume (0-1)")]
-    public float sustainLevel;
-    [Name("Release Rate"), Description("Duration of release in seconds")]
-    public float releaseRate;
-    [Name("Sustain Rate"), Description("Duration of sustain in seconds")]
-    public float sustainRate;
-    [Name("Decay Rate"), Description("Duration of decay in seconds")]
-    public float decayRate;
-    [Name("Attack Rate"), Description("Duration of attack in seconds")]
-    public float attackRate;
-    [Name("Release Mode"), Description("Release mode")]
-    public uint releaseMode;
-    [Name("Sustain Mode"), Description("Sustain mode")]
-    public uint sustainMode;
-    [Name("Attack Mode"), Description("Attack mode")]
-    public uint attackMode;
-
-    public void Read(EndianReader reader)
-    {
-        altRevision = reader.ReadUInt16();
-        revision = reader.ReadUInt16();
-
-        if (revision != 1)
+        public void Write(EndianWriter writer)
         {
-            throw new UnsupportedAssetRevisionException("Sfx::ADSR", revision);
+            writer.WriteUInt16(altRevision);
+            writer.WriteUInt16(revision);
+            writer.WriteFloat(sustainLevel);
+            writer.WriteFloat(releaseRate);
+            writer.WriteFloat(sustainRate);
+            writer.WriteFloat(decayRate);
+            writer.WriteFloat(attackRate);
+            writer.WriteUInt32(releaseMode);
+            writer.WriteUInt32(sustainMode);
+            writer.WriteUInt32(attackMode);
         }
-
-        sustainLevel = reader.ReadFloat();
-        releaseRate = reader.ReadFloat();
-        sustainRate = reader.ReadFloat();
-        decayRate = reader.ReadFloat();
-        attackRate = reader.ReadFloat();
-        releaseMode = reader.ReadUInt32();
-        sustainMode = reader.ReadUInt32();
-        attackMode = reader.ReadUInt32();
-
-    }
-
-    public void Write(EndianWriter writer)
-    {
-        writer.WriteUInt16(altRevision);
-        writer.WriteUInt16(revision);
-        writer.WriteFloat(sustainLevel);
-        writer.WriteFloat(releaseRate);
-        writer.WriteFloat(sustainRate);
-        writer.WriteFloat(decayRate);
-        writer.WriteFloat(attackRate);
-        writer.WriteUInt32(releaseMode);
-        writer.WriteUInt32(sustainMode);
-        writer.WriteUInt32(attackMode);
     }
 }
 

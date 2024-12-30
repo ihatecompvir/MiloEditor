@@ -15,6 +15,13 @@ namespace MiloLib.Assets
         public ushort altRevision;
         public ushort revision;
 
+        public CrowdMeterIcon(ushort revision, ushort altRevision = 0) : base(revision, altRevision)
+        {
+            revision = revision;
+            altRevision = altRevision;
+            return;
+        }
+
         public CrowdMeterIcon Read(EndianReader reader, bool standalone)
         {
             uint combinedRevision = reader.ReadUInt32();

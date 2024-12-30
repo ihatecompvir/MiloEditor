@@ -17,12 +17,12 @@ namespace MiloLib.Assets.Rnd
         public ushort altRevision;
         public ushort revision;
         [Name("Color"), Description("Color of light")]
-        public HmxColor color = new();
+        public HmxColor4 color = new();
         [Name("Color Owner"), Description("Master for light color and intensity"), MinVersion(11)]
         public Symbol colorOwner = new(0, "");
-        [Name("Range"), Description("Falloff distance for point lights"), MinVersion(0)]
+        [Name("Range"), Description("Falloff distance for point lightsReal"), MinVersion(0)]
         public float range;
-        [Name("Falloff Start"), Description("Distance at which falloff starts for point lights"), MinVersion(12)]
+        [Name("Falloff Start"), Description("Distance at which falloff starts for point lightsReal"), MinVersion(12)]
         public float falloffStart;
         [Name("Light Type"), Description("Type of dynamic lighting"), MinVersion(1)]
         public Type type;
@@ -143,26 +143,69 @@ namespace MiloLib.Assets.Rnd
         public override void Write(EndianWriter writer, bool standalone)
         {
             writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
-            base.Write(writer, false);
+
+            if (revision > 3)
+                base.Write(writer, false);
 
             color.Write(writer);
             writer.WriteFloat(range);
-            writer.WriteInt32((int)type);
-            writer.WriteFloat(falloffStart);
-            writer.WriteByte((byte)(animateColorFromPreset ? 1 : 0));
-            writer.WriteByte((byte)(animatePositionFromPreset ? 1 : 0));
-            writer.WriteFloat(topRadius);
-            writer.WriteFloat(bottomRadius);
-            Symbol.Write(writer, texture);
-            Symbol.Write(writer, colorOwner);
-            textureTransform.Write(writer);
-            writer.WriteUInt32(shadowObjectsCount);
-            foreach (Symbol shadowObject in shadowObjects)
+
+            if (revision != 0)
+                writer.WriteInt32((int)type);
+
+            if (revision > 0xB)
+                writer.WriteFloat(falloffStart);
+
+            if (revision > 5)
             {
-                Symbol.Write(writer, shadowObject);
+                writer.WriteBoolean(animateColorFromPreset);
+                writer.WriteBoolean(animatePositionFromPreset);
             }
-            writer.WriteInt32(projectedBlend);
-            writer.WriteByte((byte)(animateRangeFromPreset ? 1 : 0));
+
+            if (revision > 6)
+            {
+                writer.WriteFloat(topRadius);
+                writer.WriteFloat(bottomRadius);
+            }
+
+            if (revision > 7)
+            {
+                Symbol.Write(writer, texture);
+                if (revision == 9)
+                {
+                    writer.WriteUInt32((uint)drawList.Count);
+                    foreach (Symbol draw in drawList)
+                    {
+                        Symbol.Write(writer, draw);
+                    }
+                }
+                else if (revision == 8)
+                {
+                    Symbol.Write(writer, draw);
+                }
+            }
+
+            if (revision > 10)
+                Symbol.Write(writer, colorOwner);
+
+            if (revision > 0xC)
+                textureTransform.Write(writer);
+
+            if (revision > 0xD)
+                Symbol.Write(writer, cubeTex);
+
+            if (revision > 0xE)
+            {
+                writer.WriteUInt32(shadowObjectsCount);
+                foreach (Symbol shadowObject in shadowObjects)
+                {
+                    Symbol.Write(writer, shadowObject);
+                }
+                writer.WriteInt32(projectedBlend);
+            }
+
+            if (revision > 0xF)
+                writer.WriteBoolean(animateRangeFromPreset);
 
             if (standalone)
             {

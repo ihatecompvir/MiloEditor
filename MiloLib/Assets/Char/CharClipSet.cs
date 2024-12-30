@@ -35,6 +35,13 @@ namespace MiloLib.Assets.Char
             }
         }
 
+        public CharClipSet(ushort revision, ushort altRevision = 0) : base(revision, altRevision)
+        {
+            revision = revision;
+            altRevision = altRevision;
+            return;
+        }
+
         public ushort altRevision;
         public ushort revision;
 
@@ -219,17 +226,92 @@ namespace MiloLib.Assets.Char
 
             base.Write(writer, false);
 
-            Symbol.Write(writer, charFilePath);
-            Symbol.Write(writer, previewClip);
-            writer.WriteUInt32(filterFlags);
-            writer.WriteUInt32(bpm);
-            writer.WriteBoolean(previewWalk);
-            Symbol.Write(writer, stillClip);
-
-            if (revision >= 25)
+            if (revision < 0x11)
             {
-                Symbol.Write(writer, unkSymbol);
+                writer.WriteInt32(unkInt1);
+                writer.WriteInt32(unkInt2);
             }
+
+            if (revision == 0xF || revision == 0x10)
+            {
+                writer.WriteInt32(unkInt3);
+            }
+
+            if (revision < 9)
+                Symbol.Write(writer, graphPath);
+
+            if (revision < 6)
+                writer.WriteUTF8(unkString);
+
+            if (revision < 7)
+                writer.WriteInt32(unkInt4);
+
+            if (revision < 0x18)
+            {
+                foreach (CharClipPtr ptr in charClipPtrs)
+                {
+                    ptr.Write(writer);
+                }
+            }
+
+            if (revision > 0xD)
+            {
+                if (revision < 0x18)
+                {
+                    writer.WriteBoolean(unkBool1);
+                    if (revision > 0x12)
+                        writer.WriteBoolean(unkBool2);
+                }
+            }
+            else
+            {
+                writer.WriteUInt32(unkSymbolListCount);
+                foreach (Symbol symbol in unkSymbolList)
+                {
+                    Symbol.Write(writer, symbol);
+                }
+            }
+
+            if (revision >= 5 && revision <= 0x17)
+            {
+                writer.WriteUInt32(unkStrings1Count);
+                foreach (string str in unkStrings1)
+                {
+                    writer.WriteUTF8(str);
+                }
+
+                writer.WriteUInt32(unkStrings2Count);
+                foreach (string str in unkStrings2)
+                {
+                    writer.WriteUTF8(str);
+                }
+                writer.WriteBoolean(unkBool3);
+            }
+
+            if (revision >= 10 && revision <= 23)
+            {
+                Symbol.Write(writer, unknownSymbol2);
+                writer.WriteInt32(unkInt5);
+            }
+
+            if (revision == 0xB)
+            {
+                writer.WriteBoolean(unkBool4);
+            }
+
+            if (revision > 0x11)
+            {
+                Symbol.Write(writer, charFilePath);
+                Symbol.Write(writer, previewClip);
+            }
+            if (revision > 0x13)
+                writer.WriteUInt32(filterFlags);
+            if (revision > 0x14)
+                writer.WriteUInt32(bpm);
+            if (revision > 0x15)
+                writer.WriteBoolean(previewWalk);
+            if (revision > 0x16)
+                Symbol.Write(writer, stillClip);
 
             if (standalone)
                 writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });

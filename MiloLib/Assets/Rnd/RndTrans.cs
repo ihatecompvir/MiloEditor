@@ -120,11 +120,23 @@ namespace MiloLib.Assets.Rnd
             localXfm.Write(writer);
             worldXfm.Write(writer);
 
-            writer.WriteUInt32((uint)constraint);
+            if (revision < 9)
+            {
+                writer.WriteUInt32((uint)transObjects.Count);
+                foreach (var obj in transObjects)
+                {
+                    Symbol.Write(writer, obj);
+                }
+            }
 
-            Symbol.Write(writer, target);
+            if (revision > 6)
+                writer.WriteUInt32((uint)constraint);
 
-            writer.WriteByte((byte)(preserveScale ? 1 : 0));
+            if (revision > 5)
+                Symbol.Write(writer, target);
+
+            if (revision > 6)
+                writer.WriteBoolean(preserveScale);
 
             Symbol.Write(writer, parent);
 

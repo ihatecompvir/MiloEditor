@@ -160,6 +160,13 @@ namespace MiloLib.Assets.Char
 
         public CharacterTest charTest = new();
 
+        public Character(ushort revision, ushort altRevision = 0) : base(revision, altRevision)
+        {
+            revision = revision;
+            altRevision = altRevision;
+            return;
+        }
+
         public Character Read(EndianReader reader, bool standalone)
         {
             uint combinedRevision = reader.ReadUInt32();

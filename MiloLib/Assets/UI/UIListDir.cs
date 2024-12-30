@@ -27,6 +27,13 @@ namespace MiloLib.Assets.UI
         public bool testDisableElements;
         public int mDirection;
 
+        public UIListDir(ushort revision, ushort altRevision = 0) : base(revision, altRevision)
+        {
+            revision = revision;
+            altRevision = altRevision;
+            return;
+        }
+
         public UIListDir Read(EndianReader reader, bool standalone)
         {
             uint combinedRevision = reader.ReadUInt32();

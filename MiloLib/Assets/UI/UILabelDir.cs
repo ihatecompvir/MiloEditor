@@ -229,6 +229,13 @@ namespace MiloLib.Assets.UI
 
         public UIFontImporter fontImporter = new UIFontImporter();
 
+        public UILabelDir(ushort revision, ushort altRevision = 0) : base(revision, altRevision)
+        {
+            revision = revision;
+            altRevision = altRevision;
+            return;
+        }
+
         public UILabelDir Read(EndianReader reader, bool standalone)
         {
             uint combinedRevision = reader.ReadUInt32();

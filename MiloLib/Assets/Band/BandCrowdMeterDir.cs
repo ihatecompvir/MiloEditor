@@ -18,7 +18,7 @@ namespace MiloLib.Assets.Band
         private uint colorCount;
 
         [MinVersion(2)]
-        public List<HmxColor> colors = new();
+        public List<HmxColor4> colors = new();
 
         [MinVersion(1)]
         public float peakValue;
@@ -27,6 +27,13 @@ namespace MiloLib.Assets.Band
 
         [MaxVersion(2)]
         private List<Symbol> groups = new();
+
+        public BandCrowdMeterDir(ushort revision, ushort altRevision = 0) : base(revision, altRevision)
+        {
+            revision = revision;
+            altRevision = altRevision;
+            return;
+        }
 
         public BandCrowdMeterDir Read(EndianReader reader, bool standalone)
         {
@@ -54,7 +61,7 @@ namespace MiloLib.Assets.Band
                 colorCount = reader.ReadUInt32();
                 for (int i = 0; i < colorCount; i++)
                 {
-                    colors.Add(new HmxColor().Read(reader));
+                    colors.Add(new HmxColor4().Read(reader));
                 }
             }
 

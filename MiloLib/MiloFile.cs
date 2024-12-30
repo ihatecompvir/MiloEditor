@@ -206,6 +206,15 @@ namespace MiloLib
 
         }
 
+        public MiloFile(DirectoryMeta meta)
+        {
+            this.compressionType = Type.Uncompressed;
+            this.dirMeta = meta;
+            this.startOffset = 0x810;
+            this.blockSizes = new List<uint>();
+            return;
+        }
+
         public void Save(string path, Type type, uint startingOffset = 0x810, Endian headerEndian = Endian.LittleEndian, Endian bodyEndian = Endian.BigEndian)
         {
             using (EndianWriter writer = new EndianWriter(File.Create(path), headerEndian))

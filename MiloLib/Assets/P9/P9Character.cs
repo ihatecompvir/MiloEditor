@@ -11,7 +11,7 @@ namespace MiloLib.Assets.P9
         public ushort altRevision;
         public ushort revision;
 
-        public Character character = new();
+        public Character character = new(0);
 
         public float headLookatWeight;
 
@@ -25,6 +25,13 @@ namespace MiloLib.Assets.P9
         public Symbol waypoint = new(0, "");
         public Symbol micIk = new(0, "");
 
+        public P9Character(ushort revision, ushort altRevision = 0) : base(revision, altRevision)
+        {
+            revision = revision;
+            altRevision = altRevision;
+            return;
+        }
+
         public P9Character Read(EndianReader reader, bool standalone)
         {
             uint combinedRevision = reader.ReadUInt32();
@@ -34,7 +41,7 @@ namespace MiloLib.Assets.P9
             if (revision != 8)
                 throw new UnsupportedAssetRevisionException("P9Character", revision);
 
-            character = new Character().Read(reader, false);
+            character = new Character(0).Read(reader, false);
 
             headLookatWeight = reader.ReadFloat();
 

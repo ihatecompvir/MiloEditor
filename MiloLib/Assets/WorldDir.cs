@@ -54,8 +54,15 @@ namespace MiloLib.Assets
         [Name("Test Animation Time"), Description("animation time in beats")]
         public float mTestAnimationTime;
         [Name("HUD"), Description("hud to be drawn last")]
-        public Symbol mHud = new(0, "");
-        public Symbol mCam = new(0, "");
+        public Symbol hud = new(0, "");
+        public Symbol cam = new(0, "");
+
+        public WorldDir(ushort revision, ushort altRevision = 0) : base(revision, altRevision)
+        {
+            revision = revision;
+            altRevision = altRevision;
+            return;
+        }
 
 
         public WorldDir Read(EndianReader reader, bool standalone)
@@ -66,7 +73,7 @@ namespace MiloLib.Assets
 
             if (revision != 0 && revision < 5)
             {
-                mCam = Symbol.Read(reader);
+                cam = Symbol.Read(reader);
             }
 
             if (revision > 9)
@@ -156,7 +163,7 @@ namespace MiloLib.Assets
 
             if (revision > 0x13)
             {
-                mHud = Symbol.Read(reader);
+                hud = Symbol.Read(reader);
             }
 
 
@@ -171,59 +178,90 @@ namespace MiloLib.Assets
         public override void Write(EndianWriter writer, bool standalone)
         {
             writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
-            Symbol.Write(writer, fakeHUDFilename);
+
+            if (revision != 0 && revision < 5)
+            {
+                Symbol.Write(writer, cam);
+            }
+
+            if (revision > 9)
+            {
+                Symbol.Write(writer, fakeHUDFilename);
+            }
 
             base.Write(writer, false);
 
-            writer.WriteUInt32((uint)hideOverrides.Count);
-            foreach (var hideOverride in hideOverrides)
+            if (revision > 0xB)
             {
-                Symbol.Write(writer, hideOverride);
+                writer.WriteUInt32((uint)hideOverrides.Count);
+                foreach (var hideOverride in hideOverrides)
+                {
+                    Symbol.Write(writer, hideOverride);
+                }
+
+                writer.WriteInt32(bitmapOverrides.Count);
+                foreach (var bitmapOverride in bitmapOverrides)
+                {
+                    Symbol.Write(writer, bitmapOverride.original);
+                    Symbol.Write(writer, bitmapOverride.replacement);
+                }
             }
 
-            writer.WriteInt32(bitmapOverrides.Count);
-            foreach (var bitmapOverride in bitmapOverrides)
+            if (revision > 0xD)
             {
-                Symbol.Write(writer, bitmapOverride.original);
-                Symbol.Write(writer, bitmapOverride.replacement);
+                writer.WriteInt32(matOverrides.Count);
+                foreach (var matOverride in matOverrides)
+                {
+                    Symbol.Write(writer, matOverride.mesh);
+                    Symbol.Write(writer, matOverride.mat);
+                }
             }
 
-            writer.WriteInt32(matOverrides.Count);
-            foreach (var matOverride in matOverrides)
+            if (revision > 0xE)
             {
-                Symbol.Write(writer, matOverride.mesh);
-                Symbol.Write(writer, matOverride.mat);
+                writer.WriteInt32(presetOverrides.Count);
+                foreach (var presetOverride in presetOverrides)
+                {
+                    Symbol.Write(writer, presetOverride.preset);
+                    Symbol.Write(writer, presetOverride.hue);
+                }
             }
 
-            writer.WriteInt32(presetOverrides.Count);
-            foreach (var presetOverride in presetOverrides)
+            if (revision > 0xF)
             {
-                Symbol.Write(writer, presetOverride.preset);
-                Symbol.Write(writer, presetOverride.hue);
+                writer.WriteUInt32((uint)camShotOverrides.Count);
+                foreach (var camShot in camShotOverrides)
+                {
+                    Symbol.Write(writer, camShot);
+                }
             }
 
-            writer.WriteUInt32((uint)camShotOverrides.Count);
-            foreach (var camShot in camShotOverrides)
+            if (revision > 0x10 && revision != 0x17)
             {
-                Symbol.Write(writer, camShot);
+                writer.WriteUInt32((uint)PS3PerPixelHides.Count);
+                foreach (var perPixelHide in PS3PerPixelHides)
+                {
+                    Symbol.Write(writer, perPixelHide);
+                }
+
+                writer.WriteUInt32((uint)PS3PerPixelShows.Count);
+                foreach (var perPixelShow in PS3PerPixelShows)
+                {
+                    Symbol.Write(writer, perPixelShow);
+                }
             }
 
-            writer.WriteUInt32((uint)PS3PerPixelHides.Count);
-            foreach (var perPixelHide in PS3PerPixelHides)
+            if (revision > 0x12)
             {
-                Symbol.Write(writer, perPixelHide);
+                Symbol.Write(writer, mTestPreset1);
+                Symbol.Write(writer, mTestPreset2);
+                writer.WriteFloat(mTestAnimationTime);
             }
 
-            writer.WriteUInt32((uint)PS3PerPixelShows.Count);
-            foreach (var perPixelShow in PS3PerPixelShows)
+            if (revision > 0x13)
             {
-                Symbol.Write(writer, perPixelShow);
+                Symbol.Write(writer, hud);
             }
-
-            Symbol.Write(writer, mTestPreset1);
-            Symbol.Write(writer, mTestPreset2);
-            writer.WriteFloat(mTestAnimationTime);
-            Symbol.Write(writer, mHud);
 
             if (standalone)
             {

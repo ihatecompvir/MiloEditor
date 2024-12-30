@@ -13,7 +13,7 @@ namespace MiloLib.Assets.Rnd
         public RndDrawable draw = new();
 
         public Symbol material = new(0, "");
-        public HmxColor color = new();
+        public HmxColor4 color = new();
         public float alpha;
 
         public Rect rect = new();

@@ -32,6 +32,13 @@ namespace MiloLib.Assets.Rnd
         [MinVersion(0), MaxVersion(8)]
         public Symbol unkSymbol2 = new(0, "");
 
+        public RndDir(ushort revision, ushort altRevision = 0) : base(revision, altRevision)
+        {
+            revision = revision;
+            altRevision = altRevision;
+            return;
+        }
+
         public RndDir Read(EndianReader reader, bool standalone)
         {
             uint combinedRevision = reader.ReadUInt32();
@@ -78,12 +85,14 @@ namespace MiloLib.Assets.Rnd
             base.Write(writer, false);
 
             anim.Write(writer);
-            draw.Write(writer, false);
-            trans.Write(writer, false);
+            draw.Write(writer, false, true);
+            trans.Write(writer, false, true);
 
             if (revision < 9)
             {
-                // TODO: add Poll and write it here
+                poll.Write(writer, false);
+                Symbol.Write(writer, unkSymbol1);
+                Symbol.Write(writer, unkSymbol2);
             }
             else
             {

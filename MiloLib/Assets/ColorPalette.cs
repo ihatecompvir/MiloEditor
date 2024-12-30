@@ -17,7 +17,7 @@ namespace MiloLib.Assets
         private uint colorCount;
 
         [Name("Colors"), Description("Color for materials")]
-        public List<HmxColor> colors = new();
+        public List<HmxColor4> colors = new();
 
         public ColorPalette Read(EndianReader reader, bool standalone)
         {
@@ -41,7 +41,7 @@ namespace MiloLib.Assets
 
             for (int i = 0; i < colorCount; i++)
             {
-                colors.Add(new HmxColor().Read(reader));
+                colors.Add(new HmxColor4().Read(reader));
             }
 
             if (standalone)

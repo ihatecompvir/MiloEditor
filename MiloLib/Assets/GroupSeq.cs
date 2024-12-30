@@ -1,6 +1,7 @@
 using System.Reflection.Metadata;
 using MiloLib.Classes;
 using MiloLib.Utils;
+using MiloLib.Assets;
 
 namespace MiloLib.Assets
 {
@@ -10,7 +11,7 @@ namespace MiloLib.Assets
         public ushort altRevision;
         public ushort revision;
 
-        public Sequence seq = new();
+        public Sfx.Sequence seq = new();
 
         private uint childrenCount;
 

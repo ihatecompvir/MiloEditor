@@ -123,25 +123,25 @@ namespace MiloLib.Assets
             {
                 case "ObjectDir":
                     Debug.WriteLine("Reading ObjectDir " + name.value);
-                    ObjectDir objectDir = new ObjectDir();
+                    ObjectDir objectDir = new ObjectDir(0);
                     objectDir.Read(reader, true);
                     directory = objectDir;
                     break;
                 case "RndDir":
                     Debug.WriteLine("Reading RndDir " + name.value);
-                    RndDir rndDir = new RndDir();
+                    RndDir rndDir = new RndDir(0);
                     rndDir.Read(reader, true);
                     directory = rndDir;
                     break;
                 case "PanelDir":
                     Debug.WriteLine("Reading PanelDir " + name.value);
-                    PanelDir panelDir = new PanelDir();
+                    PanelDir panelDir = new PanelDir(0);
                     panelDir.Read(reader, true);
                     directory = panelDir;
                     break;
                 case "CharClipSet":
                     Debug.WriteLine("Reading CharClipSet " + name.value);
-                    CharClipSet charClipSet = new CharClipSet();
+                    CharClipSet charClipSet = new CharClipSet(0);
                     uint charClipSampleCount = 0;
 
                     // count all "CharClipSamples" entries for use in CharClipSets of certain revisions
@@ -159,37 +159,37 @@ namespace MiloLib.Assets
                     break;
                 case "WorldDir":
                     Debug.WriteLine("Reading WorldDir " + name.value);
-                    WorldDir worldDir = new WorldDir();
+                    WorldDir worldDir = new WorldDir(0);
                     worldDir.Read(reader, true);
                     directory = worldDir;
                     break;
                 case "Character":
                     Debug.WriteLine("Reading Character " + name.value);
-                    Character character = new Character();
+                    Character character = new Character(0);
                     character.Read(reader, true);
                     directory = character;
                     break;
                 case "UILabelDir":
                     Debug.WriteLine("Reading UILabelDir " + name.value);
-                    UILabelDir uiLabelDir = new UILabelDir();
+                    UILabelDir uiLabelDir = new UILabelDir(0);
                     uiLabelDir.Read(reader, true);
                     directory = uiLabelDir;
                     break;
                 case "UIListDir":
                     Debug.WriteLine("Reading UIListDir " + name.value);
-                    UIListDir uiListDir = new UIListDir();
+                    UIListDir uiListDir = new UIListDir(0);
                     uiListDir.Read(reader, true);
                     directory = uiListDir;
                     break;
                 case "BandCrowdMeterDir":
                     Debug.WriteLine("Reading BandCrowdMeterDir " + name.value);
-                    BandCrowdMeterDir bandCrowdMeterDir = new BandCrowdMeterDir();
+                    BandCrowdMeterDir bandCrowdMeterDir = new BandCrowdMeterDir(0);
                     bandCrowdMeterDir.Read(reader, true);
                     directory = bandCrowdMeterDir;
                     break;
                 case "CrowdMeterIcon":
                     Debug.WriteLine("Reading CrowdMeterIcon " + name.value);
-                    CrowdMeterIcon crowdMeterIcon = new CrowdMeterIcon();
+                    CrowdMeterIcon crowdMeterIcon = new CrowdMeterIcon(0);
                     crowdMeterIcon.Read(reader, true);
                     directory = crowdMeterIcon;
                     break;
@@ -235,13 +235,13 @@ namespace MiloLib.Assets
 
                     case "ObjectDir":
                         Debug.WriteLine("Reading entry ObjectDir " + entry.name.value);
-                        entry.obj = new ObjectDir().Read(reader, true);
+                        entry.obj = new ObjectDir(0).Read(reader, true);
 
                         entry.dir = new DirectoryMeta().Read(reader);
                         break;
                     case "RndDir":
                         Debug.WriteLine("Reading entry RndDir " + entry.name.value);
-                        entry.obj = new RndDir().Read(reader, true);
+                        entry.obj = new RndDir(0).Read(reader, true);
 
                         entry.dir = new DirectoryMeta().Read(reader);
                         break;
@@ -249,63 +249,63 @@ namespace MiloLib.Assets
                     case "UIPanel":
                     case "PanelDir":
                         Debug.WriteLine("Reading entry PanelDir " + entry.name.value);
-                        entry.obj = new PanelDir().Read(reader, true);
+                        entry.obj = new PanelDir(0).Read(reader, true);
 
                         entry.dir = new DirectoryMeta().Read(reader);
                         break;
 
                     case "WorldDir":
                         Debug.WriteLine("Reading entry WorldDir " + entry.name.value);
-                        entry.obj = new WorldDir().Read(reader, true);
+                        entry.obj = new WorldDir(0).Read(reader, true);
 
                         entry.dir = new DirectoryMeta().Read(reader);
                         break;
 
                     case "Character":
                         Debug.WriteLine("Reading entry Character " + entry.name.value);
-                        entry.obj = new Character().Read(reader, true);
+                        entry.obj = new Character(0).Read(reader, true);
 
                         entry.dir = new DirectoryMeta().Read(reader);
                         break;
 
                     case "P9Character":
                         Debug.WriteLine("Reading entry P9Character " + entry.name.value);
-                        entry.obj = new P9Character().Read(reader, true);
+                        entry.obj = new P9Character(0).Read(reader, true);
 
                         entry.dir = new DirectoryMeta().Read(reader);
                         break;
 
                     case "CharClipSet":
                         Debug.WriteLine("Reading entry CharClipSet " + entry.name.value);
-                        entry.obj = new CharClipSet().Read(reader, true);
+                        entry.obj = new CharClipSet(0).Read(reader, true);
 
                         entry.dir = new DirectoryMeta().Read(reader);
                         break;
 
                     case "UIListDir":
                         Debug.WriteLine("Reading entry UIListDir " + entry.name.value);
-                        entry.obj = new UIListDir().Read(reader, true);
+                        entry.obj = new UIListDir(0).Read(reader, true);
 
                         entry.dir = new DirectoryMeta().Read(reader);
                         break;
 
                     case "UILabelDir":
                         Debug.WriteLine("Reading entry UILabelDir " + entry.name.value);
-                        entry.obj = new UILabelDir().Read(reader, true);
+                        entry.obj = new UILabelDir(0).Read(reader, true);
 
                         entry.dir = new DirectoryMeta().Read(reader);
                         break;
 
                     case "BandCrowdMeterDir":
                         Debug.WriteLine("Reading entry BandCrowdMeterDir " + entry.name.value);
-                        entry.obj = new BandCrowdMeterDir().Read(reader, true);
+                        entry.obj = new BandCrowdMeterDir(0).Read(reader, true);
 
                         entry.dir = new DirectoryMeta().Read(reader);
                         break;
 
                     case "CrowdMeterIcon":
                         Debug.WriteLine("Reading entry CrowdMeterIcon " + entry.name.value);
-                        entry.obj = new CrowdMeterIcon().Read(reader, true);
+                        entry.obj = new CrowdMeterIcon(0).Read(reader, true);
 
                         entry.dir = new DirectoryMeta().Read(reader);
                         break;
@@ -381,6 +381,10 @@ namespace MiloLib.Assets
                     case "TexMovie":
                         Debug.WriteLine("Reading entry TexMovie " + entry.name.value);
                         entry.obj = new TexMovie().Read(reader, true);
+                        break;
+                    case "Environ":
+                        Debug.WriteLine("Reading entry Environ " + entry.name.value);
+                        entry.obj = new RndEnviron().Read(reader, true);
                         break;
                     default:
                         Debug.WriteLine("Unknown entry type " + entry.type.value + " of name " + entry.name.value + ", read an Object and then read until we see 0xADDEADDE to skip over it, curpos" + reader.BaseStream.Position);
@@ -532,9 +536,9 @@ namespace MiloLib.Assets
                     case "ColorPalette":
                         ((ColorPalette)entry.obj).Write(writer, true);
                         break;
-                    case "Tex":
-                        ((RndTex)entry.obj).Write(writer, true);
-                        break;
+                    //case "Tex":
+                    //    ((RndTex)entry.obj).Write(writer, true);
+                    //    break;
                     case "Trans":
                         ((RndTrans)entry.obj).Write(writer, true);
                         break;
@@ -559,6 +563,9 @@ namespace MiloLib.Assets
                     case "TexMovie":
                         ((TexMovie)entry.obj).Write(writer, true);
                         break;
+                    case "Environ":
+                        ((RndEnviron)entry.obj).Write(writer, true);
+                        break;
                     //case "Mat":
                     //    ((RndMat)entry.obj).Write(writer, false);
                     //    break;
@@ -575,7 +582,7 @@ namespace MiloLib.Assets
             }
         }
 
-        public static DirectoryMeta New(string type, string name)
+        public static DirectoryMeta New(string type, string name, uint sceneRevision, ushort rootDirRevision)
         {
             DirectoryMeta dir = new DirectoryMeta();
             dir.type = type;
@@ -584,37 +591,37 @@ namespace MiloLib.Assets
             switch (dir.type)
             {
                 case "ObjectDir":
-                    dir.directory = new ObjectDir();
+                    dir.directory = new ObjectDir(rootDirRevision);
                     break;
                 case "RndDir":
-                    dir.directory = new RndDir();
+                    dir.directory = new RndDir(rootDirRevision);
                     break;
                 case "PanelDir":
-                    dir.directory = new PanelDir();
+                    dir.directory = new PanelDir(rootDirRevision);
                     break;
                 case "WorldDir":
-                    dir.directory = new WorldDir();
+                    dir.directory = new WorldDir(rootDirRevision);
                     break;
                 case "Character":
-                    dir.directory = new Character();
+                    dir.directory = new Character(rootDirRevision);
                     break;
                 case "P9Character":
-                    dir.directory = new P9Character();
+                    dir.directory = new P9Character(rootDirRevision);
                     break;
                 case "CharClipSet":
-                    dir.directory = new CharClipSet();
+                    dir.directory = new CharClipSet(rootDirRevision);
                     break;
                 case "UILabelDir":
-                    dir.directory = new UILabelDir();
+                    dir.directory = new UILabelDir(rootDirRevision);
                     break;
                 case "UIListDir":
-                    dir.directory = new UIListDir();
+                    dir.directory = new UIListDir(rootDirRevision);
                     break;
                 case "BandCrowdMeterDir":
-                    dir.directory = new BandCrowdMeterDir();
+                    dir.directory = new BandCrowdMeterDir(rootDirRevision);
                     break;
                 case "CrowdMeterIcon":
-                    dir.directory = new CrowdMeterIcon();
+                    dir.directory = new CrowdMeterIcon(rootDirRevision);
                     break;
                 default:
                     throw new Exception("Unknown directory type: " + type.GetType().Name + ", cannot continue creating directory");
@@ -622,7 +629,7 @@ namespace MiloLib.Assets
 
             dir.entries = new List<Entry>();
 
-            dir.revision = 0x1c;
+            dir.revision = sceneRevision;
             return dir;
         }
 

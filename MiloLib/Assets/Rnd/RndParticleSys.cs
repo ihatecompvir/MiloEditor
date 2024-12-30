@@ -38,11 +38,11 @@ namespace MiloLib.Assets.Rnd
 
         public Vector2 deltaSize = new();
 
-        public HmxColor startColorLow = new();
-        public HmxColor startColorHigh = new();
+        public HmxColor4 startColorLow = new();
+        public HmxColor4 startColorHigh = new();
 
-        public HmxColor endColorLow = new();
-        public HmxColor endColorHigh = new();
+        public HmxColor4 endColorLow = new();
+        public HmxColor4 endColorHigh = new();
 
         public Symbol bounce = new(0, "");
 
@@ -58,8 +58,8 @@ namespace MiloLib.Assets.Rnd
 
         public float midColorRatio;
 
-        public HmxColor midColorLow = new();
-        public HmxColor midColorHigh = new();
+        public HmxColor4 midColorLow = new();
+        public HmxColor4 midColorHigh = new();
 
         public uint maxParticles;
 

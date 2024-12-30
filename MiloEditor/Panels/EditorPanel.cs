@@ -263,12 +263,15 @@ public class EditorPanel : Panel
                 // this is where we will display custom or more complex UIs (e.g., Color picker)
                 switch (fieldValue)
                 {
-                    // color pickers for a HmxColor List (inside ColorPalettes, mainly, but can appear other places)
-                    case List<HmxColor> colorList:
+                    // color pickers for a HmxColor4 List (inside ColorPalettes, mainly, but can appear other places)
+                    case List<HmxColor4> colorList:
                         inputControl = BuildColorPicker(colorList, field);
                         break;
-                    case HmxColor color:
-                        inputControl = BuildColorPicker(new List<HmxColor> { color }, field);
+                    case HmxColor4 color:
+                        inputControl = BuildColorPicker(new List<HmxColor4> { color }, field);
+                        break;
+                    case HmxColor3 color: // TODO: make a real Color3 picker
+                        inputControl = BuildColorPicker(new List<HmxColor4> { new HmxColor4(color.r, color.g, color.b, 1.0f) }, field);
                         break;
                     // list of bytes
                     case List<byte> byteValue:
@@ -339,13 +342,13 @@ public class EditorPanel : Panel
     }
 
 
-    private Control BuildColorPicker(List<HmxColor> colorList, FieldInfo field)
+    private Control BuildColorPicker(List<HmxColor4> colorList, FieldInfo field)
     {
         var scrollingPanel = new Panel
         {
             Dock = DockStyle.Top,
-            AutoSize = false,
-            Height = 200,
+            AutoSize = true,
+            Height = 100,
             AutoScroll = true
         };
         var flowLayoutPanel = new FlowLayoutPanel
@@ -385,13 +388,33 @@ public class EditorPanel : Panel
 
                 if (ownerObject != null)
                 {
-                    List<HmxColor> ownedList = (List<HmxColor>)field.GetValue(ownerObject);
-                    if (ownedList != null && ownedList.Count > colorIndex)
+                    // try to cast the field value to a List<HmxColor4>
+                    try
                     {
-                        ownedList[colorIndex].a = a;
-                        ownedList[colorIndex].r = r;
-                        ownedList[colorIndex].g = g;
-                        ownedList[colorIndex].b = b;
+                        List<HmxColor4> ownedList = (List<HmxColor4>)field.GetValue(ownerObject);
+                        if (ownedList != null && ownedList.Count > colorIndex)
+                        {
+                            ownedList[colorIndex].a = a;
+                            ownedList[colorIndex].r = r;
+                            ownedList[colorIndex].g = g;
+                            ownedList[colorIndex].b = b;
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        // if the cast fails, try to cast the field value to a single HmxColor4
+                        try
+                        {
+                            HmxColor4 ownedColor = (HmxColor4)field.GetValue(ownerObject);
+                            ownedColor.a = a;
+                            ownedColor.r = r;
+                            ownedColor.g = g;
+                            ownedColor.b = b;
+                        }
+                        catch (Exception)
+                        {
+                            // if that fails, do nothing
+                        }
                     }
                 }
             };

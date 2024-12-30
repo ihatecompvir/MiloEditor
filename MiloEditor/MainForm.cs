@@ -77,7 +77,10 @@ namespace MiloEditor
             imageList.Images.Add("WorldDir", Image.FromFile("Images/WorldDir.png"));
             imageList.Images.Add("ScreenMask", Image.FromFile("Images/ScreenMask.png"));
             imageList.Images.Add("TexMovie", Image.FromFile("Images/TexMovie.png"));
+            imageList.Images.Add("BandCrowdMeterDir", Image.FromFile("Images/BandCrowdMeterDir.png"));
             imageList.Images.Add("", Image.FromFile("Images/NoDir.png"));
+
+            imageList.ColorDepth = ColorDepth.Depth32Bit;
         }
 
         private void PopulateListWithEntries()
@@ -179,8 +182,10 @@ namespace MiloEditor
                 return;
 
             // Prevent redundant UI redraws for already selected nodes
-            if (treeView.SelectedNode == e.Node)
-                return;
+            if (treeView.SelectedNode != e.Node && e.Button == MouseButtons.Left)
+            {
+                treeView.SelectedNode = e.Node;
+            }
 
             // Update selected node
             treeView.SelectedNode = e.Node;
@@ -473,6 +478,19 @@ namespace MiloEditor
             // create and open AboutForm dialog
             AboutForm aboutForm = new AboutForm();
             aboutForm.ShowDialog();
+        }
+
+        private void newToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            NewMiloForm newMiloForm = new NewMiloForm();
+
+            newMiloForm.ShowDialog();
+
+            if (newMiloForm.DialogResult == DialogResult.OK)
+            {
+                currentMiloScene = new MiloFile(newMiloForm.NewMilo);
+                PopulateListWithEntries();
+            }
         }
     }
 }

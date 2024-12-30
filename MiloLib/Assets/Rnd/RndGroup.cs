@@ -111,25 +111,59 @@ namespace MiloLib.Assets.Rnd
         public override void Write(EndianWriter writer, bool standalone)
         {
             writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
-            base.Write(writer, false);
+
+            if (revision > 7)
+                base.Write(writer, false);
+
+
             anim.Write(writer);
-            trans.Write(writer, false);
-            draw.Write(writer, false);
+            trans.Write(writer, false, true);
+            draw.Write(writer, false, true);
 
-            writer.WriteUInt32(objectsCount);
-
-            foreach (var obj in objects)
+            if (revision > 10)
             {
-                Symbol.Write(writer, obj);
+                writer.WriteUInt32(objectsCount);
+
+                foreach (var obj in objects)
+                {
+                    Symbol.Write(writer, obj);
+                }
+
+                if (revision < 16)
+                    Symbol.Write(writer, environ);
+                if (revision > 13)
+                    Symbol.Write(writer, drawOnly);
             }
 
-            Symbol.Write(writer, environ);
-            Symbol.Write(writer, drawOnly);
-            Symbol.Write(writer, lod);
+            if (revision > 11 && revision < 16)
+            {
+                Symbol.Write(writer, lod);
+                writer.WriteFloat(lodScreenSize);
+            }
+            else if (revision == 4)
+            {
+                writer.WriteUInt32(0);
 
-            writer.WriteFloat(lodScreenSize);
+                writer.WriteUInt32(objectsCount);
+                foreach (var obj in objects)
+                {
+                    Symbol.Write(writer, obj);
+                }
 
-            writer.WriteByte((byte)(sortInWorld ? 1 : 0));
+                Symbol.Write(writer, unknownSymbol);
+                writer.WriteUInt32(0);
+                writer.WriteUInt32(0);
+            }
+
+            if (revision == 7)
+            {
+                Symbol.Write(writer, unknownSymbol);
+                writer.WriteFloat(lodWidth);
+                writer.WriteFloat(lodHeight);
+            }
+
+            if (revision > 13)
+                writer.WriteBoolean(sortInWorld);
 
             if (standalone)
             {

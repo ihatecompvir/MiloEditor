@@ -109,6 +109,7 @@ namespace MiloLib.Assets.Rnd
             else
             {
                 writer.WriteUInt32((uint)rate);
+                return;
             }
 
             writer.WriteUInt32(animEntryCount);

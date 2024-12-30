@@ -164,7 +164,7 @@ namespace MiloLib.Assets.Rnd
         public ushort revision; // constant for revision 68
 
         [Name("Base Color"), Description("Base material color")]
-        public HmxColor mColor = new HmxColor(1f, 1f, 1f, 1f);
+        public HmxColor4 mColor = new HmxColor4(1f, 1f, 1f, 1f);
 
         [Name("Texture Transform"), Description("Transform for coordinate generation")]
         public Matrix mTexXfm = new Matrix();
@@ -191,7 +191,7 @@ namespace MiloLib.Assets.Rnd
         public Symbol mRefractNormalMap;
 
         [Name("Color Modifiers"), Description("Color modifiers for the material")]
-        public List<HmxColor> mColorMod = new List<HmxColor>();
+        public List<HmxColor4> mColorMod = new List<HmxColor4>();
 
         [Name("Performance Settings"), Description("Performance options for this material")]
         public MatPerfSettings mPerfSettings;
@@ -202,7 +202,7 @@ namespace MiloLib.Assets.Rnd
         [Name("Intensify"), Description("Double the intensity of base map")]
         public bool mIntensify;
 
-        [Name("Use Environment"), Description("Modulate with environment ambient and lights")]
+        [Name("Use Environment"), Description("Modulate with environment ambient and lightsReal")]
         public bool mUseEnviron;
 
         [Name("Pre-Lit"), Description("Use vertex color and alpha for base or ambient")]
@@ -226,7 +226,7 @@ namespace MiloLib.Assets.Rnd
         [Name("Refract Enabled"), Description("When enabled, this material will refract the screen under the material")]
         public bool mRefractEnabled;
 
-        [Name("Point Lights Enabled"), Description("Is the Mat lit with point lights?")]
+        [Name("Point Lights Enabled"), Description("Is the Mat lit with point lightsReal?")]
         public bool mPointLights;
 
         [Name("Fog Enabled"), Description("Is the Mat affected by fog?")]
@@ -278,7 +278,7 @@ namespace MiloLib.Assets.Rnd
             base.Read(reader, false);
 
             mBlend = (Blend)reader.ReadInt32();
-            mColor = new HmxColor().Read(reader);
+            mColor = new HmxColor4().Read(reader);
             mUseEnviron = reader.ReadBoolean();
             mPreLit = reader.ReadBoolean();
             mZMode = (ZMode)reader.ReadInt32();
@@ -293,10 +293,10 @@ namespace MiloLib.Assets.Rnd
 
             mIntensify = reader.ReadBoolean();
             mDirty = 3;
-            HmxColor loc_color;
+            HmxColor4 loc_color;
             mCull = reader.ReadBoolean();
             mEmissiveMultiplier = reader.ReadFloat();
-            loc_color = new HmxColor().Read(reader);
+            loc_color = new HmxColor4().Read(reader);
 
             Symbol texPtr = Symbol.Read(reader);
 
@@ -311,7 +311,7 @@ namespace MiloLib.Assets.Rnd
             Symbol sym = Symbol.Read(reader);
             texPtr = Symbol.Read(reader);
 
-            HmxColor color2 = new HmxColor().Read(reader);
+            HmxColor4 color2 = new HmxColor4().Read(reader);
             texPtr = Symbol.Read(reader);
 
             int i = reader.ReadInt32();
@@ -319,7 +319,7 @@ namespace MiloLib.Assets.Rnd
 
             int i2 = reader.ReadInt32();
             i2 = reader.ReadInt32();
-            new HmxColor().Read(reader);
+            new HmxColor4().Read(reader);
             int b2 = reader.ReadInt32();
             texPtr = Symbol.Read(reader);
             texPtr = Symbol.Read(reader);
@@ -330,20 +330,20 @@ namespace MiloLib.Assets.Rnd
             mColorAdjust = reader.ReadBoolean();
 
 
-            HmxColor color2f = new HmxColor().Read(reader);
+            HmxColor4 color2f = new HmxColor4().Read(reader);
             texPtr = Symbol.Read(reader);
             byte b = reader.ReadByte();
 
             mScreenAligned = reader.ReadBoolean();
 
             mShaderVariation = (ShaderVariation)reader.ReadInt32();
-            HmxColor col32 = new HmxColor().Read(reader);
+            HmxColor4 col32 = new HmxColor4().Read(reader);
 
 
-            mColorMod = new List<HmxColor>();
+            mColorMod = new List<HmxColor4>();
             for (int x = 0; x < 3; x++)
             {
-                mColorMod.Add(new HmxColor(1f, 1f, 1f, 1f));
+                mColorMod.Add(new HmxColor4(1f, 1f, 1f, 1f));
             }
 
 
@@ -387,7 +387,7 @@ namespace MiloLib.Assets.Rnd
             writer.WriteByte((byte)(mIntensify ? 1 : 0));
             writer.WriteByte((byte)(mCull ? 1 : 0));
             writer.WriteFloat(mEmissiveMultiplier);
-            new HmxColor().Write(writer);
+            new HmxColor4().Write(writer);
             Symbol.Write(writer, null);
             Symbol.Write(writer, mEmissiveMap);
             Symbol.Write(writer, null);
@@ -397,13 +397,13 @@ namespace MiloLib.Assets.Rnd
 
             Symbol.Write(writer, null);
             Symbol.Write(writer, null);
-            new HmxColor().Write(writer);
+            new HmxColor4().Write(writer);
             Symbol.Write(writer, null);
             writer.WriteInt32(0);
             writer.WriteInt32(0);
             writer.WriteInt32(0);
             writer.WriteInt32(0);
-            new HmxColor().Write(writer);
+            new HmxColor4().Write(writer);
             writer.WriteInt32(0);
             Symbol.Write(writer, null);
             Symbol.Write(writer, null);
@@ -413,21 +413,21 @@ namespace MiloLib.Assets.Rnd
             writer.WriteByte((byte)(mFadeout ? 1 : 0));
             writer.WriteByte((byte)(mColorAdjust ? 1 : 0));
 
-            new HmxColor().Write(writer);
+            new HmxColor4().Write(writer);
             Symbol.Write(writer, null);
             writer.WriteByte(0);
             writer.WriteByte((byte)(mScreenAligned ? 1 : 0));
 
             writer.WriteInt32((int)mShaderVariation);
-            new HmxColor().Write(writer);
+            new HmxColor4().Write(writer);
 
 
             if (mColorMod == null)
             {
                 for (int i = 0; i < 3; i++)
                 {
-                    mColorMod = new List<HmxColor>();
-                    mColorMod.Add(new HmxColor(1f, 1f, 1f, 1f));
+                    mColorMod = new List<HmxColor4>();
+                    mColorMod.Add(new HmxColor4(1f, 1f, 1f, 1f));
                 }
             }
             Symbol.Write(writer, null);
