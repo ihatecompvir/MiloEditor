@@ -86,6 +86,13 @@ namespace MiloLib.Assets
         {
             this.revision = (ushort)revision;
             this.altRevision = (ushort)altRevision;
+
+            // add 7 empty viewports as default
+            this.viewportCount = 7;
+            for (int i = 0; i < 7; i++)
+            {
+                this.viewports.Add(new Matrix());
+            }
             return;
         }
 

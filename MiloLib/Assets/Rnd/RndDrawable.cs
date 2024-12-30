@@ -22,7 +22,7 @@ namespace MiloLib.Assets.Rnd
         public ushort revision;
 
         [Name("Showing"), Description("Whether the object and its Draw children are drawn or collided with.")]
-        public bool showing;
+        public bool showing = true;
 
         [Name("Sphere"), Description("Represents a bounding sphere around this object and its drawn children, which is used for culling of draw and collision commands. X, Y, Z are the sphere center in local coordinates, R is the sphere radius in world coordinates. Culling is not performed when the radius is zero. The world transform of the object must be baked into the radius."), MinVersion(1)]
         public Sphere sphere = new();

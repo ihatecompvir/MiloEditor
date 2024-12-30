@@ -43,6 +43,8 @@
             quitToolStripMenuItem = new ToolStripMenuItem();
             helpToolStripMenuItem = new ToolStripMenuItem();
             aboutToolStripMenuItem = new ToolStripMenuItem();
+            toolStripSeparator4 = new ToolStripSeparator();
+            githubLinkMenuItem = new ToolStripMenuItem();
             splitContainer1 = new SplitContainer();
             miloSceneItemsTree = new TreeView();
             label1 = new Label();
@@ -56,9 +58,9 @@
             // statusStrip1
             // 
             statusStrip1.Items.AddRange(new ToolStripItem[] { miloSceneLabel });
-            statusStrip1.Location = new Point(0, 428);
+            statusStrip1.Location = new Point(0, 659);
             statusStrip1.Name = "statusStrip1";
-            statusStrip1.Size = new Size(800, 22);
+            statusStrip1.Size = new Size(1264, 22);
             statusStrip1.TabIndex = 0;
             statusStrip1.Text = "statusStrip1";
             // 
@@ -73,7 +75,7 @@
             menuStrip1.Items.AddRange(new ToolStripItem[] { fileToolStripMenuItem, helpToolStripMenuItem });
             menuStrip1.Location = new Point(0, 0);
             menuStrip1.Name = "menuStrip1";
-            menuStrip1.Size = new Size(800, 24);
+            menuStrip1.Size = new Size(1264, 24);
             menuStrip1.TabIndex = 1;
             menuStrip1.Text = "menuStrip1";
             // 
@@ -136,7 +138,7 @@
             // 
             // helpToolStripMenuItem
             // 
-            helpToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { aboutToolStripMenuItem });
+            helpToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { aboutToolStripMenuItem, toolStripSeparator4, githubLinkMenuItem });
             helpToolStripMenuItem.Name = "helpToolStripMenuItem";
             helpToolStripMenuItem.Size = new Size(44, 20);
             helpToolStripMenuItem.Text = "Help";
@@ -144,9 +146,21 @@
             // aboutToolStripMenuItem
             // 
             aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
-            aboutToolStripMenuItem.Size = new Size(107, 22);
+            aboutToolStripMenuItem.Size = new Size(112, 22);
             aboutToolStripMenuItem.Text = "About";
             aboutToolStripMenuItem.Click += aboutToolStripMenuItem_Click;
+            // 
+            // toolStripSeparator4
+            // 
+            toolStripSeparator4.Name = "toolStripSeparator4";
+            toolStripSeparator4.Size = new Size(109, 6);
+            // 
+            // githubLinkMenuItem
+            // 
+            githubLinkMenuItem.Name = "githubLinkMenuItem";
+            githubLinkMenuItem.Size = new Size(112, 22);
+            githubLinkMenuItem.Text = "GitHub";
+            githubLinkMenuItem.Click += githubLinkMenuItem_Click;
             // 
             // splitContainer1
             // 
@@ -163,7 +177,7 @@
             // splitContainer1.Panel2
             // 
             splitContainer1.Panel2.AutoScroll = true;
-            splitContainer1.Size = new Size(800, 404);
+            splitContainer1.Size = new Size(1264, 635);
             splitContainer1.SplitterDistance = 256;
             splitContainer1.SplitterWidth = 5;
             splitContainer1.TabIndex = 2;
@@ -172,10 +186,11 @@
             // 
             miloSceneItemsTree.Dock = DockStyle.Fill;
             miloSceneItemsTree.Location = new Point(0, 0);
-            miloSceneItemsTree.MinimumSize = new Size(320, 180);
+            miloSceneItemsTree.MinimumSize = new Size(250, 180);
             miloSceneItemsTree.Name = "miloSceneItemsTree";
-            miloSceneItemsTree.Size = new Size(320, 404);
+            miloSceneItemsTree.Size = new Size(256, 635);
             miloSceneItemsTree.TabIndex = 2;
+            miloSceneItemsTree.AfterSelect += miloSceneItemsTree_AfterSelect;
             // 
             // label1
             // 
@@ -190,7 +205,7 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(800, 450);
+            ClientSize = new Size(1264, 681);
             Controls.Add(splitContainer1);
             Controls.Add(statusStrip1);
             Controls.Add(menuStrip1);
@@ -231,5 +246,7 @@
         private TreeView miloSceneItemsTree;
         private ToolStripMenuItem helpToolStripMenuItem;
         private ToolStripMenuItem aboutToolStripMenuItem;
+        private ToolStripSeparator toolStripSeparator4;
+        private ToolStripMenuItem githubLinkMenuItem;
     }
 }

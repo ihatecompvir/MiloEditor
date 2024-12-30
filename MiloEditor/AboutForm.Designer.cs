@@ -28,63 +28,63 @@
         /// </summary>
         private void InitializeComponent()
         {
-            label1 = new Label();
-            label2 = new Label();
-            pictureBox1 = new PictureBox();
-            ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
+            versionLabel = new Label();
+            aboutLabel = new Label();
+            miloIcon = new PictureBox();
+            ((System.ComponentModel.ISupportInitialize)miloIcon).BeginInit();
             SuspendLayout();
             // 
-            // label1
+            // versionLabel
             // 
-            label1.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            label1.Location = new Point(12, 103);
-            label1.Name = "label1";
-            label1.Size = new Size(280, 23);
-            label1.TabIndex = 0;
-            label1.Text = "Milo Editor (1.0)";
-            label1.TextAlign = ContentAlignment.MiddleCenter;
+            versionLabel.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            versionLabel.Location = new Point(12, 103);
+            versionLabel.Name = "versionLabel";
+            versionLabel.Size = new Size(280, 23);
+            versionLabel.TabIndex = 0;
+            versionLabel.Text = "Milo Editor (1.0)";
+            versionLabel.TextAlign = ContentAlignment.MiddleCenter;
             // 
-            // label2
+            // aboutLabel
             // 
-            label2.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            label2.Location = new Point(12, 126);
-            label2.Name = "label2";
-            label2.Size = new Size(280, 106);
-            label2.TabIndex = 1;
-            label2.Text = "An editor for Milo scenes. \r\n\r\nThanks to everyone who has ever contributed to reverse engineering and sharing knowledge about this engine. This would not have been possible without you.";
-            label2.TextAlign = ContentAlignment.TopCenter;
-            label2.Click += label2_Click;
+            aboutLabel.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+            aboutLabel.Location = new Point(12, 126);
+            aboutLabel.Name = "aboutLabel";
+            aboutLabel.Size = new Size(280, 106);
+            aboutLabel.TabIndex = 1;
+            aboutLabel.Text = "An editor for Milo scenes. \r\n\r\nThanks to everyone who has ever contributed to reverse engineering and sharing knowledge about this engine. This would not have been possible without you.";
+            aboutLabel.TextAlign = ContentAlignment.TopCenter;
             // 
-            // pictureBox1
+            // miloIcon
             // 
-            pictureBox1.Image = Properties.Resources.milo;
-            pictureBox1.Location = new Point(115, 25);
-            pictureBox1.Name = "pictureBox1";
-            pictureBox1.Size = new Size(75, 75);
-            pictureBox1.TabIndex = 2;
-            pictureBox1.TabStop = false;
+            miloIcon.Image = Properties.Resources.milo;
+            miloIcon.Location = new Point(115, 25);
+            miloIcon.Name = "miloIcon";
+            miloIcon.Size = new Size(75, 75);
+            miloIcon.SizeMode = PictureBoxSizeMode.StretchImage;
+            miloIcon.TabIndex = 2;
+            miloIcon.TabStop = false;
             // 
             // AboutForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(304, 241);
-            Controls.Add(pictureBox1);
-            Controls.Add(label2);
-            Controls.Add(label1);
+            Controls.Add(miloIcon);
+            Controls.Add(aboutLabel);
+            Controls.Add(versionLabel);
             MaximumSize = new Size(320, 280);
             MinimumSize = new Size(320, 280);
             Name = "AboutForm";
             Text = "About Milo Editor";
             Load += AboutForm_Load;
-            ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
+            ((System.ComponentModel.ISupportInitialize)miloIcon).EndInit();
             ResumeLayout(false);
         }
 
         #endregion
 
-        private Label label1;
-        private Label label2;
-        private PictureBox pictureBox1;
+        private Label versionLabel;
+        private Label aboutLabel;
+        private PictureBox miloIcon;
     }
 }

@@ -313,11 +313,6 @@ namespace MiloLib.Assets
             altRevision = reader.ReadUInt16();
             revision = reader.ReadUInt16();
 
-            if (revision != 1)
-            {
-                throw new UnsupportedAssetRevisionException("Sfx::ADSR", revision);
-            }
-
             sustainLevel = reader.ReadFloat();
             releaseRate = reader.ReadFloat();
             sustainRate = reader.ReadFloat();

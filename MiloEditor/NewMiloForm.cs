@@ -74,11 +74,16 @@ namespace MiloEditor
 
         private void button1_Click(object sender, EventArgs e)
         {
-            DirectoryMeta directoryMeta = DirectoryMeta.New(directoryTypes[directoryTypeDropdown.SelectedIndex].Item1, "A", miloSceneRevisions[sceneVersionDropdown.SelectedIndex].Item2, (ushort)directoryTypes[directoryTypeDropdown.SelectedIndex].Item2[directoryRevisionDropdown.SelectedIndex].Item2);
+            DirectoryMeta directoryMeta = DirectoryMeta.New(directoryTypes[directoryTypeDropdown.SelectedIndex].Item1, directoryNameTextBox.Text, miloSceneRevisions[sceneVersionDropdown.SelectedIndex].Item2, (ushort)directoryTypes[directoryTypeDropdown.SelectedIndex].Item2[directoryRevisionDropdown.SelectedIndex].Item2);
             NewMilo = directoryMeta;
 
             this.DialogResult = DialogResult.OK;
             this.Close();
+        }
+
+        private void label2_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

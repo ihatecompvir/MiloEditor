@@ -386,6 +386,10 @@ namespace MiloLib.Assets
                         Debug.WriteLine("Reading entry Environ " + entry.name.value);
                         entry.obj = new RndEnviron().Read(reader, true);
                         break;
+                    case "SynthSample":
+                        Debug.WriteLine("Reading entry SynthSample " + entry.name.value);
+                        entry.obj = new SynthSample(0).Read(reader, true);
+                        break;
                     default:
                         Debug.WriteLine("Unknown entry type " + entry.type.value + " of name " + entry.name.value + ", read an Object and then read until we see 0xADDEADDE to skip over it, curpos" + reader.BaseStream.Position);
 
@@ -565,6 +569,9 @@ namespace MiloLib.Assets
                         break;
                     case "Environ":
                         ((RndEnviron)entry.obj).Write(writer, true);
+                        break;
+                    case "SynthSample":
+                        ((SynthSample)entry.obj).Write(writer, true);
                         break;
                     //case "Mat":
                     //    ((RndMat)entry.obj).Write(writer, false);

@@ -6,6 +6,7 @@ using MiloLib.Utils;
 using System.Diagnostics;
 using System.DirectoryServices;
 using System.Reflection;
+using System.Security.Policy;
 using System.Windows.Forms;
 using System.Xml.Linq;
 using static MiloLib.Assets.DirectoryMeta;
@@ -43,7 +44,8 @@ namespace MiloEditor
 
         private void Form1_Load(object sender, EventArgs e)
         {
-
+            // change title of window to "Milo Editor (version)"
+            this.Text = "Milo Editor (" + Application.ProductVersion + ")";
 
         }
 
@@ -99,6 +101,14 @@ namespace MiloEditor
             miloSceneItemsTree.ImageList = imageList;
 
             // add a root node for the Milo scene and its dir
+            if (currentMiloScene.dirMeta.directory == null)
+            {
+                currentMiloScene.dirMeta.name = "Scene Has No Root Directory";
+            }
+            else if (currentMiloScene.dirMeta.name == "")
+            {
+                currentMiloScene.dirMeta.name = "<empty name>";
+            }
             TreeNode rootNode = new TreeNode(currentMiloScene.dirMeta.name, GetImageIndex(imageList, currentMiloScene.dirMeta.type), GetImageIndex(imageList, currentMiloScene.dirMeta.type))
             {
                 Tag = currentMiloScene.dirMeta
@@ -526,6 +536,16 @@ namespace MiloEditor
                 currentMiloScene = new MiloFile(newMiloForm.NewMilo);
                 PopulateListWithEntries();
             }
+        }
+
+        private void miloSceneItemsTree_AfterSelect(object sender, TreeViewEventArgs e)
+        {
+
+        }
+
+        private void githubLinkMenuItem_Click(object sender, EventArgs e)
+        {
+            Process.Start(new ProcessStartInfo { FileName = "https://github.com/ihatecompvir/MiloEditor", UseShellExecute = true });
         }
     }
 }
