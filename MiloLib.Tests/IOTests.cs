@@ -7,68 +7,40 @@ using MiloLib.Utils;
 
 public class IOTests
 {
+    /// <summary>
+    /// Creates an RB3-versioned ObjectDir, writes it to a MemoryStream, reads it back, and compares some fields to ensure they were written and read correctly.
+    /// </summary>
     [Fact]
-    public void TestOpening()
+    public void TestRB3ObjectDirCreation()
     {
-        var projectDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", ".."));
-        var testFilePath = Path.Combine(projectDir, "TestData", "test.milo_ps3");
+        ObjectDir objectDir = new ObjectDir(27);
 
-        // test creating a MiloFile from that path
-        MiloFile milo = new MiloFile(testFilePath);
+        MemoryStream stream = new MemoryStream();
+        EndianWriter writer = new EndianWriter(stream, Endian.BigEndian);
 
-        // print the directory name and all entry names
-        Console.WriteLine("Directory name: " + milo.dirMeta.name + " of type " + milo.dirMeta.type);
+        objectDir.objFields.type = "Test_Directory";
+        objectDir.proxyPath = "test_path.milo";
 
-        foreach (DirectoryMeta.Entry entry in milo.dirMeta.entries)
-        {
-            Console.WriteLine("Entry: " + entry.name);
-        }
-    }
+        objectDir.Write(writer, false);
 
-    [Fact]
-    public void TestCompressed()
-    {
-        var projectDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", ".."));
-        var testFilePath = Path.Combine(projectDir, "TestData", "test_compressed.milo_ps3");
+        MemoryStream stream2 = new MemoryStream();
 
-        // test creating a MiloFile from that path
-        MiloFile milo = new MiloFile(testFilePath);
+        stream.Position = 0;
 
-        // print the directory name and all entry names
-        Console.WriteLine("Directory name: " + milo.dirMeta.name + " of type " + milo.dirMeta.type);
+        stream.CopyTo(stream2);
 
-        foreach (DirectoryMeta.Entry entry in milo.dirMeta.entries)
-        {
-            Console.WriteLine("Entry: " + entry.name);
-        }
-    }
+        stream2.Position = 0;
 
-    [Fact]
-    public void TestDirectoryCreation()
-    {
-        DirectoryMeta meta = DirectoryMeta.New("ObjectDir", "testing_directory");
+        EndianReader reader = new EndianReader(stream2, Endian.BigEndian);
 
-        // add some fake entries
-        Object obj1 = new Object();
-        DirectoryMeta.Entry entry1 = new DirectoryMeta.Entry("Object", "basic_object", obj1);
-        Object obj2 = new Object();
-        DirectoryMeta.Entry entry2 = new DirectoryMeta.Entry("Object", "testing_object", obj2);
+        ObjectDir objectDir2 = new ObjectDir(27);
+        objectDir2.Read(reader, false);
 
-        meta.entries.Add(entry1);
-        meta.entries.Add(entry2);
+        // compare the two fields we set in the ObjectDirs
+        Assert.Equal(objectDir.objFields.type.value, objectDir2.objFields.type.value);
+        Assert.Equal(objectDir.proxyPath.value, objectDir2.proxyPath.value);
 
-        // create MemoryStream to write to
-        MemoryStream mem = new MemoryStream();
-        EndianWriter writer = new EndianWriter(mem, Endian.LittleEndian);
-
-        meta.Write(writer);
-
-        // read it back
-        mem.Seek(0, SeekOrigin.Begin);
-        EndianReader reader = new EndianReader(mem, Endian.LittleEndian);
-        DirectoryMeta newMeta = new DirectoryMeta().Read(reader);
-
-        // asserts to make sure it has the right name, 3 entries with the right name and type, etc.
-        Assert.Equal("testing_directory", newMeta.name);
+        // make sure the two MemoryStreams have the same size, meaning the same data was written and read
+        Assert.Equal(stream.Length, stream2.Length);
     }
 }

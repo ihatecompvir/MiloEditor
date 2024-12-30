@@ -60,7 +60,6 @@ namespace MiloLib.Assets.Char
 
                 if (revision == 15)
                 {
-                    unk4 = reader.ReadBoolean();
                     unk5 = reader.ReadUInt32();
                 }
 
