@@ -22,6 +22,7 @@
     <None Remove="Images\Character.png" />
     <None Remove="Images\ColorPalette.png" />
     <None Remove="Images\default.png" />
+    <None Remove="Images\Font.png" />
     <None Remove="Images\NoDir.png" />
     <None Remove="Images\ObjectDir.png" />
     <None Remove="Images\RndAnim.png" />
@@ -35,6 +36,7 @@
     <None Remove="Images\ScreenMask.png" />
     <None Remove="Images\Sfx.png" />
     <None Remove="Images\TexMovie.png" />
+    <None Remove="Images\Text.png" />
     <None Remove="Images\TransAnim.png" />
     <None Remove="Images\UIColor.png" />
     <None Remove="Images\WorldDir.png" />
@@ -57,6 +59,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Images\default.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\Font.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Images\NoDir.png">
@@ -96,6 +101,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Images\TexMovie.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\Text.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Images\TransAnim.png">

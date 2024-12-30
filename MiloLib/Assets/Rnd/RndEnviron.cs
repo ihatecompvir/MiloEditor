@@ -22,6 +22,12 @@ namespace MiloLib.Assets.Rnd
         [Name("Approximate Dynamic Lights"), Description("Approximated dynamic lights for this environment"), MinVersion(15)]
         public List<Symbol> lightsApprox = new();
 
+        [MaxVersion(14)]
+        private uint lightsOldCount;
+        [Name("Old Dynamic Lights"), Description("Old-style dynamic lights for this environment"), MinVersion(15)]
+        public List<Symbol> lightsOld = new();
+
+
         [Name("Ambient Color"), Description("Ambient color for this environment")]
         public HmxColor4 ambientColor = new();
 
@@ -110,7 +116,11 @@ namespace MiloLib.Assets.Rnd
 
             if (revision < 0xF)
             {
-
+                lightsOldCount = reader.ReadUInt32();
+                for (int i = 0; i < lightsOldCount; i++)
+                {
+                    lightsOld.Add(Symbol.Read(reader));
+                }
             }
             else
             {
@@ -129,7 +139,6 @@ namespace MiloLib.Assets.Rnd
 
 
             ambientColor = ambientColor.Read(reader);
-
             fogStart = reader.ReadFloat();
             fogEnd = reader.ReadFloat();
 
@@ -233,7 +242,11 @@ namespace MiloLib.Assets.Rnd
 
             if (revision < 0xF)
             {
-
+                writer.WriteUInt32((uint)lightsOld.Count);
+                foreach (var light in lightsOld)
+                {
+                    Symbol.Write(writer, light);
+                }
             }
             else
             {

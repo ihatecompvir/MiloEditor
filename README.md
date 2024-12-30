@@ -6,9 +6,9 @@
 
 *Milo.exe at home:*
 
-MiloEditor is an editor for Milo scenes. Currently suited for Rock Band 3 (and Dance Central 1) on Xbox 360 and PS3, however support is planned for additional games.
+MiloEditor is a Windows-only editor for Milo scenes. There is currently varying levels of support for different Milo games, although Rock Band 3 and Dance Central 1 are the most supported. The end goal is to have support for every Milo game ever made, within reason.
 
-Also included is MiloLib, the .NET Standard library powering MiloEditor.
+Also included is MiloLib, the .NET Standard library powering MiloEditor, and MiloUtil, a cross-platform command line utility powered by MiloLib.
 
 ## Features
 
@@ -16,7 +16,11 @@ Also included is MiloLib, the .NET Standard library powering MiloEditor.
 
 - Barebones viewer and editor for a lot of common Milo assets
 
-- Removing and renaming assets inside of scenes
+- Exporting, importing, duplicating, and renaming assets
+
+- Creation of entirely new Milo scenes
+
+- The ability to add new inlined subdirectories to existing Milo scenes
 
 ### In the Future...
 
@@ -24,7 +28,7 @@ Also included is MiloLib, the .NET Standard library powering MiloEditor.
 
 * Converting assets between engine versions and platforms, when applicable
 
-* Performance optimization
+* Performance optimizations
 
 * A cross-platform UI, since the actual loading/saving logic is in its own .NET Standard library
 

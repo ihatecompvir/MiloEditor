@@ -65,7 +65,7 @@ namespace MiloEditor
             imageList.Images.Add("TexRenderer", Image.FromFile("Images/RndTex.png"));
             imageList.Images.Add("Mat", Image.FromFile("Images/RndMat.png"));
             imageList.Images.Add("Mesh", Image.FromFile("Images/RndMesh.png"));
-            imageList.Images.Add("MultiMesh", Image.FromFile("Images/RndMesh.png"));
+            imageList.Images.Add("MultiMesh", Image.FromFile("Images/RndMultiMesh.png"));
             imageList.Images.Add("Trans", Image.FromFile("Images/RndTrans.png"));
             imageList.Images.Add("TransAnim", Image.FromFile("Images/TransAnim.png"));
             imageList.Images.Add("Sfx", Image.FromFile("Images/Sfx.png"));
@@ -80,6 +80,9 @@ namespace MiloEditor
             imageList.Images.Add("ScreenMask", Image.FromFile("Images/ScreenMask.png"));
             imageList.Images.Add("TexMovie", Image.FromFile("Images/TexMovie.png"));
             imageList.Images.Add("BandCrowdMeterDir", Image.FromFile("Images/BandCrowdMeterDir.png"));
+            imageList.Images.Add("Font", Image.FromFile("Images/Font.png"));
+            imageList.Images.Add("Text", Image.FromFile("Images/Text.png"));
+            imageList.Images.Add("BandCamShot", Image.FromFile("Images/Camera.png"));
             imageList.Images.Add("", Image.FromFile("Images/NoDir.png"));
 
             imageList.ColorDepth = ColorDepth.Depth32Bit;
@@ -225,10 +228,9 @@ namespace MiloEditor
                     if (e.Node.Tag is DirectoryMeta)
                     {
                         contextMenu.Items.Add(new ToolStripMenuItem("Delete Directory", SystemIcons.Error.ToBitmap(), (s, ev) => DeleteDirectory(e.Node)));
-                        contextMenu.Items.Add(new ToolStripSeparator());
                         contextMenu.Items.Add(new ToolStripMenuItem("Duplicate Directory", SystemIcons.Information.ToBitmap(), (s, ev) => DuplicateDirectory(e.Node)));
-                        contextMenu.Items.Add(new ToolStripSeparator());
                         contextMenu.Items.Add(new ToolStripMenuItem("Rename Directory", SystemIcons.Information.ToBitmap(), (s, ev) => RenameDirectory(e.Node)));
+                        contextMenu.Items.Add(new ToolStripMenuItem("Merge Directory", SystemIcons.Information.ToBitmap(), (s, ev) => MergeDirectory(e.Node)));
                         contextMenu.Items.Add(new ToolStripSeparator());
                         contextMenu.Items.Add(new ToolStripMenuItem("Add Inlined Subdirectory", SystemIcons.Information.ToBitmap(), (s, ev) => AddInlinedSubdirectory(e.Node)));
                         contextMenu.Items.Add(new ToolStripSeparator());
@@ -347,6 +349,53 @@ namespace MiloEditor
 
             // redraw the UI
             PopulateListWithEntries();
+        }
+
+        private void MergeDirectory(TreeNode node)
+        {
+            DirectoryMeta dirEntry = (DirectoryMeta)node.Tag;
+            ObjectDir dir = (ObjectDir)dirEntry.directory;
+
+            OpenFileDialog openFileDialog = new OpenFileDialog
+            {
+                Filter = "Milo Scenes|*.milo_ps2;*.milo_xbox;*.milo_ps3;*.milo_wii;*.milo_pc;*.rnd;*.rnd_ps2;*.rnd_xbox;*.rnd_gc",
+                Title = "Open Milo Scene"
+            };
+
+            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                MiloFile externalMiloScene = new MiloFile(openFileDialog.FileName);
+
+                // Iterate through entries in the external scene to be merged
+                foreach (DirectoryMeta.Entry mergeEntry in externalMiloScene.dirMeta.entries)
+                {
+                    bool entryMerged = false; // Flag to track if we have either merged an entry or added a new entry
+
+                    // Iterate through the existing entries in the current scene
+                    for (int i = 0; i < currentMiloScene.dirMeta.entries.Count; i++)
+                    {
+                        DirectoryMeta.Entry currentEntry = currentMiloScene.dirMeta.entries[i];
+
+                        if (mergeEntry.name.value == currentEntry.name.value)
+                        {
+                            DialogResult result = MessageBox.Show($"An entry with the name {currentEntry.name.value} already exists. Do you want to overwrite it?", "Overwrite Entry", MessageBoxButtons.YesNo);
+                            if (result == DialogResult.Yes)
+                            {
+                                currentMiloScene.dirMeta.entries[i].obj = mergeEntry.obj;
+                            }
+                            entryMerged = true;
+                            break; // Entry has been processed, no need to check other entries.
+                        }
+                    }
+
+                    if (!entryMerged)
+                    {
+                        // Add a new entry from the external file
+                        dirEntry.entries.Add(mergeEntry);
+                    }
+                }
+                PopulateListWithEntries();
+            }
         }
         private void ExtractAsset(TreeNode node)
         {
