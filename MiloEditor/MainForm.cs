@@ -207,34 +207,39 @@ namespace MiloEditor
             // context menu logic for right-click
             if (e.Button == MouseButtons.Right)
             {
-                ContextMenuStrip contextMenu = new ContextMenuStrip();
-
-                // Context menu for DirectoryMeta
-                if (e.Node.Tag is DirectoryMeta)
+                if (e.Node.Tag != null)
                 {
-                    contextMenu.Items.Add(new ToolStripMenuItem("Delete Directory", SystemIcons.Error.ToBitmap(), (s, ev) => DeleteDirectory(e.Node)));
-                    contextMenu.Items.Add(new ToolStripSeparator());
-                    contextMenu.Items.Add(new ToolStripMenuItem("Duplicate Directory", SystemIcons.Information.ToBitmap(), (s, ev) => DuplicateDirectory(e.Node)));
-                    contextMenu.Items.Add(new ToolStripSeparator());
-                    contextMenu.Items.Add(new ToolStripMenuItem("Rename Directory", SystemIcons.Information.ToBitmap(), (s, ev) => RenameDirectory(e.Node)));
-                    contextMenu.Items.Add(new ToolStripSeparator());
-                    contextMenu.Items.Add(new ToolStripMenuItem("Import Asset", SystemIcons.Application.ToBitmap(), (s, ev) => ImportAsset(e.Node)));
-                    contextMenu.Items.Add(new ToolStripSeparator());
-                    contextMenu.Items.Add(new ToolStripMenuItem("New Asset", SystemIcons.WinLogo.ToBitmap(), (s, ev) => NewAsset(e.Node)));
-                }
-                else
-                {
-                    contextMenu.Items.Add(new ToolStripMenuItem("Delete Asset", SystemIcons.Error.ToBitmap(), (s, ev) => DeleteAsset(e.Node)));
-                    contextMenu.Items.Add(new ToolStripSeparator());
-                    contextMenu.Items.Add(new ToolStripMenuItem("Duplicate Asset", SystemIcons.Information.ToBitmap(), (s, ev) => DuplicateAsset(e.Node)));
-                    contextMenu.Items.Add(new ToolStripSeparator());
-                    contextMenu.Items.Add(new ToolStripMenuItem("Rename Asset", SystemIcons.Information.ToBitmap(), (s, ev) => RenameAsset(e.Node)));
-                    contextMenu.Items.Add(new ToolStripSeparator());
-                    contextMenu.Items.Add(new ToolStripMenuItem("Extract Asset", SystemIcons.Shield.ToBitmap(), (s, ev) => ExtractAsset(e.Node)));
-                    contextMenu.Items.Add(new ToolStripMenuItem("Replace Asset", SystemIcons.Question.ToBitmap(), (s, ev) => ReplaceAsset(e.Node)));
-                }
+                    ContextMenuStrip contextMenu = new ContextMenuStrip();
 
-                contextMenu.Show(treeView, e.Location);
+                    // Context menu for DirectoryMeta
+                    if (e.Node.Tag is DirectoryMeta)
+                    {
+                        contextMenu.Items.Add(new ToolStripMenuItem("Delete Directory", SystemIcons.Error.ToBitmap(), (s, ev) => DeleteDirectory(e.Node)));
+                        contextMenu.Items.Add(new ToolStripSeparator());
+                        contextMenu.Items.Add(new ToolStripMenuItem("Duplicate Directory", SystemIcons.Information.ToBitmap(), (s, ev) => DuplicateDirectory(e.Node)));
+                        contextMenu.Items.Add(new ToolStripSeparator());
+                        contextMenu.Items.Add(new ToolStripMenuItem("Rename Directory", SystemIcons.Information.ToBitmap(), (s, ev) => RenameDirectory(e.Node)));
+                        contextMenu.Items.Add(new ToolStripSeparator());
+                        contextMenu.Items.Add(new ToolStripMenuItem("Add Inlined Subdirectory", SystemIcons.Information.ToBitmap(), (s, ev) => AddInlinedSubdirectory(e.Node)));
+                        contextMenu.Items.Add(new ToolStripSeparator());
+                        contextMenu.Items.Add(new ToolStripMenuItem("Import Asset", SystemIcons.Application.ToBitmap(), (s, ev) => ImportAsset(e.Node)));
+                        contextMenu.Items.Add(new ToolStripSeparator());
+                        contextMenu.Items.Add(new ToolStripMenuItem("New Asset", SystemIcons.WinLogo.ToBitmap(), (s, ev) => NewAsset(e.Node)));
+                    }
+                    else
+                    {
+                        contextMenu.Items.Add(new ToolStripMenuItem("Delete Asset", SystemIcons.Error.ToBitmap(), (s, ev) => DeleteAsset(e.Node)));
+                        contextMenu.Items.Add(new ToolStripSeparator());
+                        contextMenu.Items.Add(new ToolStripMenuItem("Duplicate Asset", SystemIcons.Information.ToBitmap(), (s, ev) => DuplicateAsset(e.Node)));
+                        contextMenu.Items.Add(new ToolStripSeparator());
+                        contextMenu.Items.Add(new ToolStripMenuItem("Rename Asset", SystemIcons.Information.ToBitmap(), (s, ev) => RenameAsset(e.Node)));
+                        contextMenu.Items.Add(new ToolStripSeparator());
+                        contextMenu.Items.Add(new ToolStripMenuItem("Extract Asset", SystemIcons.Shield.ToBitmap(), (s, ev) => ExtractAsset(e.Node)));
+                        contextMenu.Items.Add(new ToolStripMenuItem("Replace Asset", SystemIcons.Question.ToBitmap(), (s, ev) => ReplaceAsset(e.Node)));
+                    }
+
+                    contextMenu.Show(treeView, e.Location);
+                }
             }
         }
 
@@ -275,6 +280,9 @@ namespace MiloEditor
             // bring up a dialog to get the new name
             string newName = Microsoft.VisualBasic.Interaction.InputBox("Enter the new name for the asset", "Duplicate Asset", entry.name.value);
 
+            if (newName == "")
+                return;
+
             // set the new name
             newEntry.name = newName;
 
@@ -297,8 +305,35 @@ namespace MiloEditor
             // open a dialog to get the new name
             string newName = Microsoft.VisualBasic.Interaction.InputBox("Enter the new name for the asset", "Rename Asset", entry.name.value);
 
+            if (newName == "")
+                return;
+
             // set the new name
             entry.name = newName;
+
+            // redraw the UI
+            PopulateListWithEntries();
+        }
+
+        private void AddInlinedSubdirectory(TreeNode node)
+        {
+            DirectoryMeta dirEntry = (DirectoryMeta)node.Tag;
+
+            ObjectDir dir = (ObjectDir)dirEntry.directory;
+
+            // get new name of directory
+            string newDirName = Microsoft.VisualBasic.Interaction.InputBox("Enter the name of the new directory", "Add Inlined Subdirectory", "New Directory");
+
+            // create a new directory
+            DirectoryMeta newDir = DirectoryMeta.New("ObjectDir", newDirName, 27, 25);
+
+            ((ObjectDir)newDir.directory).inlineSubDir = true;
+
+            // add the new directory to the parent directory and set the reference type
+            dir.inlineSubDirs.Add(newDir);
+            dir.inlineSubDirNames.Add($"{newDirName}.milo");
+            dir.referenceTypes.Add(ObjectDir.ReferenceType.kInlineCached);
+            dir.referenceTypesAlt.Add(ObjectDir.ReferenceType.kInlineCached);
 
             // redraw the UI
             PopulateListWithEntries();
@@ -334,7 +369,7 @@ namespace MiloEditor
             // create a popup to ask for the file to import
             OpenFileDialog openFileDialog = new OpenFileDialog
             {
-                Filter = "All Files(*.*)|*.* ",
+                Filter = "All Files(*.*)|*.*",
                 Title = "Import Asset"
             };
 

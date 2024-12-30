@@ -13,8 +13,10 @@ namespace MiloLib.Assets
     {
         public enum ReferenceType
         {
-            Import = 1,
-            SubDir = 3,
+            kInlineNever = 0,
+            kInlineCached = 1,
+            kInlineAlways = 2,
+            kInlineCachedShared = 3
         }
 
         public ushort altRevision;
@@ -347,7 +349,7 @@ namespace MiloLib.Assets
                 if (revision >= 21)
                 {
                     writer.WriteBoolean(inlineSubDir);
-                    writer.WriteUInt32((uint)inlineSubDirNames.Count);
+                    writer.WriteUInt32((uint)inlineSubDirs.Count);
                     foreach (var inlineSubDirName in inlineSubDirNames)
                     {
                         Symbol.Write(writer, inlineSubDirName);
