@@ -193,6 +193,12 @@ namespace MiloLib.Assets
                     crowdMeterIcon.Read(reader, true);
                     directory = crowdMeterIcon;
                     break;
+                case "CharBoneDir":
+                    Debug.WriteLine("Reading CharBoneDir " + name.value);
+                    CharBoneDir charBoneDir = new CharBoneDir(0);
+                    charBoneDir.Read(reader, true);
+                    directory = charBoneDir;
+                    break;
                 case "":
                     Debug.WriteLine("GH1-style empty directory detected, just reading children");
                     break;
@@ -281,6 +287,13 @@ namespace MiloLib.Assets
                         // this is unhinged, why'd they do it like this?
                         reader.ReadUInt32();
                         entry.obj = new ObjectDir(0).Read(reader, true);
+
+                        entry.dir = new DirectoryMeta().Read(reader);
+                        break;
+
+                    case "CharBoneDir":
+                        Debug.WriteLine("Reading entry CharBoneDir " + entry.name.value);
+                        entry.obj = new CharBoneDir(0).Read(reader, true);
 
                         entry.dir = new DirectoryMeta().Read(reader);
                         break;
