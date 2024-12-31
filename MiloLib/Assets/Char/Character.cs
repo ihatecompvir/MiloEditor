@@ -12,6 +12,29 @@ namespace MiloLib.Assets.Char
     [Name("Character"), Description("Base class for Character objects. Contains Geometry, Outfit Loaders, and LOD + Sphere concepts.")]
     public class Character : RndDir
     {
+
+        public class LOD
+        {
+            public float screenSize;
+            public Symbol group = new(0, "");
+            public Symbol transGroup = new(0, "");
+
+            public LOD Read(EndianReader reader)
+            {
+                screenSize = reader.ReadFloat();
+                group = Symbol.Read(reader);
+                transGroup = Symbol.Read(reader);
+                return this;
+            }
+
+            public void Write(EndianWriter writer)
+            {
+                writer.WriteFloat(screenSize);
+                Symbol.Write(writer, group);
+                Symbol.Write(writer, transGroup);
+            }
+        }
+
         public class CharacterTest
         {
             public ushort altRevision;
@@ -139,7 +162,7 @@ namespace MiloLib.Assets.Char
         public ushort revision;
 
         private uint lodCount;
-        public List<Symbol> lods = new();
+        public List<LOD> lods = new();
 
         private uint shadowCount;
         public List<Symbol> shadows = new();
@@ -177,7 +200,9 @@ namespace MiloLib.Assets.Char
             lodCount = reader.ReadUInt32();
             for (int i = 0; i < lodCount; i++)
             {
-                lods.Add(Symbol.Read(reader));
+                LOD lod = new();
+                lod.Read(reader);
+                lods.Add(lod);
             }
 
             if (revision < 18)
@@ -235,7 +260,7 @@ namespace MiloLib.Assets.Char
             writer.WriteUInt32((uint)lods.Count);
             foreach (var lod in lods)
             {
-                Symbol.Write(writer, lod);
+                lod.Write(writer);
             }
 
             if (revision < 18)

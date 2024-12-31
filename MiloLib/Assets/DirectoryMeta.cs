@@ -277,7 +277,10 @@ namespace MiloLib.Assets
 
                     case "CharClipSet":
                         Debug.WriteLine("Reading entry CharClipSet " + entry.name.value);
-                        entry.obj = new CharClipSet(0).Read(reader, true);
+
+                        // this is unhinged, why'd they do it like this?
+                        reader.ReadUInt32();
+                        entry.obj = new ObjectDir(0).Read(reader, true);
 
                         entry.dir = new DirectoryMeta().Read(reader);
                         break;

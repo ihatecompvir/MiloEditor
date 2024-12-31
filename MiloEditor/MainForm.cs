@@ -545,7 +545,8 @@ namespace MiloEditor
             {
                 // just for testing so we don't overwrite the original milo
                 // TODO: make it actually save to the original file in the future when we know we didn't break anything
-                currentMiloScene.Save("test.milo_xbox", MiloFile.Type.Uncompressed);
+                currentMiloScene.Save("test.milo_xbox", null);
+                MessageBox.Show("Milo scene saved successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             else
             {
@@ -573,6 +574,7 @@ namespace MiloEditor
                     if (saveFileDialog.ShowDialog() == DialogResult.OK)
                     {
                         currentMiloScene.Save(saveFileDialog.FileName, miloSaveOptionsForm.compressionType, 0x810, Endian.LittleEndian, miloSaveOptionsForm.useBigEndian ? Endian.BigEndian : Endian.LittleEndian);
+                        MessageBox.Show("Milo scene saved to " + saveFileDialog.FileName + " successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     }
                     else
                     {

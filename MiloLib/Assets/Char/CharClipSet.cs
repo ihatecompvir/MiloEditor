@@ -314,5 +314,10 @@ namespace MiloLib.Assets.Char
             if (standalone)
                 writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
         }
+
+        public override bool IsDirectory()
+        {
+            return true;
+        }
     }
 }

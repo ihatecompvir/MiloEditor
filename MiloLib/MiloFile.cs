@@ -247,10 +247,15 @@ namespace MiloLib
         /// <param name="startingOffset">The offset at which the root directory starts.</param>
         /// <param name="headerEndian">The endianness of the header.</param>
         /// <param name="bodyEndian">The endianness of the body. Certain games require little endian bodies, such as GH2.</param>
-        public void Save(string path, Type type, uint startingOffset = 0x810, Endian headerEndian = Endian.LittleEndian, Endian bodyEndian = Endian.BigEndian)
+        public void Save(string path, Type? type, uint startingOffset = 0x810, Endian headerEndian = Endian.LittleEndian, Endian bodyEndian = Endian.BigEndian)
         {
             using (EndianWriter writer = new EndianWriter(File.Create(path), headerEndian))
             {
+                if (type == null)
+                {
+                    // no specified type, so just use what is already there
+                    type = compressionType;
+                }
                 writer.WriteUInt32((uint)type);
                 writer.WriteUInt32(startingOffset);
                 writer.WriteUInt32(1);
