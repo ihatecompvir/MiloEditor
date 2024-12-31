@@ -34,13 +34,13 @@ namespace MiloLib.Assets.UI
             return;
         }
 
-        public UIListDir Read(EndianReader reader, bool standalone)
+        public UIListDir Read(EndianReader reader, bool standalone, DirectoryMeta parent)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
             else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
 
-            base.Read(reader, false);
+            base.Read(reader, false, parent);
 
             orientation = (UIListOrientation)reader.ReadUInt32();
 

@@ -62,16 +62,16 @@ namespace MiloLib.Assets
 
         public Movie movie = new();
 
-        public TexMovie Read(EndianReader reader, bool standalone)
+        public TexMovie Read(EndianReader reader, bool standalone, DirectoryMeta parent)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
             else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
 
-            objFields = objFields.Read(reader);
+            objFields = objFields.Read(reader, parent);
 
-            draw = draw.Read(reader, false, true);
-            obj = obj.Read(reader, false);
+            draw = draw.Read(reader, false, parent);
+            obj = obj.Read(reader, false, parent);
 
             outputTexture = Symbol.Read(reader);
 

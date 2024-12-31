@@ -35,7 +35,7 @@ namespace MiloLib.Assets.Band
             return;
         }
 
-        public BandCrowdMeterDir Read(EndianReader reader, bool standalone)
+        public BandCrowdMeterDir Read(EndianReader reader, bool standalone, DirectoryMeta parent)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
@@ -67,7 +67,7 @@ namespace MiloLib.Assets.Band
             if (revision >= 1)
                 peakValue = reader.ReadFloat();
 
-            base.Read(reader, false);
+            base.Read(reader, false, parent);
 
             if (standalone)
                 if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");

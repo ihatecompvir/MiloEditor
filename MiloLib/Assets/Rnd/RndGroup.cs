@@ -42,18 +42,18 @@ namespace MiloLib.Assets.Rnd
         [MinVersion(7), MaxVersion(7)]
         public float lodHeight;
 
-        public RndGroup Read(EndianReader reader, bool standalone)
+        public RndGroup Read(EndianReader reader, bool standalone, DirectoryMeta parent)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
             else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
 
             if (revision > 7)
-                base.Read(reader, false);
+                base.Read(reader, false, parent);
 
-            anim = new RndAnimatable().Read(reader);
-            trans = new RndTrans().Read(reader, false, true);
-            draw = new RndDrawable().Read(reader, false, true);
+            anim = new RndAnimatable().Read(reader, parent);
+            trans = new RndTrans().Read(reader, false, parent);
+            draw = new RndDrawable().Read(reader, false, parent);
 
             if (revision > 10)
             {

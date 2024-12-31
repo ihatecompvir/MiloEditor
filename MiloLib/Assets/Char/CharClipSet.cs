@@ -112,13 +112,21 @@ namespace MiloLib.Assets.Char
         [MinVersion(5), MaxVersion(23)]
         public List<string> unkStrings2 = new();
 
-        public CharClipSet Read(EndianReader reader, bool standalone, uint charClipSampleCount)
+        public CharClipSet Read(EndianReader reader, bool standalone, DirectoryMeta parent)
         {
+            uint charClipSampleCount = 0;
+            // go through all entries in the parent and count how many CharClipSamples there are
+            foreach (DirectoryMeta.Entry entry in parent.entries)
+            {
+                if (entry.type.value == "CharClipSample") charClipSampleCount++;
+            }
+
+
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
             else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
 
-            base.Read(reader, false);
+            base.Read(reader, false, parent);
 
             if (revision < 0x11)
             {

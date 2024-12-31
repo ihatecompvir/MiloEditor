@@ -45,7 +45,7 @@ namespace MiloLib.Assets.Rnd
         public bool preserveScale;
 
         [Name("Parent"), Description("Object this is linked to.")]
-        public Symbol parent = new(0, "");
+        public Symbol parentObj = new(0, "");
 
         private uint transCount;
 
@@ -54,14 +54,16 @@ namespace MiloLib.Assets.Rnd
         [MaxVersion(8)]
         public List<string> transObjectsNullTerminated = new();
 
-        public RndTrans Read(EndianReader reader, bool standalone, bool skipMetadata = false)
+        public RndTrans Read(EndianReader reader, bool standalone, DirectoryMeta parent)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
             else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
 
-            if (revision != 8 && !skipMetadata)
-                objFields = objFields.Read(reader);
+            // if a RndTrans is read as a standalone object, it has the Object fields
+            // otherwise it does not
+            if (standalone)
+                objFields = objFields.Read(reader, parent);
 
             localXfm = localXfm.Read(reader);
             worldXfm = worldXfm.Read(reader);
@@ -71,8 +73,7 @@ namespace MiloLib.Assets.Rnd
                 transCount = reader.ReadUInt32();
                 if (transCount > 0)
                 {
-                    /*
-                    if (revision <= 6)
+                    if (parent.revision <= 6)
                     {
                         for (int i = 0; i < transCount; i++)
                         {
@@ -81,12 +82,11 @@ namespace MiloLib.Assets.Rnd
                     }
                     else
                     {
-                    */
-                    for (int i = 0; i < transCount; i++)
-                    {
-                        transObjects.Add(Symbol.Read(reader));
+                        for (int i = 0; i < transCount; i++)
+                        {
+                            transObjects.Add(Symbol.Read(reader));
+                        }
                     }
-                    //}
                 }
             }
 
@@ -99,7 +99,7 @@ namespace MiloLib.Assets.Rnd
             if (revision > 6)
                 preserveScale = reader.ReadBoolean();
 
-            parent = Symbol.Read(reader);
+            parentObj = Symbol.Read(reader);
 
 
             if (standalone)
@@ -138,7 +138,7 @@ namespace MiloLib.Assets.Rnd
             if (revision > 6)
                 writer.WriteBoolean(preserveScale);
 
-            Symbol.Write(writer, parent);
+            Symbol.Write(writer, parentObj);
 
             if (standalone)
             {

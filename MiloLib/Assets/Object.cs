@@ -197,8 +197,14 @@ namespace MiloLib.Assets
         public Symbol note = new Symbol(0, "");
 
 
-        public ObjectFields Read(EndianReader reader)
+        public ObjectFields Read(EndianReader reader, DirectoryMeta parent)
         {
+            if (parent.revision <= 10)
+            {
+                // don't read anything, just return
+                return this;
+            }
+
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (metadataRevision, metadataAltRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
             else (metadataAltRevision, metadataRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
@@ -260,15 +266,12 @@ namespace MiloLib.Assets
         [Name("Object Fields"), Description("The Hmx::Object fields that all Objects have.")]
         public ObjectFields objFields = new ObjectFields();
 
-        public Object Read(EndianReader reader, bool standalone)
+        public Object Read(EndianReader reader, bool standalone, DirectoryMeta parent)
         {
-            objFields = new ObjectFields().Read(reader);
+            objFields = new ObjectFields().Read(reader, parent);
 
             if (standalone)
-            {
                 if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");
-
-            }
 
             return this;
         }

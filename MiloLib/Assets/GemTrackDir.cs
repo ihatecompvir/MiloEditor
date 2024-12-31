@@ -16,7 +16,7 @@ namespace MiloLib.Assets
             return;
         }
 
-        public GemTrackDir Read(EndianReader reader, bool standalone)
+        public GemTrackDir Read(EndianReader reader, bool standalone, DirectoryMeta parent)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));

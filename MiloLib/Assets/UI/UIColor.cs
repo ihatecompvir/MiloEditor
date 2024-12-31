@@ -14,7 +14,7 @@ namespace MiloLib.Assets.UI
         public float b;
         public float a;
 
-        public UIColor Read(EndianReader reader, bool standalone)
+        public UIColor Read(EndianReader reader, bool standalone, DirectoryMeta parent)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
@@ -25,7 +25,7 @@ namespace MiloLib.Assets.UI
                 throw new UnsupportedAssetRevisionException("UIColor", revision);
             }
 
-            base.objFields.Read(reader);
+            base.objFields.Read(reader, parent);
 
             r = reader.ReadFloat();
             g = reader.ReadFloat();

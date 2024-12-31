@@ -32,7 +32,7 @@ namespace MiloLib.Assets.P9
             return;
         }
 
-        public P9Character Read(EndianReader reader, bool standalone)
+        public P9Character Read(EndianReader reader, bool standalone, DirectoryMeta parent)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
@@ -41,7 +41,7 @@ namespace MiloLib.Assets.P9
             if (revision != 8)
                 throw new UnsupportedAssetRevisionException("P9Character", revision);
 
-            character = new Character(0).Read(reader, false);
+            character = new Character(0).Read(reader, false, parent);
 
             headLookatWeight = reader.ReadFloat();
 

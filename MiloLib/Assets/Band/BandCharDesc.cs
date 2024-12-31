@@ -305,12 +305,12 @@ namespace MiloLib.Assets.Band
         public uint head2;
 
 
-        public BandCharDesc Read(EndianReader reader, bool standalone)
+        public BandCharDesc Read(EndianReader reader, bool standalone, DirectoryMeta parent)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
             else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
-            base.Read(reader, false);
+            base.Read(reader, false, parent);
 
             if (revision > 0x10)
                 prefab = Symbol.Read(reader);

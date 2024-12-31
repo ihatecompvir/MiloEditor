@@ -38,16 +38,11 @@ namespace MiloLib.Assets.Rnd
         public List<Symbol> drawables = new();
         public List<string> drawablesNullTerminated = new();
 
-        public RndDrawable Read(EndianReader reader, bool standalone, bool skipMetadata = false)
+        public RndDrawable Read(EndianReader reader, bool standalone, DirectoryMeta parent)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
             else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
-
-            if (revision != 1 && !skipMetadata)
-            {
-                objFields = objFields.Read(reader);
-            }
 
             showing = reader.ReadBoolean();
 

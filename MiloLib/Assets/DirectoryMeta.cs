@@ -50,7 +50,7 @@ namespace MiloLib.Assets
             }
         }
 
-        private uint revision;
+        public uint revision;
 
         public Symbol type = new(0, "");
         public Symbol name = new(0, "");
@@ -124,85 +124,73 @@ namespace MiloLib.Assets
                 case "ObjectDir":
                     Debug.WriteLine("Reading ObjectDir " + name.value);
                     ObjectDir objectDir = new ObjectDir(0);
-                    objectDir.Read(reader, true);
+                    objectDir.Read(reader, true, this);
                     directory = objectDir;
                     break;
                 case "RndDir":
                     Debug.WriteLine("Reading RndDir " + name.value);
                     RndDir rndDir = new RndDir(0);
-                    rndDir.Read(reader, true);
+                    rndDir.Read(reader, true, this);
                     directory = rndDir;
                     break;
                 case "PanelDir":
                     Debug.WriteLine("Reading PanelDir " + name.value);
                     PanelDir panelDir = new PanelDir(0);
-                    panelDir.Read(reader, true);
+                    panelDir.Read(reader, true, this);
                     directory = panelDir;
                     break;
                 case "CharClipSet":
                     Debug.WriteLine("Reading CharClipSet " + name.value);
                     CharClipSet charClipSet = new CharClipSet(0);
-                    uint charClipSampleCount = 0;
-
-                    // count all "CharClipSamples" entries for use in CharClipSets of certain revisions
-                    // TODO: replace this hack with something better in the future
-                    foreach (Entry entry in entries)
-                    {
-                        if (entry.type.value == "CharClipSamples")
-                        {
-                            charClipSampleCount++;
-                        }
-                    }
-
-                    charClipSet.Read(reader, true, charClipSampleCount);
+                    charClipSet.Read(reader, true, this);
                     directory = charClipSet;
                     break;
                 case "WorldDir":
                     Debug.WriteLine("Reading WorldDir " + name.value);
                     WorldDir worldDir = new WorldDir(0);
-                    worldDir.Read(reader, true);
+                    worldDir.Read(reader, true, this);
                     directory = worldDir;
                     break;
                 case "Character":
                     Debug.WriteLine("Reading Character " + name.value);
                     Character character = new Character(0);
-                    character.Read(reader, true);
+                    character.Read(reader, true, this);
                     directory = character;
                     break;
                 case "UILabelDir":
                     Debug.WriteLine("Reading UILabelDir " + name.value);
                     UILabelDir uiLabelDir = new UILabelDir(0);
-                    uiLabelDir.Read(reader, true);
+                    uiLabelDir.Read(reader, true, this);
                     directory = uiLabelDir;
                     break;
                 case "UIListDir":
                     Debug.WriteLine("Reading UIListDir " + name.value);
                     UIListDir uiListDir = new UIListDir(0);
-                    uiListDir.Read(reader, true);
+                    uiListDir.Read(reader, true, this);
                     directory = uiListDir;
                     break;
                 case "BandCrowdMeterDir":
                     Debug.WriteLine("Reading BandCrowdMeterDir " + name.value);
                     BandCrowdMeterDir bandCrowdMeterDir = new BandCrowdMeterDir(0);
-                    bandCrowdMeterDir.Read(reader, true);
+                    bandCrowdMeterDir.Read(reader, true, this);
                     directory = bandCrowdMeterDir;
                     break;
                 case "CrowdMeterIcon":
                     Debug.WriteLine("Reading CrowdMeterIcon " + name.value);
                     CrowdMeterIcon crowdMeterIcon = new CrowdMeterIcon(0);
-                    crowdMeterIcon.Read(reader, true);
+                    crowdMeterIcon.Read(reader, true, this);
                     directory = crowdMeterIcon;
                     break;
                 case "CharBoneDir":
                     Debug.WriteLine("Reading CharBoneDir " + name.value);
                     CharBoneDir charBoneDir = new CharBoneDir(0);
-                    charBoneDir.Read(reader, true);
+                    charBoneDir.Read(reader, true, this);
                     directory = charBoneDir;
                     break;
                 case "BandCharacter":
                     Debug.WriteLine("Reading BandCharacter " + name.value);
                     BandCharacter bandCharacter = new BandCharacter(0);
-                    bandCharacter.Read(reader, true);
+                    bandCharacter.Read(reader, true, this);
                     directory = bandCharacter;
                     break;
                 case "":
@@ -247,13 +235,13 @@ namespace MiloLib.Assets
 
                     case "ObjectDir":
                         Debug.WriteLine("Reading entry ObjectDir " + entry.name.value);
-                        entry.obj = new ObjectDir(0).Read(reader, true);
+                        entry.obj = new ObjectDir(0).Read(reader, true, this);
 
                         entry.dir = new DirectoryMeta().Read(reader);
                         break;
                     case "RndDir":
                         Debug.WriteLine("Reading entry RndDir " + entry.name.value);
-                        entry.obj = new RndDir(0).Read(reader, true);
+                        entry.obj = new RndDir(0).Read(reader, true, this);
 
                         entry.dir = new DirectoryMeta().Read(reader);
                         break;
@@ -261,28 +249,28 @@ namespace MiloLib.Assets
                     case "UIPanel":
                     case "PanelDir":
                         Debug.WriteLine("Reading entry PanelDir " + entry.name.value);
-                        entry.obj = new PanelDir(0).Read(reader, true);
+                        entry.obj = new PanelDir(0).Read(reader, true, this);
 
                         entry.dir = new DirectoryMeta().Read(reader);
                         break;
 
                     case "WorldDir":
                         Debug.WriteLine("Reading entry WorldDir " + entry.name.value);
-                        entry.obj = new WorldDir(0).Read(reader, true);
+                        entry.obj = new WorldDir(0).Read(reader, true, this);
 
                         entry.dir = new DirectoryMeta().Read(reader);
                         break;
 
                     case "Character":
                         Debug.WriteLine("Reading entry Character " + entry.name.value);
-                        entry.obj = new Character(0).Read(reader, true);
+                        entry.obj = new Character(0).Read(reader, true, this);
 
                         entry.dir = new DirectoryMeta().Read(reader);
                         break;
 
                     case "P9Character":
                         Debug.WriteLine("Reading entry P9Character " + entry.name.value);
-                        entry.obj = new P9Character(0).Read(reader, true);
+                        entry.obj = new P9Character(0).Read(reader, true, this);
 
                         entry.dir = new DirectoryMeta().Read(reader);
                         break;
@@ -292,48 +280,49 @@ namespace MiloLib.Assets
 
                         // this is unhinged, why'd they do it like this?
                         reader.ReadUInt32();
-                        entry.obj = new ObjectDir(0).Read(reader, true);
+                        entry.obj = new ObjectDir(0).Read(reader, true, this);
 
                         entry.dir = new DirectoryMeta().Read(reader);
                         break;
 
                     case "CharBoneDir":
                         Debug.WriteLine("Reading entry CharBoneDir " + entry.name.value);
-                        entry.obj = new CharBoneDir(0).Read(reader, true);
+                        entry.obj = new CharBoneDir(0).Read(reader, true, this);
 
                         entry.dir = new DirectoryMeta().Read(reader);
                         break;
 
                     case "UIListDir":
                         Debug.WriteLine("Reading entry UIListDir " + entry.name.value);
-                        entry.obj = new UIListDir(0).Read(reader, true);
+                        entry.obj = new UIListDir(0).Read(reader, true, this);
 
                         entry.dir = new DirectoryMeta().Read(reader);
                         break;
 
                     case "UILabelDir":
                         Debug.WriteLine("Reading entry UILabelDir " + entry.name.value);
-                        entry.obj = new UILabelDir(0).Read(reader, true);
+                        entry.obj = new UILabelDir(0).Read(reader, true, this);
 
                         entry.dir = new DirectoryMeta().Read(reader);
                         break;
 
                     case "BandCrowdMeterDir":
                         Debug.WriteLine("Reading entry BandCrowdMeterDir " + entry.name.value);
-                        entry.obj = new BandCrowdMeterDir(0).Read(reader, true);
+                        entry.obj = new BandCrowdMeterDir(0).Read(reader, true, this);
 
                         entry.dir = new DirectoryMeta().Read(reader);
                         break;
 
                     case "CrowdMeterIcon":
                         Debug.WriteLine("Reading entry CrowdMeterIcon " + entry.name.value);
-                        entry.obj = new CrowdMeterIcon(0).Read(reader, true);
+                        entry.obj = new CrowdMeterIcon(0).Read(reader, true, this);
 
                         entry.dir = new DirectoryMeta().Read(reader);
                         break;
+
                     case "BandCharacter":
                         Debug.WriteLine("Reading entry BandCharacter " + entry.name.value);
-                        entry.obj = new BandCharacter(0).Read(reader, true);
+                        entry.obj = new BandCharacter(0).Read(reader, true, this);
 
                         entry.dir = new DirectoryMeta().Read(reader);
                         break;
@@ -342,82 +331,83 @@ namespace MiloLib.Assets
 
                     case "Object":
                         Debug.WriteLine("Reading entry Object " + entry.name.value);
-                        entry.obj = new Object().Read(reader, true);
+                        entry.obj = new Object().Read(reader, true, this);
                         break;
                     case "BandSongPref":
                         Debug.WriteLine("Reading entry BandSongPref " + entry.name.value);
-                        entry.obj = new BandSongPref().Read(reader, true);
+                        entry.obj = new BandSongPref().Read(reader, true, this);
                         break;
                     case "Sfx":
                         Debug.WriteLine("Reading entry Sfx " + entry.name.value);
-                        entry.obj = new Sfx().Read(reader, true);
+                        entry.obj = new Sfx().Read(reader, true, this);
                         break;
                     case "Trans":
                         Debug.WriteLine("Reading entry Trans " + entry.name.value);
-                        entry.obj = new RndTrans().Read(reader, true);
+                        entry.obj = new RndTrans().Read(reader, true, this);
                         break;
                     case "View":
                     case "Group":
                         Debug.WriteLine("Reading entry Group " + entry.name.value);
-                        entry.obj = new RndGroup().Read(reader, true);
+                        entry.obj = new RndGroup().Read(reader, true, this);
                         break;
                     case "P9Director":
                         Debug.WriteLine("Reading entry P9Director " + entry.name.value);
-                        entry.obj = new P9Director().Read(reader, true);
+                        entry.obj = new P9Director().Read(reader, true, this);
                         break;
                     // TODO: figure out how to read textures properly
                     case "Tex":
                         Debug.WriteLine("Reading entry Tex " + entry.name.value);
-                        entry.obj = new RndTex().Read(reader, true);
+                        entry.obj = new RndTex().Read(reader, true, this);
                         break;
                     case "ColorPalette":
                         Debug.WriteLine("Reading entry ColorPalette " + entry.name.value);
-                        entry.obj = new ColorPalette().Read(reader, true);
+                        entry.obj = new ColorPalette().Read(reader, true, this);
                         break;
                     //case "Mat":
                     //    Debug.WriteLine("Reading entry Mat " + entry.name.value);
-                    //    entry.obj = new RndMat().Read(reader, true);
+                    //    entry.obj = new RndMat().Read(reader, true, this);
                     //    break;
                     case "BandCharDesc":
                         Debug.WriteLine("Reading entry BandCharDesc " + entry.name.value);
-                        entry.obj = new BandCharDesc().Read(reader, true);
+                        entry.obj = new BandCharDesc().Read(reader, true, this);
                         break;
                     case "Light":
                         Debug.WriteLine("Reading entry Light " + entry.name.value);
-                        entry.obj = new RndLight().Read(reader, true);
+                        entry.obj = new RndLight().Read(reader, true, this);
                         break;
                     case "UIColor":
                         Debug.WriteLine("Reading entry UIColor" + entry.name.value);
-                        entry.obj = new UIColor().Read(reader, true);
+                        entry.obj = new UIColor().Read(reader, true, this);
                         break;
                     case "ParticleSys":
                         Debug.WriteLine("Reading entry ParticleSys " + entry.name.value);
-                        entry.obj = new RndParticleSys().Read(reader, true);
+                        entry.obj = new RndParticleSys().Read(reader, true, this);
                         break;
                     case "AnimFilter":
                         Debug.WriteLine("Reading entry AnimFilter " + entry.name.value);
-                        entry.obj = new RndAnimFilter().Read(reader, true);
+                        entry.obj = new RndAnimFilter().Read(reader, true, this);
                         break;
                     case "BandPlacer":
                         Debug.WriteLine("Reading entry BandPlacer " + entry.name.value);
-                        entry.obj = new BandPlacer().Read(reader, true);
+                        entry.obj = new BandPlacer().Read(reader, true, this);
                         break;
                     case "ScreenMask":
                         Debug.WriteLine("Reading entry ScreenMask " + entry.name.value);
-                        entry.obj = new RndScreenMask().Read(reader, true);
+                        entry.obj = new RndScreenMask().Read(reader, true, this);
                         break;
                     case "TexMovie":
                         Debug.WriteLine("Reading entry TexMovie " + entry.name.value);
-                        entry.obj = new TexMovie().Read(reader, true);
+                        entry.obj = new TexMovie().Read(reader, true, this);
                         break;
                     case "Environ":
                         Debug.WriteLine("Reading entry Environ " + entry.name.value);
-                        entry.obj = new RndEnviron().Read(reader, true);
+                        entry.obj = new RndEnviron().Read(reader, true, this);
                         break;
                     case "SynthSample":
                         Debug.WriteLine("Reading entry SynthSample " + entry.name.value);
-                        entry.obj = new SynthSample().Read(reader, true);
+                        entry.obj = new SynthSample().Read(reader, true, this);
                         break;
+
                     default:
                         Debug.WriteLine("Unknown entry type " + entry.type.value + " of name " + entry.name.value + ", read an Object and then read until we see 0xADDEADDE to skip over it, curpos" + reader.BaseStream.Position);
 

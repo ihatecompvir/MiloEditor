@@ -41,7 +41,7 @@ namespace MiloLib.Assets.Rnd
         public List<List<byte>> textures = new List<List<byte>>();
 
 
-        public RndBitmap Read(EndianReader reader, bool standalone)
+        public RndBitmap Read(EndianReader reader, bool standalone, DirectoryMeta parent)
         {
             revision = reader.ReadByte();
 

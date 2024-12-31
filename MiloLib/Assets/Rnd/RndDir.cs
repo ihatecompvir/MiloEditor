@@ -39,21 +39,21 @@ namespace MiloLib.Assets.Rnd
             return;
         }
 
-        public RndDir Read(EndianReader reader, bool standalone)
+        public RndDir Read(EndianReader reader, bool standalone, DirectoryMeta parent)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
             else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
 
-            base.Read(reader, false);
+            base.Read(reader, false, parent);
 
-            anim = anim.Read(reader);
-            draw = draw.Read(reader, false, true);
-            trans = trans.Read(reader, false, true);
+            anim = anim.Read(reader, parent);
+            draw = draw.Read(reader, false, parent);
+            trans = trans.Read(reader, false, parent);
 
             if (revision < 9)
             {
-                poll = poll.Read(reader, false);
+                poll = poll.Read(reader, false, parent);
                 unkSymbol1 = Symbol.Read(reader);
                 unkSymbol2 = Symbol.Read(reader);
             }

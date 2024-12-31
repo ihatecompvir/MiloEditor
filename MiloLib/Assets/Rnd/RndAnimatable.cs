@@ -51,7 +51,7 @@ namespace MiloLib.Assets.Rnd
         private uint animCount;
         public List<Symbol> anims = new();
 
-        public RndAnimatable Read(EndianReader reader)
+        public RndAnimatable Read(EndianReader reader, DirectoryMeta parent)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));

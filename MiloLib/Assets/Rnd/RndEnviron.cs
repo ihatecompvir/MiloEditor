@@ -102,17 +102,17 @@ namespace MiloLib.Assets.Rnd
 
 
 
-        public RndEnviron Read(EndianReader reader, bool standalone)
+        public RndEnviron Read(EndianReader reader, bool standalone, DirectoryMeta parent)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
             else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
 
             if (revision > 1)
-                objFields.Read(reader);
+                objFields.Read(reader, parent);
 
             if (revision < 3)
-                draw = draw.Read(reader, false, true);
+                draw = draw.Read(reader, false, parent);
 
             if (revision < 0xF)
             {

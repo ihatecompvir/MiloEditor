@@ -60,7 +60,7 @@ namespace MiloLib.Assets.Rnd
 
         public RndTrans trans = new();
 
-        public RndLight Read(EndianReader reader, bool standalone)
+        public RndLight Read(EndianReader reader, bool standalone, DirectoryMeta parent)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
@@ -68,9 +68,9 @@ namespace MiloLib.Assets.Rnd
 
 
             if (revision > 3)
-                base.objFields.Read(reader);
+                base.objFields.Read(reader, parent);
 
-            trans.Read(reader, false, true);
+            trans.Read(reader, false, parent);
 
             color = color.Read(reader);
             range = reader.ReadFloat();

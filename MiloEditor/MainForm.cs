@@ -489,26 +489,26 @@ namespace MiloEditor
                     switch (entry.type.value)
                     {
                         case "Tex":
-                            entry.obj = new RndTex().Read(reader, false);
+                            entry.obj = new RndTex().Read(reader, false, directoryEntry);
                             break;
                         case "Group":
-                            entry.obj = new RndGroup().Read(reader, false);
+                            entry.obj = new RndGroup().Read(reader, false, directoryEntry);
                             break;
                         case "Trans":
-                            entry.obj = new RndTrans().Read(reader, false);
+                            entry.obj = new RndTrans().Read(reader, false, directoryEntry);
                             break;
                         case "BandSongPref":
-                            entry.obj = new BandSongPref().Read(reader, false);
+                            entry.obj = new BandSongPref().Read(reader, false, directoryEntry);
                             break;
                         case "Sfx":
-                            entry.obj = new Sfx().Read(reader, false);
+                            entry.obj = new Sfx().Read(reader, false, directoryEntry);
                             break;
                         case "BandCharDesc":
-                            entry.obj = new BandCharDesc().Read(reader, false);
+                            entry.obj = new BandCharDesc().Read(reader, false, directoryEntry);
                             break;
                         default:
                             Debug.WriteLine("Unknown asset type: " + entry.type.value);
-                            entry.obj = new Object().Read(reader, false);
+                            entry.obj = new Object().Read(reader, false, directoryEntry);
                             break;
                     }
                 }

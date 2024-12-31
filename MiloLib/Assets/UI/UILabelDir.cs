@@ -59,7 +59,7 @@ namespace MiloLib.Assets.UI
 
         public bool lastGenWasNg;
 
-        public UIFontImporter Read(EndianReader reader, bool standalone)
+        public UIFontImporter Read(EndianReader reader, bool standalone, DirectoryMeta parent)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
@@ -236,13 +236,13 @@ namespace MiloLib.Assets.UI
             return;
         }
 
-        public UILabelDir Read(EndianReader reader, bool standalone)
+        public UILabelDir Read(EndianReader reader, bool standalone, DirectoryMeta parent)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
             else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
 
-            base.Read(reader, false);
+            base.Read(reader, false, parent);
 
             textObject = Symbol.Read(reader);
 
@@ -282,7 +282,7 @@ namespace MiloLib.Assets.UI
                 colors[i] = Symbol.Read(reader);
 
             if (revision >= 8)
-                fontImporter = new UIFontImporter().Read(reader, false);
+                fontImporter = new UIFontImporter().Read(reader, false, parent);
 
             if (standalone)
                 if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");

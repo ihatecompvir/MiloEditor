@@ -264,7 +264,7 @@ namespace MiloLib.Assets.Rnd
         [Name("Dirty Flags"), Description("Dirty flags that denote changes to the material")]
         public byte mDirty;
 
-        public RndMat Read(EndianReader reader, bool standalone)
+        public RndMat Read(EndianReader reader, bool standalone, DirectoryMeta parent)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
@@ -275,7 +275,7 @@ namespace MiloLib.Assets.Rnd
                 throw new UnsupportedAssetRevisionException("RndMat", revision);
             }
 
-            base.Read(reader, false);
+            base.Read(reader, false, parent);
 
             mBlend = (Blend)reader.ReadInt32();
             mColor = new HmxColor4().Read(reader);

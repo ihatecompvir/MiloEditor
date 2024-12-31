@@ -66,7 +66,7 @@ namespace MiloLib.Assets.Char
             public Symbol unkSymbol = new(0, "");
             public Symbol unkSymbol2 = new(0, "");
 
-            public CharacterTesting Read(EndianReader reader)
+            public CharacterTesting Read(EndianReader reader, DirectoryMeta parent)
             {
                 altRevision = reader.ReadUInt16();
                 revision = reader.ReadUInt16();
@@ -194,13 +194,13 @@ namespace MiloLib.Assets.Char
             return;
         }
 
-        public Character Read(EndianReader reader, bool standalone)
+        public Character Read(EndianReader reader, bool standalone, DirectoryMeta parent)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
             else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
 
-            base.Read(reader, false);
+            base.Read(reader, false, parent);
 
             lodCount = reader.ReadUInt32();
             for (int i = 0; i < lodCount; i++)
@@ -249,7 +249,7 @@ namespace MiloLib.Assets.Char
                 translucentGroup = Symbol.Read(reader);
 
 
-            charTest = new CharacterTesting().Read(reader);
+            charTest = new CharacterTesting().Read(reader, parent);
 
             if (standalone)
                 if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");

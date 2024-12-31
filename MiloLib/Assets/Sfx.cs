@@ -41,7 +41,7 @@ namespace MiloLib.Assets
             MoggClips = new List<Symbol>();
         }
 
-        public Sfx Read(EndianReader reader, bool standalone)
+        public Sfx Read(EndianReader reader, bool standalone, DirectoryMeta parent)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
@@ -50,11 +50,11 @@ namespace MiloLib.Assets
             if (revision < 6)
             {
                 if (1 < revision)
-                    objFields.Read(reader);
+                    objFields.Read(reader, parent);
             }
             else
             {
-                sequence = sequence.Read(reader);
+                sequence = sequence.Read(reader, parent);
             }
 
             sfxMapsCount = reader.ReadUInt32();
@@ -166,14 +166,14 @@ namespace MiloLib.Assets
             public float panSpread;
             public bool canStop;
 
-            public Sequence Read(EndianReader reader)
+            public Sequence Read(EndianReader reader, DirectoryMeta parent)
             {
                 uint combinedRevision = reader.ReadUInt32();
                 if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
                 else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
 
                 if (2 < revision)
-                    base.Read(reader, false);
+                    base.Read(reader, false, parent);
 
                 avgVol = reader.ReadFloat();
                 volSpread = reader.ReadFloat();

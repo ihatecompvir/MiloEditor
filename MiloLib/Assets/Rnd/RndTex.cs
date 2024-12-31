@@ -35,14 +35,14 @@ namespace MiloLib.Assets.Rnd
         [Name("Bitmap"), Description("The bitmap data.")]
         public RndBitmap bitmap = new();
 
-        public RndTex Read(EndianReader reader, bool standalone)
+        public RndTex Read(EndianReader reader, bool standalone, DirectoryMeta parent)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
             else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
 
             if (revision > 8)
-                base.Read(reader, false);
+                base.Read(reader, false, parent);
 
             width = reader.ReadUInt32();
             height = reader.ReadUInt32();
@@ -63,7 +63,7 @@ namespace MiloLib.Assets.Rnd
             else
                 useExternalPath = reader.ReadUInt32() == 1;
 
-            bitmap = new RndBitmap().Read(reader, false);
+            bitmap = new RndBitmap().Read(reader, false, parent);
 
             if (standalone)
             {

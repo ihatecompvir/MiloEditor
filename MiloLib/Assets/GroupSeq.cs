@@ -18,7 +18,7 @@ namespace MiloLib.Assets
         [Name("Children"), Description("The children of this sequence")]
         public List<Symbol> children = new();
 
-        public GroupSeq Read(EndianReader reader, bool standalone)
+        public GroupSeq Read(EndianReader reader, bool standalone, DirectoryMeta parent)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
@@ -26,7 +26,7 @@ namespace MiloLib.Assets
 
             if (1 < revision)
             {
-                seq.Read(reader);
+                seq.Read(reader, parent);
 
                 childrenCount = reader.ReadUInt32();
                 for (int i = 0; i < childrenCount; i++)

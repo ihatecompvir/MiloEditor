@@ -84,7 +84,7 @@ namespace MiloLib.Assets.Ham
 
         public uint unk6;
 
-        public HamMove Read(EndianReader reader, bool standalone)
+        public HamMove Read(EndianReader reader, bool standalone, DirectoryMeta parent)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));

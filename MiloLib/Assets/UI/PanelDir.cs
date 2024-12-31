@@ -38,13 +38,13 @@ namespace MiloLib.Assets.UI
             return;
         }
 
-        public PanelDir Read(EndianReader reader, bool standalone)
+        public PanelDir Read(EndianReader reader, bool standalone, DirectoryMeta parent)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
             else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
 
-            base.Read(reader, false);
+            base.Read(reader, false, parent);
 
             if (revision != 0)
                 cam = Symbol.Read(reader);
