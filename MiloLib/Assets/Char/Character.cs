@@ -23,7 +23,7 @@ namespace MiloLib.Assets.Char
             {
                 screenSize = reader.ReadFloat();
                 group = Symbol.Read(reader);
-                transGroup = Symbol.Read(reader);
+                //transGroup = Symbol.Read(reader);
                 return this;
             }
 
@@ -35,15 +35,20 @@ namespace MiloLib.Assets.Char
             }
         }
 
-        public class CharacterTest
+        public class CharacterTesting
         {
             public ushort altRevision;
             public ushort revision;
+            [Name("Driver"), Description("The driver to animate")]
             public Symbol driver = new(0, "");
+            [Name("Clip 1"), Description("Clip to play")]
             public Symbol clip1 = new(0, "");
+            [Name("Clip 2"), Description("Clip to transition to, if any")]
             public Symbol clip2 = new(0, "");
+            [Name("Teleport To"), Description("Teleport to this Waypoint")]
             public Symbol teleportTo = new(0, "");
             public Symbol teleportFrom = new(0, "");
+            [Name("Distance Map"), Description("Displays the transition distance map between clip1 and clip2, raw means the raw graph, no nodes")]
             public Symbol distMap = new(0, "");
             public uint transition;
             public bool cycleTransition;
@@ -61,7 +66,7 @@ namespace MiloLib.Assets.Char
             public Symbol unkSymbol = new(0, "");
             public Symbol unkSymbol2 = new(0, "");
 
-            public CharacterTest Read(EndianReader reader)
+            public CharacterTesting Read(EndianReader reader)
             {
                 altRevision = reader.ReadUInt16();
                 revision = reader.ReadUInt16();
@@ -180,7 +185,7 @@ namespace MiloLib.Assets.Char
 
         public Symbol translucentGroup = new(0, "");
 
-        public CharacterTest charTest = new();
+        public CharacterTesting charTest = new();
 
         public Character(ushort revision, ushort altRevision = 0) : base(revision, altRevision)
         {
@@ -222,7 +227,8 @@ namespace MiloLib.Assets.Char
             if (revision > 2)
                 selfShadow = reader.ReadBoolean();
 
-            sphereBase = Symbol.Read(reader);
+            if (revision > 4)
+                sphereBase = Symbol.Read(reader);
 
             if (revision <= 9)
                 return this;
@@ -243,7 +249,7 @@ namespace MiloLib.Assets.Char
                 translucentGroup = Symbol.Read(reader);
 
 
-            charTest = new CharacterTest().Read(reader);
+            charTest = new CharacterTesting().Read(reader);
 
             if (standalone)
                 if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");

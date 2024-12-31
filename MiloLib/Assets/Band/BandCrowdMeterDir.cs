@@ -41,7 +41,6 @@ namespace MiloLib.Assets.Band
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
             else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
 
-            // if revision is greater than 3
             if (revision > 3)
             {
                 throw new UnsupportedAssetRevisionException("BandCrowdMeterDir", revision);

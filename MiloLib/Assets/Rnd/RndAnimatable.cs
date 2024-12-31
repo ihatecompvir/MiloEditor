@@ -76,18 +76,21 @@ namespace MiloLib.Assets.Rnd
                 return this;
             }
 
-            animEntryCount = reader.ReadUInt32();
-            for (int i = 0; i < animEntryCount; i++)
+            if (revision < 1)
             {
-                AnimEntry entry = new();
-                entry.Read(reader);
-                animEntries.Add(entry);
-            }
+                animEntryCount = reader.ReadUInt32();
+                for (int i = 0; i < animEntryCount; i++)
+                {
+                    AnimEntry entry = new();
+                    entry.Read(reader);
+                    animEntries.Add(entry);
+                }
 
-            animCount = reader.ReadUInt32();
-            for (int i = 0; i < animCount; i++)
-            {
-                anims.Add(Symbol.Read(reader));
+                animCount = reader.ReadUInt32();
+                for (int i = 0; i < animCount; i++)
+                {
+                    anims.Add(Symbol.Read(reader));
+                }
             }
 
             return this;

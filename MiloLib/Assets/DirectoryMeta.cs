@@ -199,6 +199,12 @@ namespace MiloLib.Assets
                     charBoneDir.Read(reader, true);
                     directory = charBoneDir;
                     break;
+                case "BandCharacter":
+                    Debug.WriteLine("Reading BandCharacter " + name.value);
+                    BandCharacter bandCharacter = new BandCharacter(0);
+                    bandCharacter.Read(reader, true);
+                    directory = bandCharacter;
+                    break;
                 case "":
                     Debug.WriteLine("GH1-style empty directory detected, just reading children");
                     break;
@@ -322,6 +328,12 @@ namespace MiloLib.Assets
                     case "CrowdMeterIcon":
                         Debug.WriteLine("Reading entry CrowdMeterIcon " + entry.name.value);
                         entry.obj = new CrowdMeterIcon(0).Read(reader, true);
+
+                        entry.dir = new DirectoryMeta().Read(reader);
+                        break;
+                    case "BandCharacter":
+                        Debug.WriteLine("Reading entry BandCharacter " + entry.name.value);
+                        entry.obj = new BandCharacter(0).Read(reader, true);
 
                         entry.dir = new DirectoryMeta().Read(reader);
                         break;
@@ -493,6 +505,9 @@ namespace MiloLib.Assets
                     break;
                 case "CrowdMeterIcon":
                     ((CrowdMeterIcon)directory).Write(writer, true);
+                    break;
+                case "BandCharacter":
+                    ((BandCharacter)directory).Write(writer, true);
                     break;
                 default:
                     throw new Exception("Unknown directory type: " + type.value + ", cannot continue writing Milo scene");

@@ -71,7 +71,7 @@ namespace MiloLib.Assets
         public Symbol unknownObjRef1 = new(0, "");
 
         [Name("Unknown Object Reference 2"), MinVersion(4), MaxVersion(10)]
-        public Symbol unknownObjRef2 = new(0, "");
+        public Symbol currentCamera = new(0, "");
 
         [Name("Unknown String 3"), MinVersion(5), MaxVersion(5)]
         public Symbol unknownString3 = new(0, "");
@@ -159,7 +159,7 @@ namespace MiloLib.Assets
 
             if (revision >= 4 && revision < 11)
             {
-                unknownObjRef2 = Symbol.Read(reader);
+                currentCamera = Symbol.Read(reader);
             }
 
             if (revision == 5)
@@ -265,166 +265,163 @@ namespace MiloLib.Assets
                     objFields.root.Read(reader);
                 }
 
-                if (revision >= 25)
-                {
-                    objFields.note = Symbol.Read(reader);
-                }
-            }
+                objFields.note = Symbol.Read(reader);
+        }
 
             if (standalone)
             {
                 // read past padding
-                if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");
-            }
+                if ((reader.Endianness == Endian.BigEndian? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");
+    }
 
             return this;
+    }
+
+    public override void Write(EndianWriter writer, bool standalone)
+    {
+        writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
+
+        if (revision < 22)
+        {
+            if (revision >= 2 && revision < 17)
+            {
+                objFields.Write(writer);
+            }
+        }
+        else
+        {
+            writer.WriteUInt16(objFields.metadataAltRevision);
+            writer.WriteUInt16(objFields.metadataRevision);
+            Symbol.Write(writer, objFields.type);
         }
 
-        public override void Write(EndianWriter writer, bool standalone)
+        if (revision > 1)
         {
-            writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
-
-            if (revision < 22)
+            if (revision >= 27)
             {
-                if (revision >= 2 && revision < 17)
+                // write 8 bytes of padding
+                writer.WriteUInt64(0);
+            }
+
+            writer.WriteUInt32((uint)viewports.Count);
+            foreach (var viewport in viewports)
+            {
+                viewport.Write(writer);
+                if (revision <= 17)
+                    writer.WriteUInt32(0);
+            }
+
+            writer.WriteUInt32(currentViewportIdx);
+        }
+
+        if (revision > 12)
+        {
+            if (revision > 19)
+                writer.WriteBoolean(inlineProxy);
+            Symbol.Write(writer, proxyPath);
+        }
+
+        if (revision >= 2 && revision < 11)
+        {
+            Symbol.Write(writer, unknownObjRef1);
+        }
+
+        if (revision >= 4 && revision < 11)
+        {
+            Symbol.Write(writer, currentCamera);
+        }
+
+        if (revision == 5)
+        {
+            Symbol.Write(writer, unknownString3);
+        }
+
+        if (revision > 2)
+        {
+            writer.WriteUInt32((uint)subDirs.Count);
+            foreach (var subDir in subDirs)
+            {
+                Symbol.Write(writer, subDir);
+            }
+
+            if (revision >= 21)
+            {
+                writer.WriteBoolean(inlineSubDir);
+                writer.WriteUInt32((uint)inlineSubDirs.Count);
+                foreach (var inlineSubDirName in inlineSubDirNames)
                 {
-                    objFields.Write(writer);
+                    Symbol.Write(writer, inlineSubDirName);
                 }
-            }
-            else
-            {
-                writer.WriteUInt16(objFields.metadataAltRevision);
-                writer.WriteUInt16(objFields.metadataRevision);
-                Symbol.Write(writer, objFields.type);
-            }
 
-            if (revision > 1)
-            {
                 if (revision >= 27)
                 {
-                    // write 8 bytes of padding
-                    writer.WriteUInt64(0);
-                }
-
-                writer.WriteUInt32((uint)viewports.Count);
-                foreach (var viewport in viewports)
-                {
-                    viewport.Write(writer);
-                    if (revision <= 17)
-                        writer.WriteUInt32(0);
-                }
-
-                writer.WriteUInt32(currentViewportIdx);
-            }
-
-            if (revision > 12)
-            {
-                if (revision > 19)
-                    writer.WriteBoolean(inlineProxy);
-                Symbol.Write(writer, proxyPath);
-            }
-
-            if (revision >= 2 && revision < 11)
-            {
-                Symbol.Write(writer, unknownObjRef1);
-            }
-
-            if (revision >= 4 && revision < 11)
-            {
-                Symbol.Write(writer, unknownObjRef2);
-            }
-
-            if (revision == 5)
-            {
-                Symbol.Write(writer, unknownString3);
-            }
-
-            if (revision > 2)
-            {
-                writer.WriteUInt32((uint)subDirs.Count);
-                foreach (var subDir in subDirs)
-                {
-                    Symbol.Write(writer, subDir);
-                }
-
-                if (revision >= 21)
-                {
-                    writer.WriteBoolean(inlineSubDir);
-                    writer.WriteUInt32((uint)inlineSubDirs.Count);
-                    foreach (var inlineSubDirName in inlineSubDirNames)
+                    foreach (var referenceType in referenceTypes)
                     {
-                        Symbol.Write(writer, inlineSubDirName);
+                        writer.WriteByte((byte)referenceType);
                     }
 
-                    if (revision >= 27)
+                    foreach (var referenceTypeAlt in referenceTypesAlt)
                     {
-                        foreach (var referenceType in referenceTypes)
-                        {
-                            writer.WriteByte((byte)referenceType);
-                        }
-
-                        foreach (var referenceTypeAlt in referenceTypesAlt)
-                        {
-                            writer.WriteByte((byte)referenceTypeAlt);
-                        }
+                        writer.WriteByte((byte)referenceTypeAlt);
                     }
+                }
 
-                    foreach (var inlineSubDir in inlineSubDirs)
-                    {
-                        inlineSubDir.Write(writer);
-                    }
+                foreach (var inlineSubDir in inlineSubDirs)
+                {
+                    inlineSubDir.Write(writer);
                 }
             }
+        }
 
-            if (revision < 19)
+        if (revision < 19)
+        {
+            if (revision < 16)
             {
-                if (revision < 16)
+                if (revision > 14)
                 {
-                    if (revision > 14)
-                    {
-                        Symbol.Write(writer, unknownString4);
-                    }
-                }
-                else
-                {
-                    Symbol.Write(writer, unknownString5);
-                }
-            }
-
-            Symbol.Write(writer, unknownString);
-            Symbol.Write(writer, unknownString2);
-
-            if (revision < 22)
-            {
-                if (revision > 16)
-                {
-                    objFields.Write(writer);
+                    Symbol.Write(writer, unknownString4);
                 }
             }
             else
             {
-                writer.WriteBoolean(objFields.hasTree);
-
-                if (objFields.hasTree)
-                {
-                    objFields.root.Write(writer);
-                }
-
-                if (revision >= 25)
-                {
-                    Symbol.Write(writer, objFields.note);
-                }
-            }
-
-            if (standalone)
-            {
-                writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
+                Symbol.Write(writer, unknownString5);
             }
         }
 
-        public override bool IsDirectory()
+        Symbol.Write(writer, unknownString);
+        Symbol.Write(writer, unknownString2);
+
+        if (revision < 22)
         {
-            return true;
+            if (revision > 16)
+            {
+                objFields.Write(writer);
+            }
+        }
+        else
+        {
+            writer.WriteBoolean(objFields.hasTree);
+
+            if (objFields.hasTree)
+            {
+                objFields.root.Write(writer);
+            }
+
+            if (revision >= 25)
+            {
+                Symbol.Write(writer, objFields.note);
+            }
+        }
+
+        if (standalone)
+        {
+            writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
         }
     }
+
+    public override bool IsDirectory()
+    {
+        return true;
+    }
+}
 }
