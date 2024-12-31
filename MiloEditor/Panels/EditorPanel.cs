@@ -10,6 +10,9 @@ using System.Windows.Forms;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using TextBox = System.Windows.Forms.TextBox;
 using ComboBox = System.Windows.Forms.ComboBox;
+using MiloLib.Assets.Rnd;
+using System.Drawing.Design;
+using MiloEditor.Panels;
 
 public class EditorPanel : Panel
 {
@@ -148,6 +151,17 @@ public class EditorPanel : Panel
     private void BuildUI(object obj, int startX, int startY, bool drawTypeLabels)
     {
         Type objType = obj.GetType();
+
+        // custom editors for certain assets
+        if (objType == typeof(RndTex))
+        {
+            RndTexEditor bitmapEditor = new((RndTex)obj);
+            bitmapEditor.Dock = DockStyle.Fill;
+            //bitmapEditor.RndTex = (RndTex)obj;
+            this.Controls.Add(bitmapEditor);
+            return;
+        }
+
         var objNameAttr = GetCachedNameAttribute(objType);
         var objDescriptionAttr = GetCachedDescriptionAttribute(objType);
 

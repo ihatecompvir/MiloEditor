@@ -12,7 +12,7 @@ namespace MiloLib.Assets.Rnd
     public class RndBitmap
     {
 
-        public enum Encoding
+        public enum TextureEncoding
         {
             ARGB = 1,
             RGBA = 3,
@@ -27,7 +27,7 @@ namespace MiloLib.Assets.Rnd
 
         public byte bpp;
 
-        public Encoding encoding;
+        public TextureEncoding encoding;
 
         public byte mipMaps;
 
@@ -52,7 +52,7 @@ namespace MiloLib.Assets.Rnd
 
             bpp = reader.ReadByte();
 
-            encoding = (Encoding)reader.ReadUInt32();
+            encoding = (TextureEncoding)reader.ReadUInt32();
 
             mipMaps = reader.ReadByte();
 
@@ -119,5 +119,138 @@ namespace MiloLib.Assets.Rnd
         {
             return $"Width: {width}, Height: {height}";
         }
+
+        /// <summary>
+        /// Converts the bitmap to an image.
+        /// </summary>
+        /// <returns>The image, as a list of bytes. The actual format will depend on the encoding.</returns>
+        public List<byte> ConvertToImage()
+        {
+            // check if the encoding is some form of DDS
+            if (encoding == TextureEncoding.DXT1_BC1 || encoding == TextureEncoding.DXT5_BC3 || encoding == TextureEncoding.ATI2_BC5)
+            {
+                // build a DDS header based on the information in the bitmap, then append all the texture bytes
+                List<byte> ddsData = new List<byte>();
+                byte[] header = CreateDDSHeader();
+                ddsData.AddRange(header);
+
+                List<List<byte>> swappedBytes = new List<List<byte>>();
+
+                // byte swap for 360
+                foreach (List<byte> texture in textures)
+                {
+                    List<byte> swapped = new List<byte>();
+                    for (int i = 0; i < texture.Count; i += 4)
+                    {
+                        swapped.Add(texture[i + 1]);
+                        swapped.Add(texture[i]);
+                        swapped.Add(texture[i + 3]);
+                        swapped.Add(texture[i + 2]);
+                    }
+                    swappedBytes.Add(swapped);
+                }
+
+                // Append all miplevels
+                foreach (List<byte> texture in swappedBytes)
+                {
+                    ddsData.AddRange(texture);
+                }
+
+                return ddsData;
+
+            }
+            return new();
+        }
+
+        private byte[] CreateDDSHeader()
+        {
+            using (MemoryStream stream = new MemoryStream())
+            using (EndianWriter writer = new EndianWriter(stream, Endian.LittleEndian))
+            {
+                writer.WriteBlock(Encoding.ASCII.GetBytes("DDS "));
+                writer.WriteUInt32(124);
+                uint flags = 0x1 | 0x2 | 0x4 | 0x1000 | 0x80000;
+                if (mipMaps > 0)
+                {
+                    flags |= 0x20000;
+                }
+                writer.WriteUInt32(flags);
+                writer.WriteUInt32(height);
+                writer.WriteUInt32(width);
+
+                uint pitchOrLinearSize = 0;
+                if (encoding == TextureEncoding.DXT1_BC1)
+                {
+                    pitchOrLinearSize = (uint)(Math.Max(1, ((width + 3) / 4)) * Math.Max(1, ((height + 3) / 4)) * 8);
+                }
+                else if (encoding == TextureEncoding.DXT5_BC3 || encoding == TextureEncoding.ATI2_BC5)
+                {
+                    pitchOrLinearSize = (uint)(Math.Max(1, ((width + 3) / 4)) * Math.Max(1, ((height + 3) / 4)) * 16);
+                }
+                else if (encoding == TextureEncoding.ARGB || encoding == TextureEncoding.RGBA)
+                {
+                    pitchOrLinearSize = (uint)(width * height * bpp / 8);
+                }
+
+                writer.WriteUInt32(pitchOrLinearSize);
+                writer.WriteUInt32(0);
+                writer.WriteUInt32((uint)(mipMaps > 0 ? mipMaps + 1 : 0));
+                writer.WriteBlock(new byte[44]);
+
+                writer.WriteUInt32(32);
+
+                if (encoding == TextureEncoding.DXT1_BC1 || encoding == TextureEncoding.DXT5_BC3 || encoding == TextureEncoding.ATI2_BC5)
+                {
+                    writer.WriteUInt32(0x00000004);
+                    if (encoding == TextureEncoding.DXT1_BC1)
+                    {
+                        writer.WriteBlock(Encoding.ASCII.GetBytes("DXT1"));
+                    }
+                    else if (encoding == TextureEncoding.DXT5_BC3)
+                    {
+                        writer.WriteBlock(Encoding.ASCII.GetBytes("DXT5"));
+                    }
+                    else if (encoding == TextureEncoding.ATI2_BC5)
+                    {
+                        writer.WriteBlock(Encoding.ASCII.GetBytes("ATI2"));
+                    }
+                    writer.WriteUInt32(0);
+                    writer.WriteUInt32(0);
+                    writer.WriteUInt32(0);
+                    writer.WriteUInt32(0);
+                    writer.WriteUInt32(0);
+                }
+                else if (encoding == TextureEncoding.ARGB || encoding == TextureEncoding.RGBA)
+                {
+                    writer.WriteUInt32(0x00000040);
+                    writer.WriteUInt32(0);
+                    writer.WriteUInt32((uint)bpp);
+                    if (encoding == TextureEncoding.ARGB)
+                    {
+                        writer.WriteUInt32(0x00ff0000);
+                        writer.WriteUInt32(0x0000ff00);
+                        writer.WriteUInt32(0x000000ff);
+                        writer.WriteUInt32(0xff000000);
+                    }
+                    else if (encoding == TextureEncoding.RGBA)
+                    {
+                        writer.WriteUInt32(0x00ff0000);
+                        writer.WriteUInt32(0x0000ff00);
+                        writer.WriteUInt32(0x000000ff);
+                        writer.WriteUInt32(0xff000000);
+                    }
+                }
+
+                writer.WriteUInt32(0x00000008);
+                writer.WriteUInt32(0);
+                writer.WriteUInt32(0);
+                writer.WriteUInt32(0);
+                writer.WriteUInt32(0);
+
+                return stream.ToArray();
+            }
+        }
+
+
     }
 }

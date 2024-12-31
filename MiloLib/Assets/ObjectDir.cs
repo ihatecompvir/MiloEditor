@@ -86,13 +86,6 @@ namespace MiloLib.Assets
         {
             this.revision = (ushort)revision;
             this.altRevision = (ushort)altRevision;
-
-            // add 7 empty viewports as default
-            this.viewportCount = 7;
-            for (int i = 0; i < 7; i++)
-            {
-                this.viewports.Add(new Matrix());
-            }
             return;
         }
 
@@ -142,13 +135,14 @@ namespace MiloLib.Assets
                         reader.BaseStream.Position += 4;
 
                 }
+
+                currentViewportIdx = reader.ReadUInt32();
+
                 // sanity check, the current viewport index should be less than the viewport count but it can also be 0
-                if (currentViewportIdx >= viewportCount && currentViewportIdx != 0)
+                if (currentViewportIdx >= viewportCount + 1 && currentViewportIdx != 0)
                 {
                     throw new InvalidDataException("Current viewport index is invalid at " + reader.BaseStream.Position + ", ObjectDir is invalid");
                 }
-
-                currentViewportIdx = reader.ReadUInt32();
             }
 
             if (revision > 12)

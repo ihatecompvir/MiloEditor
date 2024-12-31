@@ -199,8 +199,10 @@ namespace MiloLib.Assets
 
         public ObjectFields Read(EndianReader reader)
         {
-            metadataAltRevision = reader.ReadUInt16();
-            metadataRevision = reader.ReadUInt16();
+            uint combinedRevision = reader.ReadUInt32();
+            if (BitConverter.IsLittleEndian) (metadataRevision, metadataAltRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
+            else (metadataAltRevision, metadataRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
+
             type = Symbol.Read(reader);
             hasTree = reader.ReadBoolean();
 

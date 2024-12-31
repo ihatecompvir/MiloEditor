@@ -98,8 +98,6 @@ namespace MiloLib.Assets.Char
         [MinVersion(0), MaxVersion(5)]
         public string unkString;
 
-        private uint charClipPtrCount;
-
         [Name("Char Clip Pointers"), Description("The list of CharClipSamples objects in the directory."), MinVersion(0), MaxVersion(23)]
         public List<CharClipPtr> charClipPtrs = new();
 

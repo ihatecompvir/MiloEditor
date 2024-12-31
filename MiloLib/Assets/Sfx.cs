@@ -29,6 +29,8 @@ namespace MiloLib.Assets
         public bool reverbSendEnable;
 
         private uint sfxMapsCount;
+
+        [Name("SFX Maps")]
         public List<SfxMap> sfxMaps;
 
         public Sequence sequence = new();
@@ -211,6 +213,13 @@ namespace MiloLib.Assets
         }
         public class SfxMap
         {
+            public enum FXCore : int
+            {
+                kFXCoreNone = -1,
+                kFXCore0 = 0,
+                kFXCore1 = 1,
+
+            }
             [Name("Sample Name"), Description("Which sample to play")]
             public Symbol sampleName = new(0, "");
             [Name("Volume"), Description("Volume in dB (0 is full volume, -96 is silence)")]
@@ -220,7 +229,7 @@ namespace MiloLib.Assets
             [Name("Transpose"), Description("Transpose in half steps")]
             public float transpose { get; set; }
             [Name("FX Core"), Description("Which core's digital FX should be used in playing this sample")]
-            public uint fxCore { get; set; }
+            public FXCore fxCore { get; set; }
             [Name("ADSR"), Description("Envelope settings")]
             public ADSR ADSR = new ADSR();
 
@@ -231,7 +240,7 @@ namespace MiloLib.Assets
                 volume = reader.ReadFloat();
                 pan = reader.ReadFloat();
                 transpose = reader.ReadFloat();
-                fxCore = reader.ReadUInt32();
+                fxCore = (FXCore)reader.ReadInt32();
                 ADSR = new ADSR();
                 ADSR.Read(reader);
             }
@@ -242,9 +251,14 @@ namespace MiloLib.Assets
                 writer.WriteFloat(volume);
                 writer.WriteFloat(pan);
                 writer.WriteFloat(transpose);
-                writer.WriteUInt32(fxCore);
+                writer.WriteInt32((int)fxCore);
 
                 ADSR.Write(writer);
+            }
+
+            public override string ToString()
+            {
+                return $"{sampleName}, vol: {volume}, pan: {pan}, transpose: {transpose}, fxCore: {fxCore}, ADSR: {ADSR}";
             }
         }
     }
@@ -336,6 +350,11 @@ namespace MiloLib.Assets
             writer.WriteUInt32(releaseMode);
             writer.WriteUInt32(sustainMode);
             writer.WriteUInt32(attackMode);
+        }
+
+        public override string ToString()
+        {
+            return $"({sustainLevel}, {releaseRate}, {sustainRate}, {decayRate}, {attackRate}, {releaseMode}, {sustainMode}, {attackMode})";
         }
     }
 }

@@ -49,11 +49,10 @@ namespace MiloLib.Assets.Rnd
 
             base.Write(writer, false);
 
-            draw.Write(writer, false);
+            draw.Write(writer, false, true);
 
             Symbol.Write(writer, material);
             color.Write(writer);
-            writer.WriteFloat(alpha);
 
             rect.Write(writer);
 

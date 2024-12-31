@@ -338,10 +338,10 @@ namespace MiloLib.Assets
                         entry.obj = new P9Director().Read(reader, true);
                         break;
                     // TODO: figure out how to read textures properly
-                    //case "Tex":
-                    //    Debug.WriteLine("Reading entry Tex " + entry.name.value);
-                    //    entry.obj = new RndTex().Read(reader, true);
-                    //    break;
+                    case "Tex":
+                        Debug.WriteLine("Reading entry Tex " + entry.name.value);
+                        entry.obj = new RndTex().Read(reader, true);
+                        break;
                     case "ColorPalette":
                         Debug.WriteLine("Reading entry ColorPalette " + entry.name.value);
                         entry.obj = new ColorPalette().Read(reader, true);
@@ -388,7 +388,7 @@ namespace MiloLib.Assets
                         break;
                     case "SynthSample":
                         Debug.WriteLine("Reading entry SynthSample " + entry.name.value);
-                        entry.obj = new SynthSample(0).Read(reader, true);
+                        entry.obj = new SynthSample().Read(reader, true);
                         break;
                     default:
                         Debug.WriteLine("Unknown entry type " + entry.type.value + " of name " + entry.name.value + ", read an Object and then read until we see 0xADDEADDE to skip over it, curpos" + reader.BaseStream.Position);
@@ -540,9 +540,9 @@ namespace MiloLib.Assets
                     case "ColorPalette":
                         ((ColorPalette)entry.obj).Write(writer, true);
                         break;
-                    //case "Tex":
-                    //    ((RndTex)entry.obj).Write(writer, true);
-                    //    break;
+                    case "Tex":
+                        ((RndTex)entry.obj).Write(writer, true);
+                        break;
                     case "Trans":
                         ((RndTrans)entry.obj).Write(writer, true);
                         break;

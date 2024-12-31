@@ -394,6 +394,35 @@ namespace MiloEditor
                         dirEntry.entries.Add(mergeEntry);
                     }
                 }
+
+                foreach (DirectoryMeta externalSubDir in ((ObjectDir)externalMiloScene.dirMeta.directory).inlineSubDirs)
+                {
+                    bool subDirMerged = false;
+
+                    for (int i = 0; i < dir.inlineSubDirs.Count; i++)
+                    {
+                        DirectoryMeta currentSubDir = dir.inlineSubDirs[i];
+
+                        if (externalSubDir.name.value == currentSubDir.name.value)
+                        {
+                            DialogResult result = MessageBox.Show($"An inline subdirectory with the name {currentSubDir.name.value} already exists. Do you want to overwrite it?", "Overwrite Inline Subdirectory", MessageBoxButtons.YesNo);
+                            if (result == DialogResult.Yes)
+                            {
+                                dir.inlineSubDirs[i] = externalSubDir;
+                            }
+                            subDirMerged = true;
+                            break;
+                        }
+                    }
+
+                    if (!subDirMerged)
+                    {
+                        dir.inlineSubDirs.Add(externalSubDir);
+                        dir.inlineSubDirNames.Add($"{externalSubDir.name.value}.milo");
+                        dir.referenceTypes.Add(ObjectDir.ReferenceType.kInlineCached);
+                        dir.referenceTypesAlt.Add(ObjectDir.ReferenceType.kInlineCached);
+                    }
+                }
                 PopulateListWithEntries();
             }
         }
@@ -459,13 +488,13 @@ namespace MiloEditor
                     // read the object
                     switch (entry.type.value)
                     {
-                        case "RndTex":
+                        case "Tex":
                             entry.obj = new RndTex().Read(reader, false);
                             break;
-                        case "RndGroup":
+                        case "Group":
                             entry.obj = new RndGroup().Read(reader, false);
                             break;
-                        case "RndTrans":
+                        case "Trans":
                             entry.obj = new RndTrans().Read(reader, false);
                             break;
                         case "BandSongPref":
@@ -528,18 +557,31 @@ namespace MiloEditor
         {
             if (currentMiloScene != null)
             {
-                // open Save As panel
-                SaveFileDialog saveFileDialog = new SaveFileDialog
-                {
-                    Filter = "Milo Scenes|*.milo_ps2;*.milo_xbox;*.milo_ps3;*.milo_wii;*.milo_pc;*.rnd;*.rnd_ps2;*.rnd_xbox;*.rnd_gc",
-                    Title = "Save Milo Scene As...",
-                    FileName = currentMiloScene.dirMeta.name
-                };
+                // bring up the milo save options dialog
+                MiloSaveOptionsForm miloSaveOptionsForm = new MiloSaveOptionsForm();
+                miloSaveOptionsForm.ShowDialog();
 
-                // present it
-                if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                if (miloSaveOptionsForm.DialogResult == DialogResult.OK)
                 {
-                    currentMiloScene.Save(saveFileDialog.FileName, MiloFile.Type.Uncompressed);
+                    SaveFileDialog saveFileDialog = new SaveFileDialog
+                    {
+                        Filter = "Milo Scenes|*.milo_ps2;*.milo_xbox;*.milo_ps3;*.milo_wii;*.milo_pc;*.rnd;*.rnd_ps2;*.rnd_xbox;*.rnd_gc;*.kr",
+                        Title = "Save Milo Scene As...",
+                        FileName = currentMiloScene.dirMeta.name
+                    };
+
+                    if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                    {
+                        currentMiloScene.Save(saveFileDialog.FileName, miloSaveOptionsForm.compressionType, 0x810, Endian.LittleEndian, miloSaveOptionsForm.useBigEndian ? Endian.BigEndian : Endian.LittleEndian);
+                    }
+                    else
+                    {
+                        return;
+                    }
+                }
+                else
+                {
+                    return;
                 }
             }
             else
@@ -552,7 +594,7 @@ namespace MiloEditor
         {
             OpenFileDialog openFileDialog = new OpenFileDialog
             {
-                Filter = "Milo Scenes|*.milo_ps2;*.milo_xbox;*.milo_ps3;*.milo_wii;*.milo_pc;*.rnd;*.rnd_ps2;*.rnd_xbox;*.rnd_gc",
+                Filter = "Milo Scenes|*.milo_ps2;*.milo_xbox;*.milo_ps3;*.milo_wii;*.milo_pc;*.rnd;*.rnd_ps2;*.rnd_xbox;*.rnd_gc;*.kr",
                 Title = "Open Milo Scene"
             };
 

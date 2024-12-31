@@ -5,7 +5,7 @@ using System.Numerics;
 namespace MiloLib.Assets.Rnd
 {
     [Name("Light"), Description("Light objects are added to environments for drawing.")]
-    public class RndLight : RndTrans
+    public class RndLight : Object
     {
         public enum Type
         {
@@ -58,6 +58,8 @@ namespace MiloLib.Assets.Rnd
         [MinVersion(8), MaxVersion(8)]
         public Symbol draw = new(0, "");
 
+        public RndTrans trans = new();
+
         public RndLight Read(EndianReader reader, bool standalone)
         {
             uint combinedRevision = reader.ReadUInt32();
@@ -68,7 +70,7 @@ namespace MiloLib.Assets.Rnd
             if (revision > 3)
                 base.objFields.Read(reader);
 
-            base.Read(reader, false, true);
+            trans.Read(reader, false, true);
 
             color = color.Read(reader);
             range = reader.ReadFloat();
@@ -145,7 +147,10 @@ namespace MiloLib.Assets.Rnd
             writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
 
             if (revision > 3)
-                base.Write(writer, false);
+                base.objFields.Write(writer);
+
+            trans.Write(writer, false, true);
+
 
             color.Write(writer);
             writer.WriteFloat(range);

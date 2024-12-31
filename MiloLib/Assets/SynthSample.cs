@@ -1,16 +1,38 @@
 ﻿using MiloLib.Utils;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using MiloLib.Classes;
 
 namespace MiloLib.Assets
 {
+
+    [Name("SynthSample"), Description("A single mono waveform residing in a bank.")]
     public class SynthSample : Object
     {
         public class SampleData
         {
+            public class SampleMarker
+            {
+                public Symbol name = new(0, "");
+                public int sample;
+
+                public SampleMarker Read(EndianReader reader)
+                {
+                    name = Symbol.Read(reader);
+                    sample = reader.ReadInt32();
+                    return this;
+                }
+
+                public void Write(EndianWriter writer)
+                {
+                    Symbol.Write(writer, name);
+                    writer.WriteInt32(sample);
+                }
+
+                public override string ToString()
+                {
+                    return $"{name} {sample}";
+                }
+            }
+
             public enum Encoding
             {
                 kPCM,
@@ -24,24 +46,25 @@ namespace MiloLib.Assets
             public ushort altRevision;
             public ushort revision;
 
+            [Name("TextureEncoding"), Description("The format of the sample data.")]
             public Encoding encoding;
 
             public uint sampleCount;
-            public uint sampleRate;
-            public uint samplesSize;
 
+            [Name("Sample Rate"), Description("Sample rate, in Hz")]
+            public uint sampleRate;
+
+            private uint samplesSize;
+
+            [Name("Should Read Samples"), Description("Whether or not the game should read the sample data. This must be checked if sample data is present.")]
             public bool readSamples;
 
+            [Name("Samples"), Description("The raw samples of the audio file. These are not playable on their own if extracted.")]
             public List<byte> samples = new List<byte>();
 
-            public uint unkInt;
-
-            public SampleData(ushort revision, ushort altRevision = 0)
-            {
-                this.revision = revision;
-                this.altRevision = altRevision;
-                return;
-            }
+            private uint markerCount;
+            [Name("Markers"), MinVersion(14)]
+            public List<SampleMarker> markers = new List<SampleMarker>();
 
             public SampleData Read(EndianReader reader)
             {
@@ -67,7 +90,11 @@ namespace MiloLib.Assets
 
                 if (revision >= 14)
                 {
-                    unkInt = reader.ReadUInt32();
+                    markerCount = reader.ReadUInt32();
+                    for (int i = 0; i < markerCount; i++)
+                    {
+                        markers.Add(new SampleMarker().Read(reader));
+                    }
                 }
 
                 return this;
@@ -95,27 +122,29 @@ namespace MiloLib.Assets
 
                 if (revision >= 14)
                 {
-                    writer.WriteUInt32(unkInt);
+                    writer.WriteUInt32((uint)markers.Count);
+                    foreach (SampleMarker marker in markers)
+                    {
+                        marker.Write(writer);
+                    }
                 }
             }
         }
         public ushort altRevision;
         public ushort revision;
 
+        [Name("File Name"), Description("Mono, 16-bit sample file")]
         public Symbol file = new(0, "");
+
+        [Name("Looped"), Description("Loop this sample")]
         public bool looped;
 
+        [Name("Loop Start Sample"), Description("Start of the loop, in samples. Ignored if \"looped\" is unchecked.")]
         public uint loopStartSample;
-        public uint loopEndSample;
+        [Name("Loop End Sample"), Description("End of the loop, in samples.  Use -1 for the end of the sample."), MinVersion(3)]
+        public int loopEndSample;
 
-        public SampleData sampleData = new SampleData(0);
-
-        public SynthSample(ushort revision, ushort altRevision = 0)
-        {
-            this.revision = revision;
-            this.altRevision = altRevision;
-            return;
-        }
+        public SampleData sampleData = new SampleData();
 
         public SynthSample Read(EndianReader reader, bool standalone)
         {
@@ -131,7 +160,7 @@ namespace MiloLib.Assets
 
             loopStartSample = reader.ReadUInt32();
             if (revision > 2)
-                loopEndSample = reader.ReadUInt32();
+                loopEndSample = reader.ReadInt32();
 
             sampleData = sampleData.Read(reader);
 
@@ -153,12 +182,13 @@ namespace MiloLib.Assets
 
             writer.WriteUInt32(loopStartSample);
             if (revision > 2)
-                writer.WriteUInt32(loopEndSample);
+                writer.WriteInt32(loopEndSample);
+
+
+            sampleData.Write(writer);
 
             if (standalone)
                 writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
-
-            sampleData.Write(writer);
         }
     }
 }

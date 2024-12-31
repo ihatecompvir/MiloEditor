@@ -98,7 +98,7 @@
             // button1
             // 
             button1.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            button1.Location = new Point(12, 180);
+            button1.Location = new Point(12, 126);
             button1.Name = "button1";
             button1.Size = new Size(308, 23);
             button1.TabIndex = 6;
@@ -131,7 +131,7 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(332, 211);
+            ClientSize = new Size(332, 157);
             Controls.Add(directoryNameTextBox);
             Controls.Add(label2);
             Controls.Add(button1);

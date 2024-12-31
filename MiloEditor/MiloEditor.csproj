@@ -129,6 +129,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Pfim" Version="0.11.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="MiloSaveOptionsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="Panels\ByteListPanel.cs">
       <SubType>Component</SubType>
     </Compile>

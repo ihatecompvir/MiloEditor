@@ -322,8 +322,8 @@ namespace MiloLib.Assets.Rnd
             obj2.Write(writer);
 
             anim.Write(writer);
-            trans.Write(writer, false);
-            draw.Write(writer, false);
+            trans.Write(writer, false, true);
+            draw.Write(writer, false, true);
 
             life.Write(writer);
 
