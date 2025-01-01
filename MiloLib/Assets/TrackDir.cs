@@ -1,10 +1,11 @@
 ﻿using MiloLib.Utils;
 using MiloLib.Classes;
+using MiloLib.Assets.UI;
 
 namespace MiloLib.Assets
 {
     [Name("TrackDir"), Description("Base class for track system. Contains configuration for track speed, length, slot positions.  Manages TrackWidget instances.")]
-    public class TrackDir : ObjectDir
+    public class TrackDir : PanelDir
     {
         public ushort altRevision;
         public ushort revision;
@@ -16,7 +17,7 @@ namespace MiloLib.Assets
             return;
         }
 
-        public TrackDir Read(EndianReader reader, bool standalone, DirectoryMeta parent)
+        public TrackDir Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));

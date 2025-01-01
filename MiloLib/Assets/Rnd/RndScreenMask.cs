@@ -20,15 +20,15 @@ namespace MiloLib.Assets.Rnd
 
         public bool useCamRect;
 
-        public RndScreenMask Read(EndianReader reader, bool standalone, DirectoryMeta parent)
+        public RndScreenMask Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
             else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
 
-            base.Read(reader, false, parent);
+            base.Read(reader, false, parent, entry);
 
-            draw = draw.Read(reader, false, parent);
+            draw = draw.Read(reader, false, parent, entry);
 
             material = Symbol.Read(reader);
             color = color.Read(reader);

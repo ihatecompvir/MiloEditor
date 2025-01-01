@@ -40,9 +40,13 @@ namespace MiloLib.Assets.Rnd
 
         public List<List<byte>> textures = new List<List<byte>>();
 
+        private DirectoryMeta.Platform platform;
 
-        public RndBitmap Read(EndianReader reader, bool standalone, DirectoryMeta parent)
+
+        public RndBitmap Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
+            platform = parent.platform;
+
             revision = reader.ReadByte();
 
             if (revision != 1)
@@ -136,28 +140,37 @@ namespace MiloLib.Assets.Rnd
 
                 List<List<byte>> swappedBytes = new List<List<byte>>();
 
-                // byte swap for 360
-                foreach (List<byte> texture in textures)
+                if (platform == DirectoryMeta.Platform.Xbox)
                 {
-                    List<byte> swapped = new List<byte>();
-                    for (int i = 0; i < texture.Count; i += 4)
+                    foreach (List<byte> texture in textures)
                     {
-                        swapped.Add(texture[i + 1]);
-                        swapped.Add(texture[i]);
-                        swapped.Add(texture[i + 3]);
-                        swapped.Add(texture[i + 2]);
+                        List<byte> swapped = new List<byte>();
+                        for (int i = 0; i < texture.Count; i += 4)
+                        {
+                            swapped.Add(texture[i + 1]);
+                            swapped.Add(texture[i]);
+                            swapped.Add(texture[i + 3]);
+                            swapped.Add(texture[i + 2]);
+                        }
+                        swappedBytes.Add(swapped);
                     }
-                    swappedBytes.Add(swapped);
-                }
 
-                // Append all miplevels
-                foreach (List<byte> texture in swappedBytes)
+                    // Append all miplevels
+                    foreach (List<byte> texture in swappedBytes)
+                    {
+                        ddsData.AddRange(texture);
+                    }
+
+                    return ddsData;
+                }
+                else
                 {
-                    ddsData.AddRange(texture);
+                    foreach (List<byte> texture in textures)
+                    {
+                        ddsData.AddRange(texture);
+                    }
+                    return ddsData;
                 }
-
-                return ddsData;
-
             }
             return new();
         }

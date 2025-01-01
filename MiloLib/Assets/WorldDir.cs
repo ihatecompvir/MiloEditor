@@ -65,7 +65,7 @@ namespace MiloLib.Assets
         }
 
 
-        public WorldDir Read(EndianReader reader, bool standalone, DirectoryMeta parent)
+        public WorldDir Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
@@ -81,7 +81,7 @@ namespace MiloLib.Assets
                 fakeHUDFilename = Symbol.Read(reader);
             }
 
-            base.Read(reader, false, parent);
+            base.Read(reader, false, parent, entry);
 
 
             if (revision > 0xB)

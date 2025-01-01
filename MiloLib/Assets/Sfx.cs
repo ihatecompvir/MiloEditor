@@ -9,6 +9,38 @@ namespace MiloLib.Assets
     [Name("Sfx"), Description("Basic sound effect object.  Plays several samples with a given volume, pan, transpose, and envelope settings.")]
     public class Sfx : Object
     {
+        public class MoggClip
+        {
+
+            public Symbol clipName = new(0, "");
+            public float pan;
+            public float panWidth;
+            public float volume;
+            public bool isStereo;
+
+            public MoggClip Read(EndianReader reader)
+            {
+
+                clipName = Symbol.Read(reader);
+                pan = reader.ReadFloat();
+                panWidth = reader.ReadFloat();
+                volume = reader.ReadFloat();
+                isStereo = reader.ReadBoolean();
+
+                return this;
+            }
+
+            public void Write(EndianWriter writer)
+            {
+
+                Symbol.Write(writer, clipName);
+                writer.WriteFloat(pan);
+                writer.WriteFloat(panWidth);
+                writer.WriteFloat(volume);
+                writer.WriteBoolean(isStereo);
+            }
+        }
+
         public ushort altRevision;
         public ushort revision;
 
@@ -20,7 +52,7 @@ namespace MiloLib.Assets
 
         private uint moggClipCount;
         [Name("Mogg Clips"), Description("List of mogg clips to play"), MinVersion(9)]
-        public List<Symbol> MoggClips;
+        public List<MoggClip> moggClips = new();
 
         [Name("Reverb Mix DB"), Description("Reverb send for this sfx"), MinVersion(12)]
         public float reverbMixDb;
@@ -31,17 +63,19 @@ namespace MiloLib.Assets
         private uint sfxMapsCount;
 
         [Name("SFX Maps")]
-        public List<SfxMap> sfxMaps;
+        public List<SfxMap> sfxMaps = new();
 
         public Sequence sequence = new();
+
+        public uint unkInt1;
 
         public Sfx()
         {
             sfxMaps = new List<SfxMap>();
-            MoggClips = new List<Symbol>();
+            moggClips = new List<MoggClip>();
         }
 
-        public Sfx Read(EndianReader reader, bool standalone, DirectoryMeta parent)
+        public Sfx Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
@@ -50,11 +84,11 @@ namespace MiloLib.Assets
             if (revision < 6)
             {
                 if (1 < revision)
-                    objFields.Read(reader, parent);
+                    objFields.Read(reader, parent, entry);
             }
             else
             {
-                sequence = sequence.Read(reader, parent);
+                sequence = sequence.Read(reader, parent, entry);
             }
 
             sfxMapsCount = reader.ReadUInt32();
@@ -85,17 +119,25 @@ namespace MiloLib.Assets
 
                 for (int i = 0; i < moggClipCount; i++)
                 {
-                    MoggClips.Add(Symbol.Read(reader));
+                    MoggClip clip = new MoggClip();
+                    clip.Read(reader);
+                    moggClips.Add(clip);
                 }
             }
 
             if (4 < revision)
+            {
                 sendObj = Symbol.Read(reader);
+                if (revision <= 7)
+                {
+                    unkInt1 = reader.ReadUInt32();
+                }
+            }
 
-            if (8 < revision)
+            if (revision >= 9)
                 faderGroup = faderGroup.Read(reader);
 
-            if (revision > 11)
+            if (revision >= 0xC)
             {
                 reverbMixDb = reader.ReadFloat();
                 reverbSendEnable = reader.ReadBoolean();
@@ -129,10 +171,10 @@ namespace MiloLib.Assets
 
             if (9 < revision)
             {
-                writer.WriteUInt32((uint)MoggClips.Count);
-                foreach (var clip in MoggClips)
+                writer.WriteUInt32((uint)moggClips.Count);
+                foreach (var clip in moggClips)
                 {
-                    Symbol.Write(writer, clip);
+                    clip.Write(writer);
                 }
             }
 
@@ -166,14 +208,14 @@ namespace MiloLib.Assets
             public float panSpread;
             public bool canStop;
 
-            public Sequence Read(EndianReader reader, DirectoryMeta parent)
+            public Sequence Read(EndianReader reader, DirectoryMeta parent, DirectoryMeta.Entry entry)
             {
                 uint combinedRevision = reader.ReadUInt32();
                 if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
                 else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
 
                 if (2 < revision)
-                    base.Read(reader, false, parent);
+                    base.Read(reader, false, parent, entry);
 
                 avgVol = reader.ReadFloat();
                 volSpread = reader.ReadFloat();

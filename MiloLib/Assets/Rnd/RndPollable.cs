@@ -9,7 +9,7 @@ namespace MiloLib.Assets.Rnd
         public Symbol exit = new(0, "");
         public Symbol enter = new(0, "");
 
-        public RndPollable Read(EndianReader reader, bool standalone, DirectoryMeta parent)
+        public RndPollable Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
             exit = Symbol.Read(reader);
             enter = Symbol.Read(reader);

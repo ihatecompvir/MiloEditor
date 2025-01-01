@@ -26,6 +26,8 @@ namespace MiloLib.Assets.UI
         public float testGapSize;
         public bool testDisableElements;
         public int mDirection;
+        public float speed;
+        public uint compState;
 
         public UIListDir(ushort revision, ushort altRevision = 0) : base(revision, altRevision)
         {
@@ -34,13 +36,15 @@ namespace MiloLib.Assets.UI
             return;
         }
 
-        public UIListDir Read(EndianReader reader, bool standalone, DirectoryMeta parent)
+        public UIListDir Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
             else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
 
-            base.Read(reader, false, parent);
+            base.Read(reader, false, parent, entry);
+
+            // this is not completely correct... TODO: fix this
 
             orientation = (UIListOrientation)reader.ReadUInt32();
 
@@ -49,6 +53,8 @@ namespace MiloLib.Assets.UI
             testMode = reader.ReadBoolean();
             elementSpacing = reader.ReadFloat();
             testNumData = reader.ReadInt32();
+            speed = reader.ReadFloat();
+            compState = reader.ReadUInt32();
             testGapSize = reader.ReadFloat();
             testDisableElements = reader.ReadBoolean();
 
@@ -56,6 +62,8 @@ namespace MiloLib.Assets.UI
             {
                 scrollHighlightChange = reader.ReadFloat();
             }
+
+            reader.ReadUInt32();
 
             if (standalone)
                 if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");

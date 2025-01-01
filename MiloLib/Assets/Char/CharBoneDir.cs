@@ -77,13 +77,13 @@ namespace MiloLib.Assets.Char
             return;
         }
 
-        public CharBoneDir Read(EndianReader reader, bool standalone, DirectoryMeta parent)
+        public CharBoneDir Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
             else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
 
-            base.Read(reader, false, parent);
+            base.Read(reader, false, parent, entry);
 
             if (revision < 2)
             {

@@ -37,15 +37,15 @@ namespace MiloLib.Assets.Rnd
         [MinVersion(2)]
         public float jitter;
 
-        public RndAnimFilter Read(EndianReader reader, bool standalone, DirectoryMeta parent)
+        public RndAnimFilter Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
             else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
 
-            objFields = objFields.Read(reader, parent);
+            objFields = objFields.Read(reader, parent, entry);
 
-            anim = anim.Read(reader, parent);
+            anim = anim.Read(reader, parent, entry);
 
             animSymbol = Symbol.Read(reader);
 

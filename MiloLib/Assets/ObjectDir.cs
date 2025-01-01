@@ -89,7 +89,7 @@ namespace MiloLib.Assets
             return;
         }
 
-        public ObjectDir Read(EndianReader reader, bool standalone, DirectoryMeta parent)
+        public ObjectDir Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
@@ -99,14 +99,21 @@ namespace MiloLib.Assets
             {
                 if (revision >= 2 && revision < 17)
                 {
-                    objFields.Read(reader, parent);
+                    objFields.Read(reader, parent, entry);
                 }
             }
             else
             {
-                objFields.metadataAltRevision = reader.ReadUInt16();
-                objFields.metadataRevision = reader.ReadUInt16();
-                objFields.type = Symbol.Read(reader);
+                if (revision != 26)
+                {
+                    objFields.altRevision = reader.ReadUInt16();
+                    objFields.revision = reader.ReadUInt16();
+                    objFields.type = Symbol.Read(reader);
+                }
+                else
+                {
+                    objFields.Read(reader, parent, entry);
+                }
             }
 
             if (revision > 1)
@@ -203,7 +210,7 @@ namespace MiloLib.Assets
                             inlineSubDirNames.Add(inlineSubDirName);
                         }
 
-                        if (revision >= 27)
+                        if (revision >= 26)
                         {
                             for (int i = 0; i < inlineSubDirCount; i++)
                             {
@@ -245,6 +252,12 @@ namespace MiloLib.Assets
             }
 
 
+            if (entry.type.value == "WorldInstance")
+            {
+                reader.ReadBoolean();
+                if (entry.isDir)
+                    return this;
+            }
 
             unknownString = Symbol.Read(reader);
             unknownString2 = Symbol.Read(reader);
@@ -253,7 +266,7 @@ namespace MiloLib.Assets
             {
                 if (revision > 16)
                 {
-                    objFields.Read(reader, parent);
+                    objFields.Read(reader, parent, entry);
                 }
             }
             else
@@ -290,8 +303,8 @@ namespace MiloLib.Assets
             }
             else
             {
-                writer.WriteUInt16(objFields.metadataAltRevision);
-                writer.WriteUInt16(objFields.metadataRevision);
+                writer.WriteUInt16(objFields.altRevision);
+                writer.WriteUInt16(objFields.revision);
                 Symbol.Write(writer, objFields.type);
             }
 

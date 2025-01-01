@@ -26,7 +26,7 @@ namespace MiloLib.Assets.Band
         [Name("Animation Genre"), Description("Animation genre for the song")]
         public Symbol animationGenre = new(0, "");
 
-        public new BandSongPref Read(EndianReader reader, bool standalone, DirectoryMeta parent)
+        public new BandSongPref Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
@@ -37,7 +37,7 @@ namespace MiloLib.Assets.Band
                 throw new UnsupportedAssetRevisionException("BandSongPref", revision);
             }
 
-            base.Read(reader, false, parent);
+            base.Read(reader, false, parent, entry);
 
             part2Instrument = Symbol.Read(reader);
             part3Instrument = Symbol.Read(reader);

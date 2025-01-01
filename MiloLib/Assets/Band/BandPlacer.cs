@@ -15,16 +15,16 @@ namespace MiloLib.Assets.Band
 
         public Symbol center = new(0, "");
 
-        public BandPlacer Read(EndianReader reader, bool standalone, DirectoryMeta parent)
+        public BandPlacer Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
             else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
 
-            base.objFields = base.objFields.Read(reader, parent);
+            base.objFields = base.objFields.Read(reader, parent, entry);
 
-            draw = draw.Read(reader, false, parent);
-            trans = trans.Read(reader, false, parent);
+            draw = draw.Read(reader, false, parent, entry);
+            trans = trans.Read(reader, false, parent, entry);
 
             center = Symbol.Read(reader);
 

@@ -17,7 +17,7 @@ namespace MiloLib.Assets.P9
 
         public Symbol venue = new(0, "");
 
-        public P9Director Read(EndianReader reader, bool standalone, DirectoryMeta parent)
+        public P9Director Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
@@ -26,10 +26,10 @@ namespace MiloLib.Assets.P9
             if (revision != 5)
                 throw new UnsupportedAssetRevisionException("P9Director", revision);
 
-            objFields1 = objFields1.Read(reader, parent);
-            objFields2 = objFields2.Read(reader, parent);
+            objFields1 = objFields1.Read(reader, parent, entry);
+            objFields2 = objFields2.Read(reader, parent, entry);
 
-            draw = new RndDrawable().Read(reader, false, parent);
+            draw = new RndDrawable().Read(reader, false, parent, entry);
             venue = Symbol.Read(reader);
 
             if (standalone)

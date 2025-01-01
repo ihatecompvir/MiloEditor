@@ -22,7 +22,7 @@ namespace MiloLib.Assets
             return;
         }
 
-        public CrowdMeterIcon Read(EndianReader reader, bool standalone, DirectoryMeta parent)
+        public CrowdMeterIcon Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
@@ -33,7 +33,7 @@ namespace MiloLib.Assets
                 throw new UnsupportedAssetRevisionException("BandCrowdMeterDir", revision);
             }
 
-            base.Read(reader, false, parent);
+            base.Read(reader, false, parent, entry);
 
             if (standalone)
                 if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");

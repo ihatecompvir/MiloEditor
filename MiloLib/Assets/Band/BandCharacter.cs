@@ -34,13 +34,13 @@ namespace MiloLib.Assets.Band
             return;
         }
 
-        public BandCharacter Read(EndianReader reader, bool standalone, DirectoryMeta parent)
+        public BandCharacter Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
             else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
 
-            base.Read(reader, false, parent);
+            base.Read(reader, false, parent, entry);
 
             playFlags = reader.ReadInt32();
             tempo = Symbol.Read(reader);
@@ -65,7 +65,7 @@ namespace MiloLib.Assets.Band
 
             if (revision != 0)
             {
-                testPrefab = testPrefab.Read(reader, false, parent);
+                testPrefab = testPrefab.Read(reader, false, parent, entry);
             }
 
             if (revision == 2 || revision == 3 || revision == 4)

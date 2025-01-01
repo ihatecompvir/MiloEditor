@@ -54,7 +54,7 @@ namespace MiloLib.Assets.Rnd
         [MaxVersion(8)]
         public List<string> transObjectsNullTerminated = new();
 
-        public RndTrans Read(EndianReader reader, bool standalone, DirectoryMeta parent)
+        public RndTrans Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
@@ -63,7 +63,7 @@ namespace MiloLib.Assets.Rnd
             // if a RndTrans is read as a standalone object, it has the Object fields
             // otherwise it does not
             if (standalone)
-                objFields = objFields.Read(reader, parent);
+                objFields = objFields.Read(reader, parent, entry);
 
             localXfm = localXfm.Read(reader);
             worldXfm = worldXfm.Read(reader);

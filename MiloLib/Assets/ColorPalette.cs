@@ -19,7 +19,7 @@ namespace MiloLib.Assets
         [Name("Colors"), Description("Color for materials")]
         public List<HmxColor4> colors = new();
 
-        public ColorPalette Read(EndianReader reader, bool standalone, DirectoryMeta parent)
+        public ColorPalette Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
@@ -30,7 +30,7 @@ namespace MiloLib.Assets
                 throw new UnsupportedAssetRevisionException("ColorPalette", revision);
             }
 
-            base.Read(reader, false, parent);
+            base.Read(reader, false, parent, entry);
 
             colorCount = reader.ReadUInt32();
             // sanity check on color count

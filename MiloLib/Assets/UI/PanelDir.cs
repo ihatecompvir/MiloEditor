@@ -38,16 +38,20 @@ namespace MiloLib.Assets.UI
             return;
         }
 
-        public PanelDir Read(EndianReader reader, bool standalone, DirectoryMeta parent)
+        public PanelDir Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
             else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
 
-            base.Read(reader, false, parent);
+            base.Read(reader, false, parent, entry);
 
-            if (revision != 0)
-                cam = Symbol.Read(reader);
+            // if this is not an entry inside another directory (as in, not an inlined subdir), read the camera
+            if (!entry.isDir)
+            {
+                if (revision != 0)
+                    cam = Symbol.Read(reader);
+            }
 
             if (revision <= 1)
             {

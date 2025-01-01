@@ -178,10 +178,10 @@ namespace MiloLib.Assets
         }
 
         [Name("Alt Revision"), Description("The alternate revision of the Object.")]
-        public ushort metadataAltRevision;
+        public ushort altRevision;
 
         [Name("Revision"), Description("The revision of the Object.")]
-        public ushort metadataRevision;
+        public ushort revision;
 
         [Name("Type"), Description("The subtype of the object. Not the same as the asset type.")]
         public Symbol type = new Symbol(0, "");
@@ -193,11 +193,11 @@ namespace MiloLib.Assets
         public DTBParent root;
 
         // only appears in GH2 360 and later
-        [Name("Note"), Description("A free-form text field that can contain any information.")]
+        [Name("Note"), Description("A free-form text field that can contain any information."), MinVersion(1)]
         public Symbol note = new Symbol(0, "");
 
 
-        public ObjectFields Read(EndianReader reader, DirectoryMeta parent)
+        public ObjectFields Read(EndianReader reader, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
             if (parent.revision <= 10)
             {
@@ -206,8 +206,8 @@ namespace MiloLib.Assets
             }
 
             uint combinedRevision = reader.ReadUInt32();
-            if (BitConverter.IsLittleEndian) (metadataRevision, metadataAltRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
-            else (metadataAltRevision, metadataRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
+            if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
+            else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
 
             type = Symbol.Read(reader);
             hasTree = reader.ReadBoolean();
@@ -218,7 +218,7 @@ namespace MiloLib.Assets
                 root.Read(reader);
             }
 
-            if (metadataRevision > 0)
+            if (revision > 0)
             {
                 note = Symbol.Read(reader);
             }
@@ -228,8 +228,8 @@ namespace MiloLib.Assets
 
         public void Write(EndianWriter writer)
         {
-            writer.WriteUInt16(metadataAltRevision);
-            writer.WriteUInt16(metadataRevision);
+            writer.WriteUInt16(altRevision);
+            writer.WriteUInt16(revision);
             Symbol.Write(writer, type);
             writer.WriteByte(hasTree ? (byte)1 : (byte)0);
 
@@ -239,7 +239,7 @@ namespace MiloLib.Assets
             }
 
             // write note
-            if (metadataRevision > 0)
+            if (revision > 0)
             {
                 Symbol.Write(writer, note);
             }
@@ -248,7 +248,7 @@ namespace MiloLib.Assets
         public override string ToString()
         {
             // ternary operator based on revision
-            if (metadataRevision < 1)
+            if (revision < 1)
             {
                 return type.ToString();
             }
@@ -266,9 +266,9 @@ namespace MiloLib.Assets
         [Name("Object Fields"), Description("The Hmx::Object fields that all Objects have.")]
         public ObjectFields objFields = new ObjectFields();
 
-        public Object Read(EndianReader reader, bool standalone, DirectoryMeta parent)
+        public Object Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
-            objFields = new ObjectFields().Read(reader, parent);
+            objFields = new ObjectFields().Read(reader, parent, entry);
 
             if (standalone)
                 if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");

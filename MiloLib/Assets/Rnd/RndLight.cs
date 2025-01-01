@@ -60,20 +60,34 @@ namespace MiloLib.Assets.Rnd
 
         public RndTrans trans = new();
 
-        public RndLight Read(EndianReader reader, bool standalone, DirectoryMeta parent)
+        public bool onlyProjection;
+
+        public uint unkInt1;
+        public uint unkInt2;
+        public uint unkInt3;
+        public uint unkInt4;
+        public uint unkInt5;
+
+        public RndLight Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
             else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
 
 
-            if (revision > 3)
-                base.objFields.Read(reader, parent);
+            base.objFields.Read(reader, parent, entry);
 
-            trans.Read(reader, false, parent);
+            trans.Read(reader, false, parent, entry);
 
             color = color.Read(reader);
             range = reader.ReadFloat();
+
+            if (revision < 3)
+            {
+                unkInt3 = reader.ReadUInt32();
+                unkInt4 = reader.ReadUInt32();
+                unkInt5 = reader.ReadUInt32();
+            }
 
             if (revision != 0)
                 type = (Type)reader.ReadInt32();
@@ -91,6 +105,11 @@ namespace MiloLib.Assets.Rnd
             {
                 topRadius = reader.ReadFloat();
                 bottomRadius = reader.ReadFloat();
+                if (revision < 0xE)
+                {
+                    unkInt1 = reader.ReadUInt32();
+                    unkInt2 = reader.ReadUInt32();
+                }
             }
 
             if (revision > 7)
@@ -120,6 +139,9 @@ namespace MiloLib.Assets.Rnd
 
             if (revision > 0xD)
                 cubeTex = Symbol.Read(reader);
+
+            if (altRevision != 0)
+                onlyProjection = reader.ReadBoolean();
 
             if (revision > 0xE)
             {

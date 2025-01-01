@@ -4,20 +4,20 @@ using MiloLib.Utils;
 
 namespace MiloLib.Assets
 {
-    [Name("GemTrackDir"), Description("band 2 TrackDir for gem tracks")]
-    public class GemTrackDir : TrackDir
+    [Name("VocalTrackDir"), Description("band 2 dir for vocal track")]
+    public class VocalTrackDir : RndDir
     {
         public ushort altRevision;
         public ushort revision;
 
-        public GemTrackDir(ushort revision, ushort altRevision = 0) : base(revision, altRevision)
+        public VocalTrackDir(ushort revision, ushort altRevision = 0) : base(revision, altRevision)
         {
             revision = revision;
             altRevision = altRevision;
             return;
         }
 
-        public GemTrackDir Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
+        public VocalTrackDir Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));

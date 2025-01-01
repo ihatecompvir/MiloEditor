@@ -17,16 +17,30 @@ namespace MiloLib.Assets.Band
 
         private uint colorCount;
 
-        [MinVersion(2)]
+        [Name("Colors"), Description("The colors that will be shown as the meter decreases."), MinVersion(2)]
         public List<HmxColor4> colors = new();
 
-        [MinVersion(1)]
+        [Name("Peak Value"), Description("Peak state value"), MinVersion(1)]
         public float peakValue;
 
         private float groupCount;
 
         [MaxVersion(2)]
         private List<Symbol> groups = new();
+
+        public uint unkInt;
+
+        [Name("Needle Anim"), Description("anim to drive the needle")]
+        public Symbol needleAnim = new(0, "");
+        [Name("Warning Anim"), Description("animation that is played when below the warning level")]
+        public Symbol warningAnim = new(0, "");
+        [Name("Red Anim"), Description("animation that is played when in the red state")]
+        public Symbol redAnim = new(0, "");
+        [Name("Yellow Anim"), Description("animation that is played when in the yellow state")]
+        public Symbol yellowAnim = new(0, "");
+        [Name("Green Anim"), Description("animation that is played when in the green state")]
+        public Symbol greenAnim = new(0, "");
+
 
         public BandCrowdMeterDir(ushort revision, ushort altRevision = 0) : base(revision, altRevision)
         {
@@ -35,39 +49,53 @@ namespace MiloLib.Assets.Band
             return;
         }
 
-        public BandCrowdMeterDir Read(EndianReader reader, bool standalone, DirectoryMeta parent)
+        public BandCrowdMeterDir Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
             else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
 
-            if (revision > 3)
+            // despite being the same revision this is a way different asset in GH2, so try to detect if its being loaded out of a GH2-versioned scene, so check if the version is 25 or earlier
+            if (parent.revision <= 25)
             {
-                throw new UnsupportedAssetRevisionException("BandCrowdMeterDir", revision);
-            }
+                unkInt = reader.ReadUInt32();
 
-            if (revision < 3)
+                warningAnim = Symbol.Read(reader);
+                redAnim = Symbol.Read(reader);
+                yellowAnim = Symbol.Read(reader);
+                greenAnim = Symbol.Read(reader);
+                needleAnim = Symbol.Read(reader);
+
+            }
+            else
             {
-                groupCount = reader.ReadUInt32();
-                for (int i = 0; i < groupCount; i++)
+                // fields only read when dir is not proxied
+                if (!entry.isDir)
                 {
-                    groups.Add(Symbol.Read(reader));
+                    if (revision < 3)
+                    {
+                        groupCount = reader.ReadUInt32();
+                        for (int i = 0; i < groupCount; i++)
+                        {
+                            groups.Add(Symbol.Read(reader));
+                        }
+                    }
+
+                    if (revision >= 2)
+                    {
+                        colorCount = reader.ReadUInt32();
+                        for (int i = 0; i < colorCount; i++)
+                        {
+                            colors.Add(new HmxColor4().Read(reader));
+                        }
+                    }
                 }
+
+                if (revision >= 1)
+                    peakValue = reader.ReadFloat();
             }
 
-            if (revision >= 2)
-            {
-                colorCount = reader.ReadUInt32();
-                for (int i = 0; i < colorCount; i++)
-                {
-                    colors.Add(new HmxColor4().Read(reader));
-                }
-            }
-
-            if (revision >= 1)
-                peakValue = reader.ReadFloat();
-
-            base.Read(reader, false, parent);
+            base.Read(reader, false, parent, entry);
 
             if (standalone)
                 if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");

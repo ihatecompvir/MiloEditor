@@ -161,7 +161,7 @@ namespace MiloLib.Assets.Rnd
         [Name("Preserve Particles"), Description("Enable/disable particle perservation"), MinVersion(11)]
         public bool preserveParticles;
 
-        public RndParticleSys Read(EndianReader reader, bool standalone, DirectoryMeta parent)
+        public RndParticleSys Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
@@ -170,13 +170,13 @@ namespace MiloLib.Assets.Rnd
             // only read these if revision is greater than 22
             if (revision > 22)
             {
-                obj1.Read(reader, parent);
-                obj2.Read(reader, parent);
+                obj1.Read(reader, parent, entry);
+                obj2.Read(reader, parent, entry);
             }
 
-            anim.Read(reader, parent);
-            trans.Read(reader, false, parent);
-            draw.Read(reader, false, parent);
+            anim.Read(reader, parent, entry);
+            trans.Read(reader, false, parent, entry);
+            draw.Read(reader, false, parent, entry);
 
             life.Read(reader);
 

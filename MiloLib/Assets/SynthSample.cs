@@ -146,14 +146,14 @@ namespace MiloLib.Assets
 
         public SampleData sampleData = new SampleData();
 
-        public SynthSample Read(EndianReader reader, bool standalone, DirectoryMeta parent)
+        public SynthSample Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
             else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
 
             if (revision > 1)
-                objFields = objFields.Read(reader, parent);
+                objFields = objFields.Read(reader, parent, entry);
 
             file = Symbol.Read(reader);
             looped = reader.ReadBoolean();

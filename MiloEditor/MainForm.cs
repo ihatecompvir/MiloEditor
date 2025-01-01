@@ -104,85 +104,75 @@ namespace MiloEditor
             miloSceneItemsTree.ImageList = imageList;
 
             // add a root node for the Milo scene and its dir
-            if (currentMiloScene.dirMeta.directory == null)
+            string rootName = currentMiloScene.dirMeta?.name ?? "Scene Has No Root Directory";
+            if (string.IsNullOrEmpty(rootName))
             {
-                currentMiloScene.dirMeta.name = "Scene Has No Root Directory";
+                rootName = "<empty name>";
             }
-            else if (currentMiloScene.dirMeta.name == "")
-            {
-                currentMiloScene.dirMeta.name = "<empty name>";
-            }
-            TreeNode rootNode = new TreeNode(currentMiloScene.dirMeta.name, GetImageIndex(imageList, currentMiloScene.dirMeta.type), GetImageIndex(imageList, currentMiloScene.dirMeta.type))
+
+            TreeNode rootNode = new TreeNode(rootName, GetImageIndex(imageList, currentMiloScene.dirMeta?.type), GetImageIndex(imageList, currentMiloScene.dirMeta?.type))
             {
                 Tag = currentMiloScene.dirMeta
             };
 
             miloSceneItemsTree.Nodes.Add(rootNode);
 
-
-            if (currentMiloScene.dirMeta.type != "")
+            // Handle inline subdirectories
+            if (currentMiloScene.dirMeta != null && currentMiloScene.dirMeta.directory is ObjectDir objDir && objDir.inlineSubDirs.Count > 0)
             {
-                // Check if there are any inline subdirectories
-                var inlineSubDirs = ((ObjectDir)currentMiloScene.dirMeta.directory).inlineSubDirs;
-                if (inlineSubDirs.Count > 0)
+                TreeNode inlineSubdirsNode = new TreeNode("Inline Subdirectories", -1, -1);
+                foreach (var subDir in objDir.inlineSubDirs)
                 {
-                    // Add a parent node for inline subdirectories
-                    TreeNode inlineSubdirsNode = new TreeNode("Inline Subdirectories", -1, -1);
-
-                    foreach (DirectoryMeta subDir in inlineSubDirs)
-                    {
-                        // Create a node for the subdirectory
-                        TreeNode subDirNode = new TreeNode(subDir.name.value, GetImageIndex(imageList, subDir.type), GetImageIndex(imageList, subDir.type))
-                        {
-                            Tag = subDir
-                        };
-
-                        foreach (DirectoryMeta.Entry entry in subDir.entries)
-                        {
-                            TreeNode node = new TreeNode(entry.name.value, GetImageIndex(imageList, entry.type), GetImageIndex(imageList, entry.type))
-                            {
-                                Tag = entry
-                            };
-                            subDirNode.Nodes.Add(node);
-                        }
-
-                        // Add the subdirectory node to the Inline Subdirectories node
-                        inlineSubdirsNode.Nodes.Add(subDirNode);
-                    }
-
-                    // Add the Inline Subdirectories node to the root
-                    rootNode.Nodes.Add(inlineSubdirsNode);
+                    AddDirectoryNode(subDir, inlineSubdirsNode);
                 }
+                rootNode.Nodes.Add(inlineSubdirsNode);
             }
 
-            // add all the nodes for the children of the root dir
-            foreach (DirectoryMeta.Entry entry in currentMiloScene.dirMeta.entries)
+
+            // Add root entries
+            if (currentMiloScene.dirMeta != null)
+                AddChildNodes(currentMiloScene.dirMeta, rootNode);
+
+            // onclick handlers so the tree view actually functions
+            // first we remove any existing handlers then add some to prevent any weird dupe issues
+            miloSceneItemsTree.NodeMouseClick -= MiloSceneItemsTree_NodeMouseClick;
+            miloSceneItemsTree.NodeMouseClick += MiloSceneItemsTree_NodeMouseClick;
+        }
+
+        private void AddChildNodes(DirectoryMeta parentDirMeta, TreeNode parentNode)
+        {
+            if (parentDirMeta == null || parentDirMeta.entries == null) return; //Added null check.
+
+            foreach (DirectoryMeta.Entry entry in parentDirMeta.entries)
             {
                 TreeNode node = new TreeNode(entry.name.value, GetImageIndex(imageList, entry.type), GetImageIndex(imageList, entry.type))
                 {
                     Tag = entry
                 };
 
-                // detect if it is a directory
                 if (entry.dir != null)
                 {
-
-                    foreach (DirectoryMeta.Entry dirEntry in entry.dir.entries)
-                    {
-                        TreeNode dirNode = new TreeNode(dirEntry.name.value, GetImageIndex(imageList, dirEntry.type), GetImageIndex(imageList, dirEntry.type))
-                        {
-                            Tag = dirEntry
-                        };
-                        node.Nodes.Add(dirNode);
-                    }
+                    AddChildNodes(entry.dir, node);
                 }
-                rootNode.Nodes.Add(node);
+
+                parentNode.Nodes.Add(node);
+            }
+        }
+
+        private void AddDirectoryNode(DirectoryMeta dirMeta, TreeNode parentNode)
+        {
+            TreeNode subDirNode = new TreeNode(dirMeta.name.value, GetImageIndex(imageList, dirMeta.type), GetImageIndex(imageList, dirMeta.type))
+            {
+                Tag = dirMeta
+            };
+
+            //Recursively add entries
+            if (dirMeta != null)
+            {
+                AddChildNodes(dirMeta, subDirNode);
             }
 
-            // onclick handlers so the tree view actually functions
-            // first we remove any existing handlers then add some to prevent any weird dupe issues
-            miloSceneItemsTree.NodeMouseClick -= MiloSceneItemsTree_NodeMouseClick;
-            miloSceneItemsTree.NodeMouseClick += MiloSceneItemsTree_NodeMouseClick;
+            parentNode.Nodes.Add(subDirNode);
         }
 
         private void MiloSceneItemsTree_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
@@ -489,26 +479,26 @@ namespace MiloEditor
                     switch (entry.type.value)
                     {
                         case "Tex":
-                            entry.obj = new RndTex().Read(reader, false, directoryEntry);
+                            entry.obj = new RndTex().Read(reader, false, directoryEntry, entry);
                             break;
                         case "Group":
-                            entry.obj = new RndGroup().Read(reader, false, directoryEntry);
+                            entry.obj = new RndGroup().Read(reader, false, directoryEntry, entry);
                             break;
                         case "Trans":
-                            entry.obj = new RndTrans().Read(reader, false, directoryEntry);
+                            entry.obj = new RndTrans().Read(reader, false, directoryEntry, entry);
                             break;
                         case "BandSongPref":
-                            entry.obj = new BandSongPref().Read(reader, false, directoryEntry);
+                            entry.obj = new BandSongPref().Read(reader, false, directoryEntry, entry);
                             break;
                         case "Sfx":
-                            entry.obj = new Sfx().Read(reader, false, directoryEntry);
+                            entry.obj = new Sfx().Read(reader, false, directoryEntry, entry);
                             break;
                         case "BandCharDesc":
-                            entry.obj = new BandCharDesc().Read(reader, false, directoryEntry);
+                            entry.obj = new BandCharDesc().Read(reader, false, directoryEntry, entry);
                             break;
                         default:
                             Debug.WriteLine("Unknown asset type: " + entry.type.value);
-                            entry.obj = new Object().Read(reader, false, directoryEntry);
+                            entry.obj = new Object().Read(reader, false, directoryEntry, entry);
                             break;
                     }
                 }

@@ -38,7 +38,7 @@ namespace MiloLib.Assets.Rnd
         public List<Symbol> drawables = new();
         public List<string> drawablesNullTerminated = new();
 
-        public RndDrawable Read(EndianReader reader, bool standalone, DirectoryMeta parent)
+        public RndDrawable Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
@@ -51,8 +51,8 @@ namespace MiloLib.Assets.Rnd
                 drawableCount = reader.ReadUInt32();
                 if (drawableCount > 0)
                 {
-                    /*
-                    if (revision <= 6)
+
+                    if (parent.revision <= 6)
                     {
                         for (int i = 0; i < drawableCount; i++)
                         {
@@ -61,12 +61,11 @@ namespace MiloLib.Assets.Rnd
                     }
                     else
                     {
-                    */
-                    for (int i = 0; i < drawableCount; i++)
-                    {
-                        drawables.Add(Symbol.Read(reader));
+                        for (int i = 0; i < drawableCount; i++)
+                        {
+                            drawables.Add(Symbol.Read(reader));
+                        }
                     }
-                    //}
                 }
             }
 

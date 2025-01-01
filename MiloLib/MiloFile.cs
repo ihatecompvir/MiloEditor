@@ -3,6 +3,8 @@ using MiloLib.Utils;
 using ICSharpCode.SharpZipLib.Zip.Compression;
 using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 using ICSharpCode.SharpZipLib.GZip;
+using System.IO;
+using System.Reflection.PortableExecutable;
 
 namespace MiloLib
 {
@@ -124,7 +126,9 @@ namespace MiloLib
 
                         compressedStream.Seek(0, SeekOrigin.Begin);
 
-                        dirMeta = new DirectoryMeta().Read(decompressedReader);
+                        DirectoryMeta meta = new DirectoryMeta();
+                        meta.platform = DetectPlatform();
+                        dirMeta = meta.Read(decompressedReader);
                         break;
                     case Type.CompressedZlibAlt:
                         reader.SeekTo(startOffset);
@@ -174,7 +178,9 @@ namespace MiloLib
 
                         compressedStream.Seek(0, SeekOrigin.Begin);
 
-                        dirMeta = new DirectoryMeta().Read(decompressedReader);
+                        meta = new DirectoryMeta();
+                        meta.platform = DetectPlatform();
+                        dirMeta = meta.Read(decompressedReader);
                         break;
                     case Type.CompressedGzip:
                         reader.SeekTo(startOffset);
@@ -208,14 +214,18 @@ namespace MiloLib
 
                         compressedStream.Seek(0, SeekOrigin.Begin);
 
-                        dirMeta = new DirectoryMeta().Read(decompressedReader);
+                        meta = new DirectoryMeta();
+                        meta.platform = DetectPlatform();
+                        dirMeta = meta.Read(decompressedReader);
                         break;
                     case Type.Uncompressed:
                         reader.SeekTo(startOffset);
 
                         reader.Endianness = Endian.BigEndian;
 
-                        dirMeta = new DirectoryMeta().Read(reader);
+                        meta = new DirectoryMeta();
+                        meta.platform = DetectPlatform();
+                        dirMeta = meta.Read(reader);
                         break;
                     default:
                         break;
@@ -224,6 +234,54 @@ namespace MiloLib
                 System.Diagnostics.Debug.WriteLine("Done reading Milo file " + path);
             }
 
+        }
+
+        private DirectoryMeta.Platform DetectPlatform()
+        {
+            // detect the platform from the file extension
+            string extension = Path.GetExtension(filePath);
+            if (extension == null)
+            {
+                throw new Exception("Could not detect platform from file extension");
+            }
+
+            // ps2 if extension ends in _ps2
+            if (extension.EndsWith("_ps2"))
+            {
+                return DirectoryMeta.Platform.PS2;
+            }
+
+            // xbox if extension ends in _xbox
+            if (extension.EndsWith("_xbox"))
+            {
+                return DirectoryMeta.Platform.Xbox;
+            }
+
+            // pc if extension ends in _pc
+            if (extension.EndsWith("_pc"))
+            {
+                return DirectoryMeta.Platform.PC_or_iPod;
+            }
+
+            // wii if extension ends in _wii
+            if (extension.EndsWith("_wii"))
+            {
+                return DirectoryMeta.Platform.Wii;
+            }
+
+            // ps3 if extension ends in _ps3
+            if (extension.EndsWith("_ps3"))
+            {
+                return DirectoryMeta.Platform.PS3;
+            }
+
+            // gamecube if extension ends in gc
+            if (extension.EndsWith("_gc"))
+            {
+                return DirectoryMeta.Platform.GameCube;
+            }
+
+            return DirectoryMeta.Platform.PS3;
         }
 
         /// <summary>
@@ -342,6 +400,13 @@ namespace MiloLib
 
                     case Type.Uncompressed:
                         dirMeta.Write(writer);
+
+                        // jump to 0xC
+                        writer.SeekTo(0xC);
+
+                        writer.Endianness = Endian.LittleEndian;
+                        writer.WriteUInt32((uint)writer.BaseStream.Length - startingOffset);
+                        writer.WriteUInt32((uint)writer.BaseStream.Length - startingOffset);
                         break;
                     default:
                         break;

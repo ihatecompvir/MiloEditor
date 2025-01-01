@@ -39,21 +39,28 @@ namespace MiloLib.Assets.Rnd
             return;
         }
 
-        public RndDir Read(EndianReader reader, bool standalone, DirectoryMeta parent)
+        public RndDir Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
             else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
 
-            base.Read(reader, false, parent);
+            base.Read(reader, false, parent, entry);
 
-            anim = anim.Read(reader, parent);
-            draw = draw.Read(reader, false, parent);
-            trans = trans.Read(reader, false, parent);
+            // the RndDir ends immediately when it is an entry unless the entry is a RndDir or Character, probably others too, why?
+            // TODO: investigate if this is just for RB3/DC1 or others too
+            if (entry.isDir && entry.type.value != "Character" && entry.type.value != "RndDir" && entry.type.value != "BandCrowdMeterDir" && entry.type.value != "CrowdMeterIcon" && entry.type.value != "EndingBonusDir" && entry.type.value != "UnisonIcon" && entry.type.value != "BandScoreboard" && entry.type.value != "BandStarDisplay")
+            {
+                return this;
+            }
+
+            anim = anim.Read(reader, parent, entry);
+            draw = draw.Read(reader, false, parent, entry);
+            trans = trans.Read(reader, false, parent, entry);
 
             if (revision < 9)
             {
-                poll = poll.Read(reader, false, parent);
+                poll = poll.Read(reader, false, parent, entry);
                 unkSymbol1 = Symbol.Read(reader);
                 unkSymbol2 = Symbol.Read(reader);
             }
