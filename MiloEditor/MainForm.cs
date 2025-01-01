@@ -3,6 +3,7 @@ using MiloLib.Assets;
 using MiloLib.Assets.Band;
 using MiloLib.Assets.Rnd;
 using MiloLib.Utils;
+using MiloLib.Utils.Conversion;
 using System.Diagnostics;
 using System.DirectoryServices;
 using System.Reflection;
@@ -447,13 +448,27 @@ namespace MiloEditor
             // create a popup to ask for the file to import
             OpenFileDialog openFileDialog = new OpenFileDialog
             {
-                Filter = "All Files(*.*)|*.*",
+                Filter = "All Files(*.*)|*.*|DirectDraw Surface Textures (*.dds)|*.dds|Nautilus Prefabs (*.prefab)|*.prefab",
                 Title = "Import Asset"
             };
 
             // present it
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
+                // special handling of certain asset types
+
+                // detect .prefab file
+                if (Path.GetExtension(openFileDialog.FileName) == ".prefab")
+                {
+                    // read file
+                    BandCharDesc desc = NautilusInterop.ToBandCharDesc(File.ReadAllText(openFileDialog.FileName));
+                    // add the BandCharDesc to the MiloFile
+                    currentMiloScene.dirMeta.entries.Add(new DirectoryMeta.Entry("BandCharDesc", "prefab_" + Path.GetFileNameWithoutExtension(openFileDialog.FileName), desc));
+                    // redraw the UI
+                    PopulateListWithEntries();
+                    return;
+                }
+
 
                 DirectoryMeta directoryEntry = (DirectoryMeta)node.Tag;
 

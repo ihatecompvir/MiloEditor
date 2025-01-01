@@ -315,7 +315,7 @@ public class EditorPanel : Panel
                         break;
                     // text box for strings and Symbols
                     case object stringValue when field.FieldType == typeof(string) || field.FieldType.Name == "Symbol":
-                        inputControl = BuildTextField(stringValue);
+                        inputControl = BuildTextField(stringValue, field);
                         break;
                     // drop down for enums
                     // TODO: add a way to give "friendly" names to enum cases, like the Name and Description attributes
@@ -479,14 +479,40 @@ public class EditorPanel : Panel
         return checkBox;
     }
 
-    private Control BuildTextField(object fieldValue)
+    private Control BuildTextField(object fieldValue, FieldInfo field)
     {
-        return new TextBox
+        var textBox = new TextBox
         {
             Text = fieldValue?.ToString(),
             Dock = DockStyle.Fill,
             Margin = new Padding(5, 3, 10, 3)
         };
+
+        textBox.TextChanged += (sender, e) =>
+        {
+            // check if type is Symbol
+            if (fieldValue != null && fieldValue.GetType().Name == "Symbol")
+            {
+                var control = (System.Windows.Forms.TextBox)sender;
+                object ownerObject = ResolveFieldOwner(targetObject, field);
+                if (ownerObject != null)
+                {
+                    field.SetValue(ownerObject, new Symbol((uint)textBox.Text.Length, textBox.Text));
+                }
+            }
+            else
+            {
+                // if it's not a Symbol, just set the value to the text
+                var control = (System.Windows.Forms.TextBox)sender;
+                object ownerObject = ResolveFieldOwner(targetObject, field);
+                if (ownerObject != null)
+                {
+                    field.SetValue(ownerObject, textBox.Text);
+                }
+            }
+        };
+
+        return textBox;
     }
 
     private Control BuildEnumComboBox(object enumValue, FieldInfo field)

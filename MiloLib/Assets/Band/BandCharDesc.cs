@@ -146,29 +146,29 @@ namespace MiloLib.Assets.Band
     public class Outfit
     {
         [Name("Eyebrows"), Description("The name of the eyebrows Milo scene that this character uses.")]
-        public OutfitPiece eyebrows;
+        public OutfitPiece eyebrows = new();
         [Name("Face Hair"), Description("The name of the face hair Milo scene that this character uses.")]
-        public OutfitPiece faceHair;
+        public OutfitPiece faceHair = new();
         [Name("Hair"), Description("The name of the hair Milo scene that this character uses.")]
-        public OutfitPiece hair;
+        public OutfitPiece hair = new();
         [Name("Earrings"), Description("The name of the earrings Milo scene that this character uses.")]
-        public OutfitPiece earrings;
+        public OutfitPiece earrings = new();
         [Name("Glasses"), Description("The name of the glasses Milo scene that this character uses.")]
-        public OutfitPiece glasses;
+        public OutfitPiece glasses = new();
         [Name("Piercings"), Description("The name of the piercings Milo scene that this character uses.")]
-        public OutfitPiece piercings;
+        public OutfitPiece piercings = new();
         [Name("Feet"), Description("The name of the feet Milo scene that this character uses.")]
-        public OutfitPiece feet;
+        public OutfitPiece feet = new();
         [Name("Hands"), Description("The name of the hands Milo scene that this character uses.")]
-        public OutfitPiece hands;
+        public OutfitPiece hands = new();
         [Name("Legs"), Description("The name of the legs Milo scene that this character uses.")]
-        public OutfitPiece legs;
+        public OutfitPiece legs = new();
         [Name("Rings"), Description("The name of the rings Milo scene that this character uses.")]
-        public OutfitPiece rings;
+        public OutfitPiece rings = new();
         [Name("Torso"), Description("The name of the torso Milo scene that this character uses.")]
-        public OutfitPiece torso;
+        public OutfitPiece torso = new();
         [Name("Wrist"), Description("The name of the wrist Milo scene that this character uses.")]
-        public OutfitPiece wrist;
+        public OutfitPiece wrist = new();
 
 
         public void Read(EndianReader reader)
@@ -206,11 +206,11 @@ namespace MiloLib.Assets.Band
     [Name("Instrument Outfit"), Description("The instruments a character will use")]
     public class InstrumentOutfit
     {
-        public OutfitPiece guitar;
-        public OutfitPiece bass;
-        public OutfitPiece drum;
-        public OutfitPiece mic;
-        public OutfitPiece keyboard;
+        public OutfitPiece guitar = new();
+        public OutfitPiece bass = new();
+        public OutfitPiece drum = new();
+        public OutfitPiece mic = new();
+        public OutfitPiece keyboard = new();
         public InstrumentOutfit Read(EndianReader reader)
         {
             guitar = new OutfitPiece().Read(reader);
@@ -239,13 +239,13 @@ namespace MiloLib.Assets.Band
         [Name("Category"), Description("Category of this patch")]
         public PatchCategory category;
         [Name("Mesh Name"), Description("name of placement mesh or mapping mesh. Valid placement meshes:\nplacement_legs_L-back.mesh placement_legs_L-front.mesh placement_legs_R-back.mesh placement_legs_R-front.mesh placement_torso_back.mesh placement_torso_front.mesh placement_torso_L-lowerArm.mesh placement_torso_L-shoulder.mesh placement_torso_R-lowerArm.mesh placement_torso_R-shoulder.mesh")]
-        public string meshName;
+        public Symbol meshName = "";
         [Name("Rotation"), Description("in radians, about the uv space z axis.")]
         public float rotation;
         [Name("UV"), Description("UV in the mesh, u == -1 means mesh is mapping mesh.")]
-        public Classes.Vector2 uv;
+        public Vector2 uv = new();
         [Name("Scale"), Description("local x and y scale factors.")]
-        public Classes.Vector2 scale;
+        public Vector2 scale = new();
         public Patch Read(EndianReader reader)
         {
             texture = reader.ReadInt32();
@@ -271,24 +271,24 @@ namespace MiloLib.Assets.Band
     public class BandCharDesc : Object
     {
         public ushort altRevision;
-        public ushort revision; // Constant for revision 0x11 (17)
+        public ushort revision;
 
         [Name("Prefab"), Description("Prefab name if this is a non-editable prefab")]
-        public Symbol prefab;
+        public Symbol prefab = new(0, "");
 
         [Name("Gender"), Description("take a wild guess")]
-        public Symbol gender;
+        public Symbol gender = new(0, "");
 
         [Name("skin_color"), Description("skin color, taken from skin.pal")]
         public int skinColor;
 
-        public Head head;
+        public Head head = new();
 
         [Name("instruments"), Description("instruments")]
-        public InstrumentOutfit instruments;
+        public InstrumentOutfit instruments = new();
 
         [Name("outfit"), Description("clothing")]
-        public Outfit outfit;
+        public Outfit outfit = new();
 
         public List<Patch> patches = new List<Patch>();
 
