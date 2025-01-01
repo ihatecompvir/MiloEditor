@@ -40,7 +40,7 @@ namespace MiloLib.Assets.Rnd
 
         public List<List<byte>> textures = new List<List<byte>>();
 
-        private DirectoryMeta.Platform platform;
+        public DirectoryMeta.Platform platform;
 
 
         public RndBitmap Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
@@ -90,7 +90,7 @@ namespace MiloLib.Assets.Rnd
             return this;
         }
 
-        public void Write(EndianWriter writer, bool standalone)
+        public void Write(EndianWriter writer, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry? entry)
         {
             writer.WriteByte(revision);
 

@@ -43,13 +43,13 @@ namespace MiloLib.Assets
             return this;
         }
 
-        public override void Write(EndianWriter writer, bool standalone)
+        public override void Write(EndianWriter writer, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry? entry)
         {
             writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
 
             if (1 < revision)
             {
-                seq.Write(writer, false);
+                seq.Write(writer, false, parent, entry);
 
                 writer.WriteUInt32((uint)children.Count);
                 foreach (var child in children)

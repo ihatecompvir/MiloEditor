@@ -19,7 +19,7 @@ namespace MiloLib.Assets.Rnd
             return this;
         }
 
-        public override void Write(EndianWriter writer, bool standalone)
+        public override void Write(EndianWriter writer, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry? entry)
         {
             Symbol.Write(writer, exit);
             Symbol.Write(writer, enter);

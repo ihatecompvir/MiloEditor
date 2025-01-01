@@ -73,12 +73,12 @@ namespace MiloLib.Assets.Rnd
             return this;
         }
 
-        public override void Write(EndianWriter writer, bool standalone)
+        public override void Write(EndianWriter writer, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry? entry)
         {
             writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
 
             if (revision > 8)
-                base.Write(writer, false);
+                base.Write(writer, false, parent, entry);
 
             writer.WriteUInt32(width);
             writer.WriteUInt32(height);
@@ -99,7 +99,7 @@ namespace MiloLib.Assets.Rnd
             else
                 writer.WriteUInt32(useExternalPath ? 1u : 0u);
 
-            bitmap.Write(writer, false);
+            bitmap.Write(writer, false, parent, entry);
 
             if (standalone)
             {

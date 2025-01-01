@@ -132,7 +132,7 @@ namespace MiloLib.Assets.UI
             return this;
         }
 
-        public void Write(EndianWriter writer, bool standalone)
+        public void Write(EndianWriter writer, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry? entry)
         {
             writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
 
@@ -290,11 +290,11 @@ namespace MiloLib.Assets.UI
             return this;
         }
 
-        public override void Write(EndianWriter writer, bool standalone)
+        public override void Write(EndianWriter writer, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry? entry)
         {
             writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
 
-            base.Write(writer, false);
+            base.Write(writer, false, parent, entry);
 
             Symbol.Write(writer, textObject);
 
@@ -337,7 +337,7 @@ namespace MiloLib.Assets.UI
             }
 
             if (revision >= 8)
-                fontImporter.Write(writer, false);
+                fontImporter.Write(writer, false, parent, entry);
 
             if (standalone)
             {

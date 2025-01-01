@@ -21,7 +21,7 @@ public class IOTests
         objectDir.objFields.type = "Test_Directory";
         objectDir.proxyPath = "test_path.milo";
 
-        objectDir.Write(writer, false);
+        objectDir.Write(writer, false, new DirectoryMeta(), null);
 
         MemoryStream stream2 = new MemoryStream();
 
@@ -34,7 +34,7 @@ public class IOTests
         EndianReader reader = new EndianReader(stream2, Endian.BigEndian);
 
         ObjectDir objectDir2 = new ObjectDir(27);
-        objectDir2.Read(reader, false);
+        objectDir2.Read(reader, false, new DirectoryMeta(), new DirectoryMeta.Entry("ObjectDir", "test", objectDir2));
 
         // compare the two fields we set in the ObjectDirs
         Assert.Equal(objectDir.objFields.type.value, objectDir2.objFields.type.value);

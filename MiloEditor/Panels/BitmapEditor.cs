@@ -1,4 +1,6 @@
-﻿using MiloLib.Assets.Rnd;
+﻿using MiloLib;
+using MiloLib.Assets;
+using MiloLib.Assets.Rnd;
 using MiloLib.Classes;
 using MiloLib.Utils;
 using Pfim;
@@ -153,24 +155,28 @@ namespace MiloEditor.Panels
                 tex.bitmap.bpp = (byte)dds.pf.dwRGBBitCount;
                 tex.bitmap.mipMaps = (byte)(dds.dwMipMapCount - 1);
 
-                // scramble every 4 dds pixels
-                // like this:
-                // swizzled.Add(mipMap[j + 1]);
-                // swizzled.Add(mipMap[j]);
-                // swizzled.Add(mipMap[j + 3]);
-                // swizzled.Add(mipMap[j + 2]);
-                List<List<byte>> swappedBytes = new List<List<byte>>();
-                for (int i = 0; i < dds.pixels.Count; i += 4)
+                if (tex.bitmap.platform == DirectoryMeta.Platform.Xbox)
                 {
-                    List<byte> swapped = new List<byte>();
-                    swapped.Add(dds.pixels[i + 1]);
-                    swapped.Add(dds.pixels[i]);
-                    swapped.Add(dds.pixels[i + 3]);
-                    swapped.Add(dds.pixels[i + 2]);
-                    swappedBytes.Add(swapped);
-                }
 
-                tex.bitmap.textures = swappedBytes;
+                    // scramble every 4 dds pixels for 360
+                    List<List<byte>> swappedBytes = new List<List<byte>>();
+                    for (int i = 0; i < dds.pixels.Count; i += 4)
+                    {
+                        List<byte> swapped = new List<byte>();
+                        swapped.Add(dds.pixels[i + 1]);
+                        swapped.Add(dds.pixels[i]);
+                        swapped.Add(dds.pixels[i + 3]);
+                        swapped.Add(dds.pixels[i + 2]);
+                        swappedBytes.Add(swapped);
+                    }
+
+                    tex.bitmap.textures = swappedBytes;
+                }
+                else
+                {
+                    // don't do anything special for other platforms
+                    tex.bitmap.textures = new List<List<byte>>() { dds.pixels };
+                }
 
                 tex.height = dds.dwHeight;
                 tex.width = dds.dwWidth;

@@ -50,11 +50,11 @@ namespace MiloLib.Assets
             return this;
         }
 
-        public override void Write(EndianWriter writer, bool standalone)
+        public override void Write(EndianWriter writer, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry? entry)
         {
             writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
 
-            base.Write(writer, false);
+            base.Write(writer, false, parent, entry);
 
             writer.WriteUInt32((uint)colors.Count);
             foreach (var color in colors)

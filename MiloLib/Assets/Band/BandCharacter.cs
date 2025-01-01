@@ -84,11 +84,11 @@ namespace MiloLib.Assets.Band
             return this;
         }
 
-        public override void Write(EndianWriter writer, bool standalone)
+        public override void Write(EndianWriter writer, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry? entry)
         {
             writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
 
-            base.Write(writer, false);
+            base.Write(writer, false, parent, entry);
 
             writer.WriteInt32(playFlags);
             Symbol.Write(writer, tempo);
@@ -113,7 +113,7 @@ namespace MiloLib.Assets.Band
 
             if (revision != 0)
             {
-                testPrefab.Write(writer, false);
+                testPrefab.Write(writer, false, parent, entry);
             }
 
             if (revision == 2 || revision == 3 || revision == 4)

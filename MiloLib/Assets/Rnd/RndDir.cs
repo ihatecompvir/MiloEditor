@@ -49,7 +49,7 @@ namespace MiloLib.Assets.Rnd
 
             // the RndDir ends immediately when it is an entry unless the entry is a RndDir or Character, probably others too, why?
             // TODO: investigate if this is just for RB3/DC1 or others too
-            if (entry.isDir && entry.type.value != "Character" && entry.type.value != "RndDir" && entry.type.value != "BandCrowdMeterDir" && entry.type.value != "CrowdMeterIcon" && entry.type.value != "EndingBonusDir" && entry.type.value != "UnisonIcon" && entry.type.value != "BandScoreboard" && entry.type.value != "BandStarDisplay")
+            if (entry.isDir && entry.type.value != "Character" && entry.type.value != "RndDir" && entry.type.value != "BandCrowdMeterDir" && entry.type.value != "CrowdMeterIcon" && entry.type.value != "EndingBonusDir" && entry.type.value != "UnisonIcon" && entry.type.value != "BandScoreboard" && entry.type.value != "BandStarDisplay" && entry.type.value != "PanelDir")
             {
                 return this;
             }
@@ -85,11 +85,21 @@ namespace MiloLib.Assets.Rnd
             return this;
         }
 
-        public override void Write(EndianWriter writer, bool standalone)
+        public override void Write(EndianWriter writer, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry? entry)
         {
             writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
 
-            base.Write(writer, false);
+            base.Write(writer, false, parent, entry);
+
+            if (entry != null)
+            {
+                if (entry.isDir && entry.type.value != "Character" && entry.type.value != "RndDir" && entry.type.value != "BandCrowdMeterDir" && entry.type.value != "CrowdMeterIcon" && entry.type.value != "EndingBonusDir" && entry.type.value != "UnisonIcon" && entry.type.value != "BandScoreboard" && entry.type.value != "BandStarDisplay" && entry.type.value != "PanelDir")
+                {
+                    if (standalone)
+                        writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
+                    return;
+                }
+            }
 
             anim.Write(writer);
             draw.Write(writer, false, true);
@@ -97,7 +107,7 @@ namespace MiloLib.Assets.Rnd
 
             if (revision < 9)
             {
-                poll.Write(writer, false);
+                poll.Write(writer, false, parent, entry);
                 Symbol.Write(writer, unkSymbol1);
                 Symbol.Write(writer, unkSymbol2);
             }

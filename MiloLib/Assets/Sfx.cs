@@ -149,7 +149,7 @@ namespace MiloLib.Assets
             return this;
         }
 
-        public override void Write(EndianWriter writer, bool standalone)
+        public override void Write(EndianWriter writer, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
             writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
 
@@ -160,7 +160,7 @@ namespace MiloLib.Assets
             }
             else
             {
-                sequence.Write(writer, false);
+                sequence.Write(writer, false, parent, entry);
             }
 
             writer.WriteUInt32((uint)sfxMaps.Count);
@@ -230,12 +230,12 @@ namespace MiloLib.Assets
                 return this;
             }
 
-            public override void Write(EndianWriter writer, bool standalone)
+            public override void Write(EndianWriter writer, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
             {
                 writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
 
                 if (2 < revision)
-                    base.Write(writer, standalone);
+                    base.Write(writer, standalone, parent, entry);
 
                 writer.WriteFloat(avgVol);
                 writer.WriteFloat(volSpread);

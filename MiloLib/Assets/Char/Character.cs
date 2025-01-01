@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static MiloLib.Assets.DirectoryMeta;
 
 namespace MiloLib.Assets.Char
 {
@@ -69,6 +70,10 @@ namespace MiloLib.Assets.Char
                     }
 
                     writer.WriteUInt32((uint)translucent.Count);
+                    foreach (var trans in translucent)
+                    {
+                        Symbol.Write(writer, trans);
+                    }
                 }
             }
         }
@@ -175,7 +180,6 @@ namespace MiloLib.Assets.Char
 
                 if (revision == 15)
                 {
-                    writer.WriteBoolean(unk4);
                     writer.WriteUInt32(unk5);
                 }
 
@@ -298,11 +302,11 @@ namespace MiloLib.Assets.Char
             return this;
         }
 
-        public override void Write(EndianWriter writer, bool standalone)
+        public override void Write(EndianWriter writer, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry? entry)
         {
             writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
+            base.Write(writer, false, parent, entry);
 
-            base.Write(writer, false);
 
             writer.WriteUInt32((uint)lods.Count);
             foreach (var lod in lods)
@@ -342,6 +346,7 @@ namespace MiloLib.Assets.Char
 
             if (revision > 0x10)
                 Symbol.Write(writer, translucentGroup);
+
 
             charTest.Write(writer);
 

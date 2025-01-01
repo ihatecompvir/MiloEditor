@@ -276,7 +276,7 @@ namespace MiloLib.Assets
             return this;
         }
 
-        public virtual void Write(EndianWriter writer, bool standalone)
+        public virtual void Write(EndianWriter writer, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry? entry)
         {
             objFields.Write(writer);
 

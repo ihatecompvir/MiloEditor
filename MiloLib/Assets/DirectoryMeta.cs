@@ -624,6 +624,9 @@ namespace MiloLib.Assets
 
                         break;
                 }
+
+                if (entry.dir != null)
+                    entry.dir.platform = platform;
             }
 
             return this;
@@ -650,64 +653,64 @@ namespace MiloLib.Assets
             switch (type.value)
             {
                 case "ObjectDir":
-                    ((ObjectDir)directory).Write(writer, true);
+                    ((ObjectDir)directory).Write(writer, true, this, null);
                     break;
                 case "RndDir":
-                    ((RndDir)directory).Write(writer, true);
+                    ((RndDir)directory).Write(writer, true, this, null);
                     break;
                 case "PanelDir":
-                    ((PanelDir)directory).Write(writer, true);
+                    ((PanelDir)directory).Write(writer, true, this, null);
                     break;
                 case "WorldDir":
-                    ((WorldDir)directory).Write(writer, true);
+                    ((WorldDir)directory).Write(writer, true, this, null);
                     break;
                 case "Character":
-                    ((Character)directory).Write(writer, true);
+                    ((Character)directory).Write(writer, true, this, null);
                     break;
                 case "P9Character":
-                    ((P9Character)directory).Write(writer, true);
+                    ((P9Character)directory).Write(writer, true, this, null);
                     break;
                 case "CharClipSet":
-                    ((CharClipSet)directory).Write(writer, true);
+                    ((CharClipSet)directory).Write(writer, true, this, null);
                     break;
                 case "UILabelDir":
-                    ((UILabelDir)directory).Write(writer, true);
+                    ((UILabelDir)directory).Write(writer, true, this, null);
                     break;
                 case "UIListDir":
-                    ((UIListDir)directory).Write(writer, true);
+                    ((UIListDir)directory).Write(writer, true, this, null);
                     break;
                 case "BandCrowdMeterDir":
-                    ((BandCrowdMeterDir)directory).Write(writer, true);
+                    ((BandCrowdMeterDir)directory).Write(writer, true, this, null);
                     break;
                 case "CrowdMeterIcon":
-                    ((CrowdMeterIcon)directory).Write(writer, true);
+                    ((CrowdMeterIcon)directory).Write(writer, true, this, null);
                     break;
                 case "BandCharacter":
-                    ((BandCharacter)directory).Write(writer, true);
+                    ((BandCharacter)directory).Write(writer, true, this, null);
                     break;
                 case "WorldInstance":
-                    ((WorldInstance)directory).Write(writer, true);
+                    ((WorldInstance)directory).Write(writer, true, this, null);
                     break;
                 case "TrackPanelDir":
-                    ((TrackPanelDir)directory).Write(writer, true);
+                    ((TrackPanelDir)directory).Write(writer, true, this, null);
                     break;
                 case "UnisonIcon":
-                    ((UnisonIcon)directory).Write(writer, true);
+                    ((UnisonIcon)directory).Write(writer, true, this, null);
                     break;
                 case "EndingBonusDir":
-                    ((RndDir)directory).Write(writer, true);
+                    ((RndDir)directory).Write(writer, true, this, null);
                     break;
                 case "BandStarDisplay":
-                    ((BandStarDisplay)directory).Write(writer, true);
+                    ((BandStarDisplay)directory).Write(writer, true, this, null);
                     break;
                 case "BandScoreboard":
-                    ((BandScoreboard)directory).Write(writer, true);
+                    ((BandScoreboard)directory).Write(writer, true, this, null);
                     break;
                 case "VocalTrackDir":
-                    ((VocalTrackDir)directory).Write(writer, true);
+                    ((VocalTrackDir)directory).Write(writer, true, this, null);
                     break;
                 case "GemTrackDir":
-                    ((GemTrackDir)directory).Write(writer, true);
+                    ((GemTrackDir)directory).Write(writer, true, this, null);
                     break;
                 default:
                     throw new Exception("Unknown directory type: " + type.value + ", cannot continue writing Milo scene");
@@ -727,94 +730,108 @@ namespace MiloLib.Assets
                 switch (entry.type.value)
                 {
                     case "ObjectDir":
-                        ((ObjectDir)entry.obj).Write(writer, false);
+                        ((ObjectDir)entry.obj).Write(writer, true, this, entry);
+                        entry.dir.Write(writer);
                         break;
                     case "RndDir":
-                        ((RndDir)entry.obj).Write(writer, false);
+                        ((RndDir)entry.obj).Write(writer, true, this, entry);
+                        entry.dir.Write(writer);
                         break;
                     case "PanelDir":
-                        ((PanelDir)entry.obj).Write(writer, false);
+                        ((PanelDir)entry.obj).Write(writer, true, this, entry);
+                        entry.dir.Write(writer);
                         break;
                     case "WorldDir":
-                        ((WorldDir)entry.obj).Write(writer, false);
+                        ((WorldDir)entry.obj).Write(writer, true, this, entry);
+                        entry.dir.Write(writer);
                         break;
                     case "Character":
-                        ((Character)entry.obj).Write(writer, false);
+                        ((Character)entry.obj).Write(writer, true, this, entry);
+                        entry.dir.Write(writer);
                         break;
                     case "P9Character":
-                        ((P9Character)entry.obj).Write(writer, false);
+                        ((P9Character)entry.obj).Write(writer, true, this, entry);
+                        entry.dir.Write(writer);
                         break;
                     case "WorldInstance":
-                        ((WorldInstance)entry.obj).Write(writer, false);
+                        ((WorldInstance)entry.obj).Write(writer, true, this, entry);
+                        entry.dir.Write(writer);
                         break;
                     case "CharClipSet":
-                        ((CharClipSet)entry.obj).Write(writer, false);
+                        ((CharClipSet)entry.obj).Write(writer, true, this, entry);
+                        entry.dir.Write(writer);
                         break;
                     case "UILabelDir":
-                        ((UILabelDir)entry.obj).Write(writer, false);
+                        ((UILabelDir)entry.obj).Write(writer, true, this, entry);
+                        entry.dir.Write(writer);
                         break;
                     case "UIListDir":
-                        ((UIListDir)entry.obj).Write(writer, false);
+                        ((UIListDir)entry.obj).Write(writer, true, this, entry);
+                        entry.dir.Write(writer);
                         break;
                     case "BandCrowdMeterDir":
-                        ((BandCrowdMeterDir)entry.obj).Write(writer, false);
+                        ((BandCrowdMeterDir)entry.obj).Write(writer, true, this, entry);
+                        entry.dir.Write(writer);
                         break;
                     case "UnisonIcon":
-                        ((UnisonIcon)entry.obj).Write(writer, false);
+                        ((UnisonIcon)entry.obj).Write(writer, true, this, entry);
+                        entry.dir.Write(writer);
                         break;
                     case "EndingBonusDir":
-                        ((RndDir)entry.obj).Write(writer, false);
+                        ((RndDir)entry.obj).Write(writer, true, this, entry);
+                        entry.dir.Write(writer);
                         break;
                     case "GemTrackDir":
-                        ((GemTrackDir)entry.obj).Write(writer, false);
+                        ((GemTrackDir)entry.obj).Write(writer, true, this, entry);
+                        entry.dir.Write(writer);
                         break;
                     case "BandSongPref":
-                        ((BandSongPref)entry.obj).Write(writer, true);
+                        ((BandSongPref)entry.obj).Write(writer, true, this, entry);
                         break;
                     case "Sfx":
-                        ((Sfx)entry.obj).Write(writer, true);
+                        ((Sfx)entry.obj).Write(writer, true, this, entry);
                         break;
                     case "BandCharDesc":
-                        ((BandCharDesc)entry.obj).Write(writer, true);
+                        ((BandCharDesc)entry.obj).Write(writer, true, this, entry);
                         break;
                     case "Group":
-                        ((RndGroup)entry.obj).Write(writer, true);
+                        ((RndGroup)entry.obj).Write(writer, true, this, entry);
                         break;
                     case "ColorPalette":
-                        ((ColorPalette)entry.obj).Write(writer, true);
+                        ((ColorPalette)entry.obj).Write(writer, true, this, entry);
                         break;
                     case "Tex":
-                        ((RndTex)entry.obj).Write(writer, true);
+                        ((RndTex)entry.obj).Write(writer, true, this, entry);
                         break;
                     case "Trans":
-                        ((RndTrans)entry.obj).Write(writer, true);
+                        ((RndTrans)entry.obj).Write(writer, true, this, entry);
                         break;
                     case "Light":
-                        ((RndLight)entry.obj).Write(writer, true);
+                        ((RndLight)entry.obj).Write(writer, true, this, entry);
                         break;
                     case "UIColor":
-                        ((UIColor)entry.obj).Write(writer, true);
+                        ((UIColor)entry.obj).Write(writer, true, this, entry);
                         break;
                     case "ParticleSys":
-                        ((RndParticleSys)entry.obj).Write(writer, true);
+                        ((RndParticleSys)entry.obj).Write(writer, true, this, entry);
                         break;
                     case "AnimFilter":
-                        ((RndAnimFilter)entry.obj).Write(writer, true);
+                        ((RndAnimFilter)entry.obj).Write(writer, true, this, entry);
                         break;
                     case "BandPlacer":
-                        ((BandPlacer)entry.obj).Write(writer, true);
+                        ((BandPlacer)entry.obj).Write(writer, true, this, entry);
                         break;
                     case "ScreenMask":
-                        ((RndScreenMask)entry.obj).Write(writer, true);
+                        ((RndScreenMask)entry.obj).Write(writer, true, this, entry);
                         break;
                     case "TexMovie":
-                        ((TexMovie)entry.obj).Write(writer, true);
+                        ((TexMovie)entry.obj).Write(writer, true, this, entry);
                         break;
                     case "Environ":
-                        ((RndEnviron)entry.obj).Write(writer, true);
+                        ((RndEnviron)entry.obj).Write(writer, true, this, entry);
                         break;
                     case "SynthSample":
-                        ((SynthSample)entry.obj).Write(writer, true);
+                        ((SynthSample)entry.obj).Write(writer, true, this, entry);
                         break;
                     //case "Mat":
                     //    ((RndMat)entry.obj).Write(writer, false);
