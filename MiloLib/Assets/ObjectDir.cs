@@ -228,6 +228,7 @@ namespace MiloLib.Assets
                         for (int i = 0; i < inlineSubDirCount; i++)
                         {
                             DirectoryMeta inlineSubDir = new DirectoryMeta();
+                            inlineSubDir.platform = parent.platform;
                             inlineSubDir.Read(reader);
                             inlineSubDirs.Add(inlineSubDir);
                         }

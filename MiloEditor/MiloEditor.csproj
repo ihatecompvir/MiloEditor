@@ -16,15 +16,29 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Images\AnimFilter.png" />
     <None Remove="Images\BandCharDesc.png" />
     <None Remove="Images\BandCrowdMeterDir.png" />
+    <None Remove="Images\BandStarDisplay.png" />
+    <None Remove="Images\Button.png" />
     <None Remove="Images\Camera.png" />
     <None Remove="Images\Character.png" />
+    <None Remove="Images\CharClip.png" />
     <None Remove="Images\ColorPalette.png" />
     <None Remove="Images\default.png" />
+    <None Remove="Images\Environ.png" />
+    <None Remove="Images\FileMerger.png" />
     <None Remove="Images\Font.png" />
+    <None Remove="Images\Group.png" />
+    <None Remove="Images\Line.png" />
+    <None Remove="Images\Lipsync.png" />
+    <None Remove="Images\MatAnim.png" />
+    <None Remove="Images\MeshAnim.png" />
+    <None Remove="Images\MidiInstrument.png" />
     <None Remove="Images\NoDir.png" />
     <None Remove="Images\ObjectDir.png" />
+    <None Remove="Images\ParticleSys.png" />
+    <None Remove="Images\PropAnim.png" />
     <None Remove="Images\RndAnim.png" />
     <None Remove="Images\RndDir.png" />
     <None Remove="Images\RndLight.png" />
@@ -38,15 +52,27 @@
     <None Remove="Images\TexMovie.png" />
     <None Remove="Images\Text.png" />
     <None Remove="Images\TransAnim.png" />
+    <None Remove="Images\TransProxy.png" />
+    <None Remove="Images\Trigger.png" />
     <None Remove="Images\UIColor.png" />
+    <None Remove="Images\UILabel.png" />
     <None Remove="Images\WorldDir.png" />
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="Images\AnimFilter.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Images\BandCharDesc.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Images\BandCrowdMeterDir.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\BandStarDisplay.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\Button.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Images\Camera.png">
@@ -55,16 +81,46 @@
     <Content Include="Images\Character.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Images\CharClip.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Images\ColorPalette.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Images\default.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Images\Environ.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Images\Font.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Images\Group.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\Line.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\Lipsync.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\MatAnim.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\MeshAnim.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\MidiInstrument.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Images\NoDir.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\ParticleSys.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\PropAnim.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Images\RndLight.png">
@@ -109,7 +165,16 @@
     <Content Include="Images\TransAnim.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Images\TransProxy.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\Trigger.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Images\UIColor.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\UILabel.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Images\WorldDir.png">
@@ -124,6 +189,12 @@
 
   <ItemGroup>
     <Content Include="Images\BandSongPref.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Images\FileMerger.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

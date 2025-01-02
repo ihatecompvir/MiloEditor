@@ -45,7 +45,6 @@ namespace MiloEditor
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            // change title of window to "Milo Editor (version)"
             this.Text = "Milo Editor (" + Application.ProductVersion + ")";
 
         }
@@ -57,6 +56,7 @@ namespace MiloEditor
 
         private void LoadAssetClassImages()
         {
+            imageList.ImageSize = new Size(24, 24);
             imageList.Images.Add("default", Image.FromFile("Images/default.png"));
             imageList.Images.Add("ObjectDir", Image.FromFile("Images/ObjectDir.png"));
             imageList.Images.Add("RndDir", Image.FromFile("Images/RndDir.png"));
@@ -64,6 +64,7 @@ namespace MiloEditor
             imageList.Images.Add("BandSongPref", Image.FromFile("Images/BandSongPref.png"));
             imageList.Images.Add("Tex", Image.FromFile("Images/RndTex.png"));
             imageList.Images.Add("TexRenderer", Image.FromFile("Images/RndTex.png"));
+            imageList.Images.Add("Group", Image.FromFile("Images/Group.png"));
             imageList.Images.Add("Mat", Image.FromFile("Images/RndMat.png"));
             imageList.Images.Add("Mesh", Image.FromFile("Images/RndMesh.png"));
             imageList.Images.Add("MultiMesh", Image.FromFile("Images/RndMultiMesh.png"));
@@ -83,7 +84,31 @@ namespace MiloEditor
             imageList.Images.Add("BandCrowdMeterDir", Image.FromFile("Images/BandCrowdMeterDir.png"));
             imageList.Images.Add("Font", Image.FromFile("Images/Font.png"));
             imageList.Images.Add("Text", Image.FromFile("Images/Text.png"));
+            imageList.Images.Add("BandList", Image.FromFile("Images/Text.png"));
             imageList.Images.Add("BandCamShot", Image.FromFile("Images/Camera.png"));
+            imageList.Images.Add("UIColor", Image.FromFile("Images/UIColor.png"));
+            imageList.Images.Add("UILabel", Image.FromFile("Images/UILabel.png"));
+            imageList.Images.Add("BandLabel", Image.FromFile("Images/UILabel.png"));
+            imageList.Images.Add("CharLipSync", Image.FromFile("Images/Lipsync.png"));
+            imageList.Images.Add("UIButton", Image.FromFile("Images/Button.png"));
+            imageList.Images.Add("BandButton", Image.FromFile("Images/Button.png"));
+            imageList.Images.Add("BandStarDisplay", Image.FromFile("Images/BandStarDisplay.png"));
+            imageList.Images.Add("Environ", Image.FromFile("Images/Environ.png"));
+            imageList.Images.Add("PropAnim", Image.FromFile("Images/PropAnim.png"));
+            imageList.Images.Add("MeshAnim", Image.FromFile("Images/PropAnim.png"));
+            imageList.Images.Add("Line", Image.FromFile("Images/Line.png"));
+            imageList.Images.Add("AnimFilter", Image.FromFile("Images/AnimFilter.png"));
+            imageList.Images.Add("UITrigger", Image.FromFile("Images/Trigger.png"));
+            imageList.Images.Add("EventTrigger", Image.FromFile("Images/Trigger.png"));
+            imageList.Images.Add("Cam", Image.FromFile("Images/Camera.png"));
+            imageList.Images.Add("MeshAnim", Image.FromFile("Images/MeshAnim.png"));
+            imageList.Images.Add("ParticleSys", Image.FromFile("Images/ParticleSys.png"));
+            imageList.Images.Add("MatAnim", Image.FromFile("Images/MatAnim.png"));
+            imageList.Images.Add("CharClip", Image.FromFile("Images/CharClip.png"));
+            imageList.Images.Add("CharClipSet", Image.FromFile("Images/CharClip.png"));
+            imageList.Images.Add("MidiInstrument", Image.FromFile("Images/MidiInstrument.png"));
+            imageList.Images.Add("FileMerger", Image.FromFile("Images/FileMerger.png"));
+            imageList.Images.Add("TransProxy", Image.FromFile("Images/TransProxy.png"));
             imageList.Images.Add("", Image.FromFile("Images/NoDir.png"));
 
             imageList.ColorDepth = ColorDepth.Depth32Bit;
@@ -96,10 +121,10 @@ namespace MiloEditor
                 throw new Exception("Tried to populate list with milo scene entries when no Milo scene was loaded!");
             }
 
-            // clear the TreeView of all existing nodes
             miloSceneItemsTree.Nodes.Clear();
 
-            // clear the editor panel
+            miloSceneItemsTree.ShowNodeToolTips = true;
+
             splitContainer1.Panel2.Controls.Clear();
 
             miloSceneItemsTree.ImageList = imageList;
@@ -113,7 +138,8 @@ namespace MiloEditor
 
             TreeNode rootNode = new TreeNode(rootName, GetImageIndex(imageList, currentMiloScene.dirMeta?.type), GetImageIndex(imageList, currentMiloScene.dirMeta?.type))
             {
-                Tag = currentMiloScene.dirMeta
+                Tag = currentMiloScene.dirMeta,
+                ToolTipText = $"{currentMiloScene.dirMeta?.name ?? "<empty name>"} ({currentMiloScene.dirMeta?.type ?? "Unknown"})"
             };
 
             miloSceneItemsTree.Nodes.Add(rootNode);
@@ -121,7 +147,7 @@ namespace MiloEditor
             // Handle inline subdirectories
             if (currentMiloScene.dirMeta != null && currentMiloScene.dirMeta.directory is ObjectDir objDir && objDir.inlineSubDirs.Count > 0)
             {
-                TreeNode inlineSubdirsNode = new TreeNode("Inline Subdirectories", -1, -1);
+                TreeNode inlineSubdirsNode = new TreeNode("Inline Subdirectories", GetImageIndex(imageList, "ObjectDir"), GetImageIndex(imageList, "ObjectDir"));
                 foreach (var subDir in objDir.inlineSubDirs)
                 {
                     AddDirectoryNode(subDir, inlineSubdirsNode);
@@ -148,7 +174,8 @@ namespace MiloEditor
             {
                 TreeNode node = new TreeNode(entry.name.value, GetImageIndex(imageList, entry.type), GetImageIndex(imageList, entry.type))
                 {
-                    Tag = entry
+                    Tag = entry,
+                    ToolTipText = $"{entry.name ?? "<empty name>"} ({entry.type ?? "Unknown"})"
                 };
 
                 if (entry.dir != null)
@@ -164,7 +191,8 @@ namespace MiloEditor
         {
             TreeNode subDirNode = new TreeNode(dirMeta.name.value, GetImageIndex(imageList, dirMeta.type), GetImageIndex(imageList, dirMeta.type))
             {
-                Tag = dirMeta
+                Tag = dirMeta,
+                ToolTipText = $"{dirMeta.name ?? "<empty name>"} ({dirMeta.type ?? "Unknown"})"
             };
 
             //Recursively add entries

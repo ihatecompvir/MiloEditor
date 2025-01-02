@@ -27,13 +27,19 @@ namespace MiloLib.Assets.Rnd
         public uint index2;
 
         [MinVersion(11)]
-        public bool unk;
+        public bool optimizeForPS3;
 
         [Name("Use External Path"), Description("Whether or not to use the external path.")]
         public bool useExternalPath;
 
         [Name("Bitmap"), Description("The bitmap data.")]
         public RndBitmap bitmap = new();
+
+        public ushort unkShort;
+
+        public uint unkInt;
+        public uint unkInt2;
+        public ushort unkShort2;
 
         public RndTex Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
@@ -56,14 +62,31 @@ namespace MiloLib.Assets.Rnd
             index2 = reader.ReadUInt32();
 
             if (revision >= 11)
-                unk = reader.ReadBoolean();
+                optimizeForPS3 = reader.ReadBoolean();
 
             if (revision != 7)
                 useExternalPath = reader.ReadBoolean();
             else
                 useExternalPath = reader.ReadUInt32() == 1;
 
+            if (parent.platform == DirectoryMeta.Platform.Wii && revision > 10)
+                unkShort = reader.ReadUInt16();
+
+            Endian origEndian = reader.Endianness;
+
+            if (parent.platform == DirectoryMeta.Platform.Wii && revision > 10)
+                reader.Endianness = Endian.LittleEndian;
+
             bitmap = new RndBitmap().Read(reader, false, parent, entry);
+
+            reader.Endianness = origEndian;
+
+            if (parent.platform == DirectoryMeta.Platform.Wii && revision > 10)
+            {
+                unkInt = reader.ReadUInt32();
+                unkInt2 = reader.ReadUInt32();
+                unkShort2 = reader.ReadUInt16();
+            }
 
             if (standalone)
             {
@@ -92,12 +115,15 @@ namespace MiloLib.Assets.Rnd
             writer.WriteUInt32(index2);
 
             if (revision >= 11)
-                writer.WriteBoolean(unk);
+                writer.WriteBoolean(optimizeForPS3);
 
             if (revision != 7)
                 writer.WriteBoolean(useExternalPath);
             else
                 writer.WriteUInt32(useExternalPath ? 1u : 0u);
+
+            if (altRevision == 1)
+                writer.WriteUInt16(unkShort);
 
             bitmap.Write(writer, false, parent, entry);
 

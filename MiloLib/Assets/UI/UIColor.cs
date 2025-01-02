@@ -9,10 +9,8 @@ namespace MiloLib.Assets.UI
         public ushort altRevision;
         public ushort revision;
 
-        public float r;
-        public float g;
-        public float b;
-        public float a;
+        [Name("Color")]
+        public HmxColor4 color = new();
 
         public UIColor Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
@@ -27,10 +25,7 @@ namespace MiloLib.Assets.UI
 
             base.objFields.Read(reader, parent, entry);
 
-            r = reader.ReadFloat();
-            g = reader.ReadFloat();
-            b = reader.ReadFloat();
-            a = reader.ReadFloat();
+            color.Read(reader);
 
             if (standalone)
             {
@@ -46,10 +41,7 @@ namespace MiloLib.Assets.UI
 
             base.objFields.Write(writer);
 
-            writer.WriteFloat(r);
-            writer.WriteFloat(g);
-            writer.WriteFloat(b);
-            writer.WriteFloat(a);
+            color.Write(writer);
 
             if (standalone)
             {

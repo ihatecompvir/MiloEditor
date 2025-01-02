@@ -55,11 +55,13 @@ namespace MiloEditor.Panels
             string encodingName = encodingTypeNames.Find(x => x.Item2 == (int)tex.bitmap.encoding).Item1;
 
             dataGridView1.Rows.Add("Texture Encoding", encodingName);
+            dataGridView1.Rows.Add("Number of Mip Maps", tex.bitmap.mipMaps);
 
             bitmapBox.SizeMode = PictureBoxSizeMode.Zoom;
 
             // convert the tex into a DDS and load it into the picturebox
-            LoadDdsIntoPictureBox(tex.bitmap.ConvertToImage(), bitmapBox);
+            if (tex.bitmap.encoding == TextureEncoding.DXT1_BC1 || tex.bitmap.encoding == TextureEncoding.DXT5_BC3 || tex.bitmap.encoding == TextureEncoding.ATI2_BC5)
+                LoadDdsIntoPictureBox(tex.bitmap.ConvertToImage(), bitmapBox);
         }
 
         private void exportButton_Click(object sender, EventArgs e)

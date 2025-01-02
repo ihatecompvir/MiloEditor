@@ -23,7 +23,7 @@ namespace MiloLib.Assets.Rnd
         [Name("Environ"), MinVersion(16)]
         public Symbol environ = new(0, "");
 
-        [Name("Draw Only"), Description("If set, only draws this member of the group"), MinVersion(14)]
+        [Name("Draw Only"), Description("If set, only draws this member of the group"), MinVersion(13)]
         public Symbol drawOnly = new(0, "");
 
         [Name("LOD"), Description("Object to draw instead below lod_screen_size"), MinVersion(12), MaxVersion(15)]
@@ -66,7 +66,7 @@ namespace MiloLib.Assets.Rnd
                 if (revision < 16)
                     environ = Symbol.Read(reader);
 
-                if (revision > 13)
+                if (revision > 12)
                     drawOnly = Symbol.Read(reader);
             }
 

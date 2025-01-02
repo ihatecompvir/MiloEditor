@@ -1,6 +1,7 @@
 ﻿using MiloLib.Utils;
 using MiloLib.Classes;
 using MiloLib.Assets.UI;
+using MiloLib.Assets.Rnd;
 
 namespace MiloLib.Assets
 {
@@ -57,6 +58,13 @@ namespace MiloLib.Assets
         public Symbol hud = new(0, "");
         public Symbol cam = new(0, "");
 
+        public Matrix xfm = new();
+
+        public uint unkInt1;
+        public uint unkInt2;
+
+        public Symbol unkSym = new(0, "");
+
         public WorldDir(ushort revision, ushort altRevision = 0) : base(revision, altRevision)
         {
             revision = revision;
@@ -76,6 +84,12 @@ namespace MiloLib.Assets
                 cam = Symbol.Read(reader);
             }
 
+            if (revision >= 2 && revision <= 20)
+            {
+                unkInt1 = reader.ReadUInt32();
+                unkInt2 = reader.ReadUInt32();
+            }
+
             if (revision > 9)
             {
                 fakeHUDFilename = Symbol.Read(reader);
@@ -83,6 +97,13 @@ namespace MiloLib.Assets
 
             base.Read(reader, false, parent, entry);
 
+            if (revision < 0x19)
+            {
+                if (revision > 0xA)
+                {
+                    xfm = xfm.Read(reader);
+                }
+            }
 
             if (revision > 0xB)
             {
@@ -154,6 +175,11 @@ namespace MiloLib.Assets
                 }
             }
 
+            if (revision == 0x12 || revision == 0x13 || revision == 0x14 || revision == 0x15)
+            {
+                unkSym = Symbol.Read(reader);
+            }
+
             if (revision > 0x12)
             {
                 mTestPreset1 = Symbol.Read(reader);
@@ -184,12 +210,26 @@ namespace MiloLib.Assets
                 Symbol.Write(writer, cam);
             }
 
+            if (revision >= 2 && revision <= 20)
+            {
+                writer.WriteUInt32(unkInt1);
+                writer.WriteUInt32(unkInt2);
+            }
+
             if (revision > 9)
             {
                 Symbol.Write(writer, fakeHUDFilename);
             }
 
             base.Write(writer, false, parent, entry);
+
+            if (revision < 0x19)
+            {
+                if (revision > 0xA)
+                {
+                    xfm.Write(writer);
+                }
+            }
 
             if (revision > 0xB)
             {
@@ -249,6 +289,11 @@ namespace MiloLib.Assets
                 {
                     Symbol.Write(writer, perPixelShow);
                 }
+            }
+
+            if (revision == 0x12 || revision == 0x13 || revision == 0x14 || revision == 0x15)
+            {
+                Symbol.Write(writer, unkSym);
             }
 
             if (revision > 0x12)
