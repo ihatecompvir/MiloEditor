@@ -95,19 +95,31 @@ namespace MiloLib.Assets.Char
             public Symbol distMap = new(0, "");
             public uint transition;
             public bool cycleTransition;
+            public uint internalTransition;
+
+            public uint unk1;
+
+            public bool metronome;
+            public bool zeroTravel;
+            public bool showScreenSize;
+            public bool footExtents;
+            public bool clip2RealTime;
+
+            public bool unkBool;
             public bool unkBool2;
-            public bool unkBool3;
-            public bool unkBool4;
-            public bool unkBool5;
-            public bool unkBool6;
+
+            public uint unk2;
             public uint unk3;
-            public bool unk4;
-            public uint unk5;
-            public uint unk6;
+
             public uint bpm;
+
             public float unkFloat;
+
             public Symbol unkSymbol = new(0, "");
             public Symbol unkSymbol2 = new(0, "");
+            public Symbol unkSymbol3 = new(0, "");
+            public Symbol unkSymbol4 = new(0, "");
+
 
             public CharacterTesting Read(EndianReader reader, DirectoryMeta parent, DirectoryMeta.Entry entry)
             {
@@ -127,33 +139,42 @@ namespace MiloLib.Assets.Char
 
                 transition = reader.ReadUInt32();
                 cycleTransition = reader.ReadBoolean();
-                unk3 = reader.ReadUInt32();
+                internalTransition = reader.ReadUInt32();
 
-                if (revision == 15)
+                if (revision < 10)
                 {
-                    unk5 = reader.ReadUInt32();
+                    unk1 = reader.ReadUInt32();
                 }
 
-                if (revision == 8)
+                metronome = reader.ReadBoolean();
+                zeroTravel = reader.ReadBoolean();
+                showScreenSize = reader.ReadBoolean();
+
+                if (revision < 0xC)
                 {
-
-                    unk6 = reader.ReadUInt32();
-
-                    unkBool2 = reader.ReadBoolean();
-                    unkBool3 = reader.ReadBoolean();
-                    unkBool4 = reader.ReadBoolean();
-
                     unkSymbol = Symbol.Read(reader);
+                }
 
-                    unkBool5 = reader.ReadBoolean();
-                    unkBool6 = reader.ReadBoolean();
+                footExtents = reader.ReadBoolean();
 
+                if (revision < 15)
+                {
+                    clip2RealTime = reader.ReadBoolean();
                     bpm = reader.ReadUInt32();
+                }
 
-                    unkSymbol2 = Symbol.Read(reader);
-
+                if (revision < 14)
+                {
+                    unk2 = reader.ReadUInt32();
                     unkFloat = reader.ReadFloat();
                 }
+
+                // not really sure if this is the exact ranges but RB2 (8) doesn't have this field while TBRB (10) does, and bank5 (14) doesn't again
+                if (revision < 14 && revision > 9)
+                {
+                    unk3 = reader.ReadUInt32();
+                }
+
                 return this;
             }
 
@@ -176,32 +197,42 @@ namespace MiloLib.Assets.Char
 
                 writer.WriteUInt32(transition);
                 writer.WriteBoolean(cycleTransition);
-                writer.WriteUInt32(unk3);
+                writer.WriteUInt32(internalTransition);
 
-                if (revision == 15)
+                if (revision < 10)
                 {
-                    writer.WriteUInt32(unk5);
+                    writer.WriteUInt32(unk1);
                 }
 
-                if (revision == 8)
+                writer.WriteBoolean(metronome);
+                writer.WriteBoolean(zeroTravel);
+                writer.WriteBoolean(showScreenSize);
+
+                if (revision < 0xC)
                 {
-                    writer.WriteUInt32(unk6);
-
-                    writer.WriteBoolean(unkBool2);
-                    writer.WriteBoolean(unkBool3);
-                    writer.WriteBoolean(unkBool4);
-
                     Symbol.Write(writer, unkSymbol);
+                }
 
-                    writer.WriteBoolean(unkBool5);
-                    writer.WriteBoolean(unkBool6);
+                writer.WriteBoolean(footExtents);
 
+                if (revision < 15)
+                {
+                    writer.WriteBoolean(clip2RealTime);
                     writer.WriteUInt32(bpm);
+                }
 
-                    Symbol.Write(writer, unkSymbol2);
-
+                if (revision < 14)
+                {
+                    writer.WriteUInt32(unk2);
                     writer.WriteFloat(unkFloat);
                 }
+
+                // not really sure if this is the exact ranges but RB2 (8) doesn't have this field while TBRB (10) does, and bank5 (14) doesn't again
+                if (revision < 14 && revision > 9)
+                {
+                    writer.WriteUInt32(unk3);
+                }
+
             }
         }
 

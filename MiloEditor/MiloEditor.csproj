@@ -38,6 +38,7 @@
     <None Remove="Images\NoDir.png" />
     <None Remove="Images\ObjectDir.png" />
     <None Remove="Images\ParticleSys.png" />
+    <None Remove="Images\PostProc.png" />
     <None Remove="Images\PropAnim.png" />
     <None Remove="Images\RndAnim.png" />
     <None Remove="Images\RndDir.png" />
@@ -118,6 +119,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Images\ParticleSys.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\PostProc.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Images\PropAnim.png">

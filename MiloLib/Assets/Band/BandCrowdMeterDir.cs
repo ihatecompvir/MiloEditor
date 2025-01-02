@@ -107,26 +107,47 @@ namespace MiloLib.Assets.Band
         {
             writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
 
-            if (revision < 3)
+            if (parent.revision <= 25)
             {
-                writer.WriteUInt32((uint)groups.Count);
-                foreach (var group in groups)
+                writer.WriteUInt32(unkInt);
+                Symbol.Write(writer, warningAnim);
+                Symbol.Write(writer, redAnim);
+                Symbol.Write(writer, yellowAnim);
+                Symbol.Write(writer, greenAnim);
+                Symbol.Write(writer, needleAnim);
+
+                base.Write(writer, false, parent, entry);
+
+                if (standalone)
                 {
-                    Symbol.Write(writer, group);
+                    writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
                 }
+                return;
             }
 
-            if (revision >= 2)
+            if (entry == null)
             {
-                writer.WriteUInt32((uint)colors.Count);
-                foreach (var color in colors)
+                if (revision < 3)
                 {
-                    color.Write(writer);
+                    writer.WriteUInt32((uint)groups.Count);
+                    foreach (var group in groups)
+                    {
+                        Symbol.Write(writer, group);
+                    }
                 }
-            }
 
-            if (revision >= 1)
-                writer.WriteFloat(peakValue);
+                if (revision >= 2)
+                {
+                    writer.WriteUInt32((uint)colors.Count);
+                    foreach (var color in colors)
+                    {
+                        color.Write(writer);
+                    }
+                }
+
+                if (revision >= 1)
+                    writer.WriteFloat(peakValue);
+            }
 
             base.Write(writer, false, parent, entry);
 

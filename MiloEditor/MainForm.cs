@@ -109,6 +109,7 @@ namespace MiloEditor
             imageList.Images.Add("MidiInstrument", Image.FromFile("Images/MidiInstrument.png"));
             imageList.Images.Add("FileMerger", Image.FromFile("Images/FileMerger.png"));
             imageList.Images.Add("TransProxy", Image.FromFile("Images/TransProxy.png"));
+            imageList.Images.Add("PostProc", Image.FromFile("Images/PostProc.png"));
             imageList.Images.Add("", Image.FromFile("Images/NoDir.png"));
 
             imageList.ColorDepth = ColorDepth.Depth32Bit;

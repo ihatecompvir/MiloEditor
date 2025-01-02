@@ -61,7 +61,7 @@ namespace MiloLib.Assets
         public Matrix xfm = new();
 
         public uint unkInt1;
-        public uint unkInt2;
+        public float unkFloat;
 
         public Symbol unkSym = new(0, "");
 
@@ -87,7 +87,7 @@ namespace MiloLib.Assets
             if (revision >= 2 && revision <= 20)
             {
                 unkInt1 = reader.ReadUInt32();
-                unkInt2 = reader.ReadUInt32();
+                unkFloat = reader.ReadFloat();
             }
 
             if (revision > 9)
@@ -213,7 +213,7 @@ namespace MiloLib.Assets
             if (revision >= 2 && revision <= 20)
             {
                 writer.WriteUInt32(unkInt1);
-                writer.WriteUInt32(unkInt2);
+                writer.WriteFloat(unkFloat);
             }
 
             if (revision > 9)
