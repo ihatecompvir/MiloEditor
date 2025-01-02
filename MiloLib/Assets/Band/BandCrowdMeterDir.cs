@@ -70,7 +70,7 @@ namespace MiloLib.Assets.Band
             else
             {
                 // fields only read when dir is not proxied
-                if (!entry.isDir)
+                if (!entry.isEntryInRootDir)
                 {
                     if (revision < 3)
                     {

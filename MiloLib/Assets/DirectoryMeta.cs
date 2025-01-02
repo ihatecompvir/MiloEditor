@@ -1,5 +1,6 @@
 ﻿using MiloLib.Assets.Band;
 using MiloLib.Assets.Char;
+using MiloLib.Assets.Ham;
 using MiloLib.Assets.P9;
 using MiloLib.Assets.Rnd;
 using MiloLib.Assets.UI;
@@ -50,9 +51,9 @@ namespace MiloLib.Assets
             public DirectoryMeta? dir;
 
             /// <summary>
-            /// Whether or not the entry is a directory.
+            /// Whether or not the entry is inside of the root directory. Used to handle writing directories that are entries inside of another directory and not inlined subdirectories.
             /// </summary>
-            public bool isDir;
+            public bool isEntryInRootDir;
 
             /// <summary>
             /// Set when the object has been added or otherwise created through a non-serialized fashion (i.e. as raw bytes)
@@ -292,6 +293,18 @@ namespace MiloLib.Assets
                     vocalTrackDir.Read(reader, true, this, new Entry(type, name, vocalTrackDir));
                     directory = vocalTrackDir;
                     break;
+                case "MoveDir":
+                    Debug.WriteLine("Reading MoveDir " + name.value);
+                    MoveDir moveDir = new MoveDir(0);
+                    moveDir.Read(reader, true, this, new Entry(type, name, moveDir));
+                    directory = moveDir;
+                    break;
+                case "SkeletonDir":
+                    Debug.WriteLine("Reading SkeletonDir " + name.value);
+                    SkeletonDir skeletonDir = new SkeletonDir(0);
+                    skeletonDir.Read(reader, true, this, new Entry(type, name, skeletonDir));
+                    directory = skeletonDir;
+                    break;
                 //case "EndingBonusDir":
                 //    Debug.WriteLine("Reading EndingBonusDir " + name.value);
                 //    EndingBonusDir endingBonusDir = new EndingBonusDir(0);
@@ -340,174 +353,255 @@ namespace MiloLib.Assets
 
                     case "ObjectDir":
                         Debug.WriteLine("Reading entry ObjectDir " + entry.name.value);
-                        entry.isDir = true;
+                        entry.isEntryInRootDir = true;
                         entry.obj = new ObjectDir(0).Read(reader, true, this, entry);
 
-                        entry.dir = new DirectoryMeta().Read(reader);
+                        DirectoryMeta dir = new DirectoryMeta();
+                        dir.platform = platform;
+                        dir.Read(reader);
+                        entry.dir = dir;
                         break;
                     case "EndingBonusDir":
                     case "RndDir":
                         Debug.WriteLine("Reading entry RndDir " + entry.name.value);
-                        entry.isDir = true;
+                        entry.isEntryInRootDir = true;
                         entry.obj = new RndDir(0).Read(reader, true, this, entry);
 
                         if (((ObjectDir)entry.obj).inlineProxy)
                         {
-                            entry.dir = new DirectoryMeta().Read(reader);
+                            dir = new DirectoryMeta();
+                            dir.platform = platform;
+                            dir.Read(reader);
+                            entry.dir = dir;
                         }
                         break;
                     case "UIPanel":
                     case "PanelDir":
                         Debug.WriteLine("Reading entry PanelDir " + entry.name.value);
-                        entry.isDir = true;
+                        entry.isEntryInRootDir = true;
                         entry.obj = new PanelDir(0).Read(reader, true, this, entry);
 
-                        entry.dir = new DirectoryMeta().Read(reader);
+                        dir = new DirectoryMeta();
+                        dir.platform = platform;
+                        dir.Read(reader);
+                        entry.dir = dir;
                         break;
 
                     case "WorldDir":
                         Debug.WriteLine("Reading entry WorldDir " + entry.name.value);
-                        entry.isDir = true;
+                        entry.isEntryInRootDir = true;
                         entry.obj = new WorldDir(0).Read(reader, true, this, entry);
 
-                        entry.dir = new DirectoryMeta().Read(reader);
+                        dir = new DirectoryMeta();
+                        dir.platform = platform;
+                        dir.Read(reader);
+                        entry.dir = dir;
                         break;
 
                     case "Character":
                         Debug.WriteLine("Reading entry Character " + entry.name.value);
-                        entry.isDir = true;
+                        entry.isEntryInRootDir = true;
                         entry.obj = new Character(0).Read(reader, true, this, entry);
 
-                        entry.dir = new DirectoryMeta().Read(reader);
+                        dir = new DirectoryMeta();
+                        dir.platform = platform;
+                        dir.Read(reader);
+                        entry.dir = dir;
                         break;
 
                     case "P9Character":
                         Debug.WriteLine("Reading entry P9Character " + entry.name.value);
-                        entry.isDir = true;
+                        entry.isEntryInRootDir = true;
                         entry.obj = new P9Character(0).Read(reader, true, this, entry);
 
-                        entry.dir = new DirectoryMeta().Read(reader);
+                        dir = new DirectoryMeta();
+                        dir.platform = platform;
+                        dir.Read(reader);
+                        entry.dir = dir;
                         break;
 
                     case "CharClipSet":
                         Debug.WriteLine("Reading entry CharClipSet " + entry.name.value);
-                        entry.isDir = true;
+                        entry.isEntryInRootDir = true;
 
                         // this is unhinged, why'd they do it like this?
                         reader.ReadUInt32();
                         entry.obj = new ObjectDir(0).Read(reader, true, this, entry);
 
-                        entry.dir = new DirectoryMeta().Read(reader);
+                        dir = new DirectoryMeta();
+                        dir.platform = platform;
+                        dir.Read(reader);
+                        entry.dir = dir;
                         break;
 
                     case "CharBoneDir":
                         Debug.WriteLine("Reading entry CharBoneDir " + entry.name.value);
-                        entry.isDir = true;
+                        entry.isEntryInRootDir = true;
                         entry.obj = new CharBoneDir(0).Read(reader, true, this, entry);
 
-                        entry.dir = new DirectoryMeta().Read(reader);
+                        dir = new DirectoryMeta();
+                        dir.platform = platform;
+                        dir.Read(reader);
+                        entry.dir = dir;
                         break;
 
                     case "UIListDir":
                         Debug.WriteLine("Reading entry UIListDir " + entry.name.value);
-                        entry.isDir = true;
+                        entry.isEntryInRootDir = true;
                         entry.obj = new UIListDir(0).Read(reader, true, this, entry);
 
-                        entry.dir = new DirectoryMeta().Read(reader);
+                        dir = new DirectoryMeta();
+                        dir.platform = platform;
+                        dir.Read(reader);
+                        entry.dir = dir;
                         break;
 
                     case "UILabelDir":
                         Debug.WriteLine("Reading entry UILabelDir " + entry.name.value);
-                        entry.isDir = true;
+                        entry.isEntryInRootDir = true;
                         entry.obj = new UILabelDir(0).Read(reader, true, this, entry);
 
-                        entry.dir = new DirectoryMeta().Read(reader);
+                        dir = new DirectoryMeta();
+                        dir.platform = platform;
+                        dir.Read(reader);
+                        entry.dir = dir;
                         break;
 
                     case "BandCrowdMeterDir":
                         Debug.WriteLine("Reading entry BandCrowdMeterDir " + entry.name.value);
-                        entry.isDir = true;
+                        entry.isEntryInRootDir = true;
                         entry.obj = new BandCrowdMeterDir(0).Read(reader, true, this, entry);
 
-                        entry.dir = new DirectoryMeta().Read(reader);
+                        dir = new DirectoryMeta();
+                        dir.platform = platform;
+                        dir.Read(reader);
+                        entry.dir = dir;
                         break;
 
                     case "CrowdMeterIcon":
                         Debug.WriteLine("Reading entry CrowdMeterIcon " + entry.name.value);
-                        entry.isDir = true;
+                        entry.isEntryInRootDir = true;
                         entry.obj = new CrowdMeterIcon(0).Read(reader, true, this, entry);
 
-                        entry.dir = new DirectoryMeta().Read(reader);
+                        dir = new DirectoryMeta();
+                        dir.platform = platform;
+                        dir.Read(reader);
+                        entry.dir = dir;
                         break;
 
                     case "BandCharacter":
                         Debug.WriteLine("Reading entry BandCharacter " + entry.name.value);
-                        entry.isDir = true;
+                        entry.isEntryInRootDir = true;
                         entry.obj = new BandCharacter(0).Read(reader, true, this, entry);
 
-                        entry.dir = new DirectoryMeta().Read(reader);
+                        dir = new DirectoryMeta();
+                        dir.platform = platform;
+                        dir.Read(reader);
+                        entry.dir = dir;
                         break;
 
                     case "WorldInstance":
                         Debug.WriteLine("Reading entry WorldInstance " + entry.name.value);
-                        entry.isDir = true;
+                        entry.isEntryInRootDir = true;
                         entry.obj = new WorldInstance(0).Read(reader, true, this, entry);
 
-                        entry.dir = new DirectoryMeta().Read(reader);
-
+                        dir = new DirectoryMeta();
+                        dir.platform = platform;
+                        dir.Read(reader);
+                        entry.dir = dir;
                         break;
 
                     case "TrackPanelDir":
                         Debug.WriteLine("Reading entry TrackPanelDir " + entry.name.value);
-                        entry.isDir = true;
+                        entry.isEntryInRootDir = true;
                         entry.obj = new TrackPanelDir(0).Read(reader, true, this, entry);
 
-                        entry.dir = new DirectoryMeta().Read(reader);
+                        dir = new DirectoryMeta();
+                        dir.platform = platform;
+                        dir.Read(reader);
+                        entry.dir = dir;
                         break;
 
                     case "UnisonIcon":
                         Debug.WriteLine("Reading entry UnisonIcon " + entry.name.value);
-                        entry.isDir = true;
+                        entry.isEntryInRootDir = true;
                         entry.obj = new UnisonIcon(0).Read(reader, true, this, entry);
 
-                        entry.dir = new DirectoryMeta().Read(reader);
+                        dir = new DirectoryMeta();
+                        dir.platform = platform;
+                        dir.Read(reader);
+                        entry.dir = dir;
                         break;
 
                     case "BandScoreboard":
                         Debug.WriteLine("Reading entry BandScoreboard " + entry.name.value);
-                        entry.isDir = true;
+                        entry.isEntryInRootDir = true;
                         entry.obj = new BandScoreboard(0).Read(reader, true, this, entry);
 
-                        entry.dir = new DirectoryMeta().Read(reader);
+                        dir = new DirectoryMeta();
+                        dir.platform = platform;
+                        dir.Read(reader);
+                        entry.dir = dir;
                         break;
 
                     case "BandStarDisplay":
                         Debug.WriteLine("Reading entry BandStarDisplay " + entry.name.value);
-                        entry.isDir = true;
+                        entry.isEntryInRootDir = true;
                         entry.obj = new BandStarDisplay(0).Read(reader, true, this, entry);
 
-                        entry.dir = new DirectoryMeta().Read(reader);
+                        dir = new DirectoryMeta();
+                        dir.platform = platform;
+                        dir.Read(reader);
+                        entry.dir = dir;
                         break;
 
                     case "VocalTrackDir":
                         Debug.WriteLine("Reading entry VocalTrackDir " + entry.name.value);
-                        entry.isDir = true;
+                        entry.isEntryInRootDir = true;
                         entry.obj = new VocalTrackDir(0).Read(reader, true, this, entry);
 
-                        entry.dir = new DirectoryMeta().Read(reader);
+                        dir = new DirectoryMeta();
+                        dir.platform = platform;
+                        dir.Read(reader);
+                        entry.dir = dir;
                         break;
 
                     case "GemTrackDir":
                         Debug.WriteLine("Reading entry GemTrackDir " + entry.name.value);
-                        entry.isDir = true;
+                        entry.isEntryInRootDir = true;
                         entry.obj = new GemTrackDir(0).Read(reader, true, this, entry);
 
-                        entry.dir = new DirectoryMeta().Read(reader);
+                        dir = new DirectoryMeta();
+                        dir.platform = platform;
+                        dir.Read(reader);
+                        entry.dir = dir;
+                        break;
+
+                    case "MoveDir":
+                        Debug.WriteLine("Reading entry MoveDir " + entry.name.value);
+                        entry.isEntryInRootDir = true;
+                        entry.obj = new MoveDir(0).Read(reader, true, this, entry);
+
+                        dir = new DirectoryMeta();
+                        dir.platform = platform;
+                        dir.Read(reader);
+                        entry.dir = dir;
+                        break;
+
+                    case "SkeletonDir":
+                        Debug.WriteLine("Reading entry SkeletonDir " + entry.name.value);
+                        entry.isEntryInRootDir = true;
+                        entry.obj = new SkeletonDir(0).Read(reader, true, this, entry);
+
+                        dir = new DirectoryMeta();
+                        dir.platform = platform;
+                        dir.Read(reader);
+                        entry.dir = dir;
                         break;
 
                     //case "EndingBonusDir":
                     //    Debug.WriteLine("Reading entry EndingBonusDir " + entry.name.value);
-                    //    entry.isDir = true;
+                    //    entry.isEntryInRootDir = true;
                     //    entry.obj = new RndDir(0).Read(reader, true, this, entry);
                     //
                     //    entry.dir = new DirectoryMeta().Read(reader);
@@ -712,6 +806,12 @@ namespace MiloLib.Assets
                 case "GemTrackDir":
                     ((GemTrackDir)directory).Write(writer, true, this, null);
                     break;
+                case "MoveDir":
+                    ((MoveDir)directory).Write(writer, true, this, null);
+                    break;
+                case "SkeletonDir":
+                    ((SkeletonDir)directory).Write(writer, true, this, null);
+                    break;
                 default:
                     throw new Exception("Unknown directory type: " + type.value + ", cannot continue writing Milo scene");
             }
@@ -731,58 +831,82 @@ namespace MiloLib.Assets
                 {
                     case "ObjectDir":
                         ((ObjectDir)entry.obj).Write(writer, true, this, entry);
+                        entry.isEntryInRootDir = false;
                         entry.dir.Write(writer);
                         break;
                     case "RndDir":
                         ((RndDir)entry.obj).Write(writer, true, this, entry);
+                        entry.isEntryInRootDir = false;
                         entry.dir.Write(writer);
                         break;
                     case "PanelDir":
                         ((PanelDir)entry.obj).Write(writer, true, this, entry);
+                        entry.isEntryInRootDir = false;
                         entry.dir.Write(writer);
                         break;
                     case "WorldDir":
                         ((WorldDir)entry.obj).Write(writer, true, this, entry);
+                        entry.isEntryInRootDir = false;
                         entry.dir.Write(writer);
                         break;
                     case "Character":
                         ((Character)entry.obj).Write(writer, true, this, entry);
+                        entry.isEntryInRootDir = false;
                         entry.dir.Write(writer);
                         break;
                     case "P9Character":
                         ((P9Character)entry.obj).Write(writer, true, this, entry);
+                        entry.isEntryInRootDir = false;
                         entry.dir.Write(writer);
                         break;
                     case "WorldInstance":
                         ((WorldInstance)entry.obj).Write(writer, true, this, entry);
+                        entry.isEntryInRootDir = false;
                         entry.dir.Write(writer);
                         break;
                     case "CharClipSet":
                         ((CharClipSet)entry.obj).Write(writer, true, this, entry);
+                        entry.isEntryInRootDir = false;
                         entry.dir.Write(writer);
                         break;
                     case "UILabelDir":
                         ((UILabelDir)entry.obj).Write(writer, true, this, entry);
+                        entry.isEntryInRootDir = false;
                         entry.dir.Write(writer);
                         break;
                     case "UIListDir":
                         ((UIListDir)entry.obj).Write(writer, true, this, entry);
+                        entry.isEntryInRootDir = false;
                         entry.dir.Write(writer);
                         break;
                     case "BandCrowdMeterDir":
                         ((BandCrowdMeterDir)entry.obj).Write(writer, true, this, entry);
+                        entry.isEntryInRootDir = false;
                         entry.dir.Write(writer);
                         break;
                     case "UnisonIcon":
                         ((UnisonIcon)entry.obj).Write(writer, true, this, entry);
+                        entry.isEntryInRootDir = false;
                         entry.dir.Write(writer);
                         break;
                     case "EndingBonusDir":
                         ((RndDir)entry.obj).Write(writer, true, this, entry);
+                        entry.isEntryInRootDir = false;
                         entry.dir.Write(writer);
                         break;
                     case "GemTrackDir":
                         ((GemTrackDir)entry.obj).Write(writer, true, this, entry);
+                        entry.isEntryInRootDir = false;
+                        entry.dir.Write(writer);
+                        break;
+                    case "MoveDir":
+                        ((MoveDir)entry.obj).Write(writer, true, this, entry);
+                        entry.isEntryInRootDir = false;
+                        entry.dir.Write(writer);
+                        break;
+                    case "SkeletonDir":
+                        ((SkeletonDir)entry.obj).Write(writer, true, this, entry);
+                        entry.isEntryInRootDir = false;
                         entry.dir.Write(writer);
                         break;
                     case "BandSongPref":

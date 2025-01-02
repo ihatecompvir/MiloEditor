@@ -245,7 +245,7 @@ namespace MiloLib.Assets.Char
             base.Read(reader, false, parent, entry);
 
             // these fields only present if dir is not proxied
-            if (revision < 4 || !entry.isDir)
+            if (revision < 4 || !entry.isEntryInRootDir)
             {
                 lodCount = reader.ReadUInt32();
                 for (int i = 0; i < lodCount; i++)

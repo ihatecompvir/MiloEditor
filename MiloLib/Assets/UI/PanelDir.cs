@@ -47,7 +47,7 @@ namespace MiloLib.Assets.UI
             base.Read(reader, false, parent, entry);
 
             // if this is not an entry inside another directory (as in, not an inlined subdir), read the camera
-            if (!entry.isDir)
+            if (!entry.isEntryInRootDir)
             {
                 if (revision != 0)
                     cam = Symbol.Read(reader);

@@ -25,7 +25,7 @@ namespace MiloLib.Assets.Band
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)(combinedRevision >> 16 & 0xFFFF));
             else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)(combinedRevision >> 16 & 0xFFFF));
 
-            if (!entry.isDir)
+            if (!entry.isEntryInRootDir)
             {
                 sym = Symbol.Read(reader);
             }

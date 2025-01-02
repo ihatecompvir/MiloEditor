@@ -256,7 +256,7 @@ namespace MiloLib.Assets
             if (entry.type.value == "WorldInstance")
             {
                 reader.ReadBoolean();
-                if (entry.isDir)
+                if (entry.isEntryInRootDir)
                     return this;
             }
 
