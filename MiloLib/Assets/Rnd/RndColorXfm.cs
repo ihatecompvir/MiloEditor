@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace MiloLib.Assets.Rnd
 {
-    public class ColorXfm
+    public class RndColorXfm
     {
         private ushort altRevision;
         private ushort revision;
@@ -29,7 +29,7 @@ namespace MiloLib.Assets.Rnd
         public HmxColor4 levelOutLo = new HmxColor4();
         public HmxColor4 levelOutHi = new HmxColor4();
 
-        public ColorXfm Read(EndianReader reader)
+        public RndColorXfm Read(EndianReader reader)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));

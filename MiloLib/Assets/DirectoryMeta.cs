@@ -699,6 +699,10 @@ namespace MiloLib.Assets
                         Debug.WriteLine("Reading entry SynthSample " + entry.name.value);
                         entry.obj = new SynthSample().Read(reader, true, this, entry);
                         break;
+                    case "Cam":
+                        Debug.WriteLine("Reading entry Cam " + entry.name.value);
+                        entry.obj = new RndCam().Read(reader, true, this, entry);
+                        break;
                     //case "Mesh":
                     //    Debug.WriteLine("Reading entry Mesh " + entry.name.value);
                     //    entry.obj = new RndMesh().Read(reader, true, this, entry);

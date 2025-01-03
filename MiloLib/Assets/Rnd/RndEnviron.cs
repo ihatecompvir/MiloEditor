@@ -77,7 +77,7 @@ namespace MiloLib.Assets.Rnd
         [Name("Use Color Adjust"), Description("Enable color adjust"), MinVersion(8)]
         public bool useColorAdjust;
         [MinVersion(8)]
-        public ColorXfm colorAdjust = new();
+        public RndColorXfm colorAdjust = new();
 
         [Name("Ambient Occlusion Strength"), Description("Strength of the ambient occlusion effect"), MinVersion(10)]
         public float aoStrength;

@@ -111,7 +111,7 @@ public class EditorPanel : Panel
                 Dock = DockStyle.Top,
                 TextAlign = ContentAlignment.MiddleCenter,
                 Padding = new Padding(5),
-                Height = 25,
+                Height = 35,
                 AutoEllipsis = false
             };
             labels.DescriptionLabel = new Label
@@ -250,8 +250,8 @@ public class EditorPanel : Panel
                         AutoEllipsis = true,
                         ForeColor = Color.Gray,
                         Dock = DockStyle.Top,
-                        Height = 30,
-                        TextAlign = ContentAlignment.MiddleLeft
+                        Height = 75,
+                        TextAlign = ContentAlignment.TopLeft,
                     };
                     labelPanel.Controls.Add(descLabel);
                 }
