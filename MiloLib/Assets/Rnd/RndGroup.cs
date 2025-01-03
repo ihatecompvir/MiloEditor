@@ -6,8 +6,8 @@ namespace MiloLib.Assets.Rnd
     [Name("Group"), Description("Represents a group of objects to which to propogate animation and messages.")]
     public class RndGroup : Object
     {
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
 
         public RndAnimatable anim = new();
 
@@ -122,7 +122,7 @@ namespace MiloLib.Assets.Rnd
 
             if (revision > 10)
             {
-                writer.WriteUInt32(objectsCount);
+                writer.WriteUInt32((uint)objects.Count);
 
                 foreach (var obj in objects)
                 {

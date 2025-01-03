@@ -6,8 +6,8 @@ namespace MiloLib.Assets.Rnd
     [Name("Environ"), Description("An environment object is drawable. When drawn it sets up dynamic lighting and fogging for subsequently drawn siblings.")]
     public class RndEnviron : Object
     {
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
 
         [MinVersion(0), MaxVersion(2)]
         public RndDrawable draw = new();

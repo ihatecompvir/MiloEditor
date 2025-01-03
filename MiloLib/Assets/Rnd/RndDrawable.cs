@@ -18,8 +18,8 @@ namespace MiloLib.Assets.Rnd
             kOverrideIncludeInDepthOnlyPass_DontInclude
         }
 
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
 
         [Name("Showing"), Description("Whether the object and its Draw children are drawn or collided with.")]
         public bool showing = true;
@@ -36,6 +36,7 @@ namespace MiloLib.Assets.Rnd
         private uint drawableCount;
         [Name("Drawables"), MaxVersion(1)]
         public List<Symbol> drawables = new();
+        [Name("Drawables Null Terminated"), MaxVersion(1)]
         public List<string> drawablesNullTerminated = new();
 
         public RndDrawable Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)

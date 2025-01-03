@@ -7,8 +7,8 @@ namespace MiloLib.Assets.Rnd
     [Name("RndParticleSys"), Description("A particle system")]
     public class RndParticleSys : Object
     {
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
 
         [MinVersion(23)]
         public ObjectFields obj1 = new();

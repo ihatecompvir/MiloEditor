@@ -6,8 +6,8 @@ namespace MiloLib.Assets.Rnd
     [Name("PostProc"), Description("A PostProc drives post-processing effects.")]
     public class RndPostProc : Object
     {
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
 
         public RndPostProc Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {

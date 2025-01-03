@@ -125,7 +125,7 @@ namespace MiloLib.Assets.Band
                 return;
             }
 
-            if (entry == null)
+            if (!entry.isEntryInRootDir)
             {
                 if (revision < 3)
                 {

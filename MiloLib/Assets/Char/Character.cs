@@ -13,11 +13,13 @@ namespace MiloLib.Assets.Char
     [Name("Character"), Description("Base class for Character objects. Contains Geometry, Outfit Loaders, and LOD + Sphere concepts.")]
     public class Character : RndDir
     {
-
         public class LOD
         {
             public float screenSize;
+
+            [Name("Group"), Description("group to show at this LOD.  Drawables not in any lod group will be drawn at every LOD")]
             public Symbol group = new(0, "");
+            [Name("Transparency Group"), Description("translucency group to show at this LOD.  Drawables in it are guaranteed to be drawn last.")]
             public Symbol transGroup = new(0, "");
 
             private uint opaqueCount;
@@ -80,8 +82,8 @@ namespace MiloLib.Assets.Char
 
         public class CharacterTesting
         {
-            public ushort altRevision;
-            public ushort revision;
+            private ushort altRevision;
+            private ushort revision;
             [Name("Driver"), Description("The driver to animate")]
             public Symbol driver = new(0, "");
             [Name("Clip 1"), Description("Clip to play")]
@@ -93,32 +95,41 @@ namespace MiloLib.Assets.Char
             public Symbol teleportFrom = new(0, "");
             [Name("Distance Map"), Description("Displays the transition distance map between clip1 and clip2, raw means the raw graph, no nodes")]
             public Symbol distMap = new(0, "");
+            [Name("Transition"), Description("Which transition to use between clip1 and clip2")]
             public uint transition;
+            [Name("Cycle Transition"), Description("Cycle through all the transitions")]
             public bool cycleTransition;
+            [Name("Internal Transition")]
             public uint internalTransition;
 
+            [MaxVersion(9)]
             public uint unk1;
 
+            [Name("Metronome"), Description("Click on every beat transition")]
             public bool metronome;
+            [Name("Zero Travel"), Description("Character does not travel, constantly zeros out position and facing")]
             public bool zeroTravel;
+            [Name("Show Screen Size"), Description("graphically displays the screensize and lod next to the character")]
             public bool showScreenSize;
             public bool footExtents;
+
+            [MaxVersion(0xD)]
             public bool clip2RealTime;
 
-            public bool unkBool;
-            public bool unkBool2;
-
+            [MaxVersion(13)]
             public uint unk2;
+
+            [MaxVersion(13), MinVersion(10)]
             public uint unk3;
 
+            [MaxVersion(0xD)]
             public uint bpm;
 
+            [MaxVersion(13)]
             public float unkFloat;
 
+            [MaxVersion(0xB)]
             public Symbol unkSymbol = new(0, "");
-            public Symbol unkSymbol2 = new(0, "");
-            public Symbol unkSymbol3 = new(0, "");
-            public Symbol unkSymbol4 = new(0, "");
 
 
             public CharacterTesting Read(EndianReader reader, DirectoryMeta parent, DirectoryMeta.Entry entry)
@@ -236,28 +247,36 @@ namespace MiloLib.Assets.Char
             }
         }
 
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
 
         private uint lodCount;
+        [Name("LODs"), Description("List of LODs for the character")]
         public List<LOD> lods = new();
 
         private uint shadowCount;
+        [Name("Shadows"), Description("Group containing shadow geometry")]
         public List<Symbol> shadows = new();
 
+        [Name("Self Shadow"), Description("Whether this character should be self-shadowed."), MinVersion(3)]
         public bool selfShadow;
 
+        [Name("Sphere Base"), Description("Base for bounding sphere, such as bone_pelvis.mesh"), MinVersion(5)]
         public Symbol sphereBase = new(0, "");
 
+        [Name("Bounding Sphere"), Description("bounding sphere for the character, fixed"), MinVersion(11)]
         public Sphere bounding = new();
 
+        [Name("Frozen"), Description("if true, is frozen in place, no polling happens"), MinVersion(0xD)]
         public bool frozen;
 
-        [Name("Minimum LOD"), Description("Forces LOD, kLODPerFrame is normal behavior of picking per frame, the others force the lod (0 is highest res lod, 2 is lowest res lod)")]
+        [Name("Minimum LOD"), Description("Forces LOD, kLODPerFrame is normal behavior of picking per frame, the others force the lod (0 is highest res lod, 2 is lowest res lod)"), MinVersion(0xF)]
         public int minLod;
 
+        [Name("Translucency Group"), Description("translucency group to show independent of lod.  Drawables in it are guaranteed to be drawn last."), MinVersion(0x11)]
         public Symbol translucentGroup = new(0, "");
 
+        [Name("Character Test"), Description("Test Character by animating it")]
         public CharacterTesting charTest = new();
 
         public Character(ushort revision, ushort altRevision = 0) : base(revision, altRevision)
@@ -286,7 +305,7 @@ namespace MiloLib.Assets.Char
                     lods.Add(lod);
                 }
 
-                if (revision < 18)
+                if (revision < 17)
                 {
                     shadowCount = 1;
                     shadows.Add(Symbol.Read(reader));
@@ -339,47 +358,52 @@ namespace MiloLib.Assets.Char
             base.Write(writer, false, parent, entry);
 
 
-            writer.WriteUInt32((uint)lods.Count);
-            foreach (var lod in lods)
+            if (revision < 4 || !entry.isEntryInRootDir)
             {
-                lod.Write(writer, revision);
-            }
-
-            if (revision < 18)
-            {
-                Symbol.Write(writer, shadows[0]);
-            }
-            else
-            {
-                writer.WriteUInt32((uint)shadows.Count);
-                foreach (var shadow in shadows)
+                writer.WriteUInt32((uint)lods.Count);
+                foreach (var lod in lods)
                 {
-                    Symbol.Write(writer, shadow);
+                    lod.Write(writer, revision);
                 }
+
+                if (revision < 17)
+                {
+                    Symbol.Write(writer, shadows[0]);
+                }
+                else
+                {
+                    writer.WriteUInt32((uint)shadows.Count);
+                    foreach (var shadow in shadows)
+                    {
+                        Symbol.Write(writer, shadow);
+                    }
+                }
+
+                if (revision > 2)
+                    writer.WriteBoolean(selfShadow);
+
+                if (revision > 4)
+                    Symbol.Write(writer, sphereBase);
+
+                if (revision <= 9)
+                    return;
+
+                if (revision > 10)
+                    bounding.Write(writer);
+
+                if (revision > 0xC)
+                    writer.WriteBoolean(frozen);
+
+                if (revision > 0xE)
+                    writer.WriteInt32(minLod);
+
+                if (revision > 0x10)
+                    Symbol.Write(writer, translucentGroup);
             }
-
-            if (revision > 2)
-                writer.WriteBoolean(selfShadow);
-
-            Symbol.Write(writer, sphereBase);
-
-            if (revision <= 9)
-                return;
-
-            if (revision > 10)
-                bounding.Write(writer);
-
-            if (revision > 0xC)
-                writer.WriteBoolean(frozen);
-
-            if (revision > 0xE)
-                writer.WriteInt32(minLod);
-
-            if (revision > 0x10)
-                Symbol.Write(writer, translucentGroup);
 
 
             charTest.Write(writer);
+
 
             if (standalone)
                 writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });

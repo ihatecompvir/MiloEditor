@@ -56,8 +56,8 @@ namespace MiloLib.Assets.Char
             }
         }
 
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
 
         [Name("Move Context"), Description("context in which character should move itself around via bone_facing.pos and bone_facing.rotz bones")]
         public uint moveContext;

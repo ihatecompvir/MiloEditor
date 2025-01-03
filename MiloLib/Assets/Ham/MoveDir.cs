@@ -6,8 +6,8 @@ namespace MiloLib.Assets.Ham
     [Name("MoveDir"), Description("Dir for HamMoves, contains debugging functionality")]
     public class MoveDir : SkeletonDir
     {
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
 
         public uint unkInt1;
         public uint unkInt2;
@@ -54,7 +54,7 @@ namespace MiloLib.Assets.Ham
 
             base.Write(writer, false, parent, entry);
 
-            if (entry == null)
+            if (entry != null && !entry.isEntryInRootDir)
             {
                 writer.WriteUInt32(unkInt1);
                 writer.WriteUInt32(unkInt2);

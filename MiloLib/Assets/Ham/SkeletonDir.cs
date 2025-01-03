@@ -7,8 +7,8 @@ namespace MiloLib.Assets.Ham
     [Name("SkeletonDir"), Description("Dir with skeleton tracking/debugging functionality")]
     public class SkeletonDir : PanelDir
     {
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
 
         public Symbol unknownSym = new(0, "");
 
@@ -81,7 +81,7 @@ namespace MiloLib.Assets.Ham
 
             base.Write(writer, false, parent, entry);
 
-            if (entry == null)
+            if (entry != null && !entry.isEntryInRootDir)
             {
 
                 Symbol.Write(writer, unknownSym);

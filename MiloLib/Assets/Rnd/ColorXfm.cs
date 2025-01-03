@@ -10,8 +10,8 @@ namespace MiloLib.Assets.Rnd
 {
     public class ColorXfm
     {
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
 
         public HmxColor3 color1 = new HmxColor3();
         public HmxColor3 color2 = new HmxColor3();

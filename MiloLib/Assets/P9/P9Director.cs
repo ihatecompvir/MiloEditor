@@ -7,8 +7,8 @@ namespace MiloLib.Assets.P9
     [Name("P9 Director"), Description("P9 Director, sits in each song file and manages camera + scene changes")]
     public class P9Director : Object
     {
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
 
         public ObjectFields objFields1 = new();
         public ObjectFields objFields2 = new();

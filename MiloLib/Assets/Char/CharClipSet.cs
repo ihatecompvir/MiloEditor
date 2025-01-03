@@ -42,8 +42,8 @@ namespace MiloLib.Assets.Char
             return;
         }
 
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
 
         [Name("Character File Path"), Description("Preview base character to use- for example, char/male/male_guitar.milo for male guitarist"), MinVersion(18)]
         public Symbol charFilePath = new(0, "");

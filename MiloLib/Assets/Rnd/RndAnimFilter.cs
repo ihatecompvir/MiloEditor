@@ -15,8 +15,8 @@ namespace MiloLib.Assets.Rnd
             kAnimShuttle
         }
 
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
 
         public RndAnimatable anim = new();
 

@@ -359,8 +359,6 @@ namespace MiloEditor
             // create a new directory
             DirectoryMeta newDir = DirectoryMeta.New("ObjectDir", newDirName, 27, 25);
 
-            ((ObjectDir)newDir.directory).inlineSubDir = true;
-
             // add the new directory to the parent directory and set the reference type
             dir.inlineSubDirs.Add(newDir);
             dir.inlineSubDirNames.Add($"{newDirName}.milo");

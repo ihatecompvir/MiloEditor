@@ -7,12 +7,107 @@ namespace MiloLib.Assets
     [Name("WorldInstance"), Description("")]
     public class WorldInstance : RndDir
     {
+
+        // WHY
+        [Name("Persistent Objects")]
+        public class PersistentObjects
+        {
+            public byte[] empty = new byte[9];
+
+            public RndAnimatable anim = new RndAnimatable();
+            public RndDrawable draw = new RndDrawable();
+            public RndTrans trans = new RndTrans();
+
+            public Symbol environ = new(0, "");
+            public Symbol unkSym = new(0, "");
+            public uint unkInt3;
+
+            public uint stringTableCount; // maybe? seems right
+            public uint stringTableSize; // maybe? seems right
+
+            private uint objectCount;
+            private List<DirectoryMeta.Entry> objects = new(); // the list of objects
+
+
+            public PersistentObjects Read(EndianReader reader, DirectoryMeta parent, DirectoryMeta.Entry entry)
+            {
+                empty = reader.ReadBlock(13);
+
+                anim = anim.Read(reader, parent, entry);
+                draw = draw.Read(reader, false, parent, entry);
+                trans = trans.Read(reader, false, parent, entry);
+
+                environ = Symbol.Read(reader);
+                unkSym = Symbol.Read(reader);
+
+                stringTableCount = reader.ReadUInt32();
+                stringTableSize = reader.ReadUInt32();
+
+                objectCount = reader.ReadUInt32();
+                for (int i = 0; i < objectCount; i++)
+                {
+                    objects.Add(new DirectoryMeta.Entry(Symbol.Read(reader).value, Symbol.Read(reader).value, null));
+                }
+
+                for (int i = 0; i < objectCount; i++)
+                {
+                    switch (objects[i].type.value)
+                    {
+                        case "Mesh":
+                            objects[i].obj = new RndMesh().Read(reader, false, parent, objects[i]);
+                            break;
+                        default:
+                            throw new Exception("Unknown object type " + objects[i].type.value + " in WorldInstance PersistentObjects");
+                    }
+                }
+                if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of persistent objects but didn't find the expected end bytes, read likely did not succeed");
+
+                return this;
+            }
+
+            public void Write(EndianWriter writer, DirectoryMeta parent, DirectoryMeta.Entry? entry)
+            {
+                writer.WriteBlock(new byte[13]);
+
+                anim.Write(writer);
+                draw.Write(writer, false, true);
+                trans.Write(writer, false, true);
+
+                Symbol.Write(writer, environ);
+                Symbol.Write(writer, unkSym);
+
+                writer.WriteUInt32(stringTableCount);
+                writer.WriteUInt32(stringTableSize);
+
+                writer.WriteUInt32((uint)objects.Count);
+
+                for (int i = 0; i < objectCount; i++)
+                {
+                    Symbol.Write(writer, objects[i].type);
+                    Symbol.Write(writer, objects[i].name);
+                }
+
+                for (int i = 0; i < objectCount; i++)
+                {
+                    switch (objects[i].type.value)
+                    {
+                        case "Mesh":
+                            ((RndMesh)objects[i].obj).Write(writer, false, parent, objects[i]);
+                            break;
+                    }
+                }
+
+                writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
+            }
+        }
         public ushort altRevision;
         public ushort revision;
 
         public Symbol filePath = new(0, "");
 
         public Symbol dir = new(0, "");
+
+        public PersistentObjects persistentObjects = new();
 
 
         public WorldInstance(ushort revision, ushort altRevision = 0) : base(revision, altRevision)
@@ -24,6 +119,7 @@ namespace MiloLib.Assets
 
         public WorldInstance Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
+
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
             else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
@@ -60,7 +156,7 @@ namespace MiloLib.Assets
 
             base.Write(writer, false, parent, entry);
 
-            if (standalone)
+            if (standalone && !entry.isEntryInRootDir)
                 writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
         }
 

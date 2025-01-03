@@ -28,6 +28,9 @@ public class EditorPanel : Panel
     // Cache for UI Elements
     private static Dictionary<Type, (Label NameLabel, Label DescriptionLabel)> _uiElementCache = new Dictionary<Type, (Label, Label)>();
 
+    private RndTexEditor bitmapEditor = new RndTexEditor(null);
+    private SymbolListEditor symbolListEditor = new SymbolListEditor();
+
     public EditorPanel(object target, uint objRevision, bool drawTypeLabels = true)
     {
         this.revision = objRevision;
@@ -155,9 +158,8 @@ public class EditorPanel : Panel
         // custom editors for certain assets
         if (objType == typeof(RndTex))
         {
-            RndTexEditor bitmapEditor = new((RndTex)obj);
+            bitmapEditor.SetTexture(obj as RndTex);
             bitmapEditor.Dock = DockStyle.Fill;
-            //bitmapEditor.RndTex = (RndTex)obj;
             this.Controls.Add(bitmapEditor);
             return;
         }
@@ -302,6 +304,12 @@ public class EditorPanel : Panel
                         };
 
                         inputControl = byteListPanel;
+                        break;
+                    case List<Symbol> symbolsValue:
+                        symbolListEditor.SetSymbols(symbolsValue);
+                        symbolListEditor.Dock = DockStyle.Fill;
+
+                        inputControl = symbolListEditor;
                         break;
                     // generic, view only collections
                     // all objects get cased ToString to be displayed

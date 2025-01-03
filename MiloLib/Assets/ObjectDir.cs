@@ -11,7 +11,7 @@ namespace MiloLib.Assets
     [Name("ObjectDir"), Description("An ObjectDir keeps track of a set of Objects. It can subdir or proxy in other ObjectDirs. To rename subdir or proxy files search for remap_objectdirs in system/run/config/objects.dta")]
     public class ObjectDir : Object
     {
-        public enum ReferenceType
+        public enum ReferenceType : byte
         {
             kInlineNever = 0,
             kInlineCached = 1,
@@ -19,8 +19,8 @@ namespace MiloLib.Assets
             kInlineCachedShared = 3
         }
 
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
 
         [Name("Viewport Count"), Description("The number of viewports."), MinVersion(2)]
         private uint viewportCount;
@@ -44,7 +44,7 @@ namespace MiloLib.Assets
         public List<Symbol> subDirs = new List<Symbol>();
 
         [Name("Inline Sub Directory"), Description("How is this inlined as a subdir? Note that when you change this, you must resave everything subdiring this file for it to take effect"), MinVersion(21)]
-        public bool inlineSubDir;
+        public ReferenceType inlineSubDir;
 
         [Name("Inline Sub Directory Count"), Description("The number of inlined subdirectories in the directory."), MinVersion(21)]
         private uint inlineSubDirCount;
@@ -81,6 +81,10 @@ namespace MiloLib.Assets
 
         [Name("Unknown String 5"), MinVersion(16), MaxVersion(18)]
         public Symbol unknownString5 = new(0, "");
+
+        // this shouldn't be under ObjectDir
+        // TODO: Put this under WorldInstance where it belongs
+        public bool hasPersistentObjects = false;
 
         public ObjectDir(ushort revision, ushort altRevision = 0)
         {
@@ -193,7 +197,7 @@ namespace MiloLib.Assets
 
                 if (revision >= 21)
                 {
-                    inlineSubDir = reader.ReadBoolean();
+                    inlineSubDir = (ReferenceType)reader.ReadByte();
                     inlineSubDirCount = reader.ReadUInt32();
 
                     // sanity check, there should be no more than 100 inlined subdirs
@@ -227,10 +231,14 @@ namespace MiloLib.Assets
 
                         for (int i = 0; i < inlineSubDirCount; i++)
                         {
-                            DirectoryMeta inlineSubDir = new DirectoryMeta();
-                            inlineSubDir.platform = parent.platform;
-                            inlineSubDir.Read(reader);
-                            inlineSubDirs.Add(inlineSubDir);
+                            DirectoryMeta inlinedSubDir = new DirectoryMeta();
+                            inlinedSubDir.platform = parent.platform;
+                            if (referenceTypes[0] == ReferenceType.kInlineCached && referenceTypesAlt[0] == ReferenceType.kInlineCached)
+                            {
+                                reader.ReadBoolean();
+                            }
+                            inlinedSubDir.Read(reader);
+                            inlineSubDirs.Add(inlinedSubDir);
                         }
 
                     }
@@ -255,7 +263,7 @@ namespace MiloLib.Assets
 
             if (entry.type.value == "WorldInstance")
             {
-                reader.ReadBoolean();
+                hasPersistentObjects = reader.ReadBoolean();
                 if (entry.isEntryInRootDir)
                     return this;
             }
@@ -360,7 +368,7 @@ namespace MiloLib.Assets
 
                 if (revision >= 21)
                 {
-                    writer.WriteBoolean(inlineSubDir);
+                    writer.WriteByte((byte)inlineSubDir);
                     writer.WriteUInt32((uint)inlineSubDirs.Count);
                     foreach (var inlineSubDirName in inlineSubDirNames)
                     {
@@ -380,8 +388,13 @@ namespace MiloLib.Assets
                         }
                     }
 
+
                     foreach (var inlineSubDir in inlineSubDirs)
                     {
+                        if (referenceTypes[0] == ReferenceType.kInlineCached && referenceTypesAlt[0] == ReferenceType.kInlineCached)
+                        {
+                            writer.WriteBoolean(false);
+                        }
                         inlineSubDir.Write(writer);
                     }
                 }
@@ -400,6 +413,13 @@ namespace MiloLib.Assets
                 {
                     Symbol.Write(writer, unknownString5);
                 }
+            }
+
+            if (entry.type.value == "WorldInstance")
+            {
+                writer.WriteBoolean(hasPersistentObjects);
+                if (entry.isEntryInRootDir)
+                    return;
             }
 
             Symbol.Write(writer, unknownString);

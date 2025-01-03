@@ -7,8 +7,8 @@ namespace MiloLib.Assets.UI
     [Name("PanelDir"), Description("Top-level UI Object, contains UI components and an optional camera")]
     public class PanelDir : RndDir
     {
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
         [Name("Camera"), Description("Camera to use in game, else standard UI cam")]
         public Symbol cam = new(0, "");
 
@@ -109,7 +109,7 @@ namespace MiloLib.Assets.UI
 
             base.Write(writer, false, parent, entry);
 
-            if (entry == null)
+            if (!entry.isEntryInRootDir)
             {
                 if (revision != 0)
                     Symbol.Write(writer, cam);

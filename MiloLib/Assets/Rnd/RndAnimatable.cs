@@ -36,8 +36,8 @@ namespace MiloLib.Assets.Rnd
             k30_fps_tutorial
         }
 
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
 
         [Name("Frame"), Description("Frame of animation"), MinVersion(2)]
         public float frame;
@@ -46,9 +46,11 @@ namespace MiloLib.Assets.Rnd
         public Rate rate;
 
         private uint animEntryCount;
+        [Name("Anim Entries"), Description("List of animation entries"), MaxVersion(1)]
         public List<AnimEntry> animEntries = new();
 
         private uint animCount;
+        [Name("Anims"), Description("List of animations"), MaxVersion(1)]
         public List<Symbol> anims = new();
 
         public RndAnimatable Read(EndianReader reader, DirectoryMeta parent, DirectoryMeta.Entry entry)

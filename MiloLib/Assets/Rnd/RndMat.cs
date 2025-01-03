@@ -160,8 +160,8 @@ namespace MiloLib.Assets.Rnd
             kColorModNum = 3
         }
 
-        public ushort altRevision;
-        public ushort revision; // constant for revision 68
+        private ushort altRevision;
+        private ushort revision; // constant for revision 68
 
         [Name("Base Color"), Description("Base material color")]
         public HmxColor4 mColor = new HmxColor4(1f, 1f, 1f, 1f);

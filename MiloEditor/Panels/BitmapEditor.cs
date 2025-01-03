@@ -41,6 +41,11 @@ namespace MiloEditor.Panels
 
         private void RndTexEditor_Load(object sender, EventArgs e)
         {
+
+            dataGridView1.Columns.Clear();
+            dataGridView1.Rows.Clear();
+
+
             dataGridView1.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Field", Name = "fieldColumn", AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells });
             dataGridView1.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Info", Name = "infoColumn", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
 
@@ -129,7 +134,36 @@ namespace MiloEditor.Panels
         }
 
 
+        public void SetTexture(RndTex newTex)
+        {
+            tex = newTex;
 
+            dataGridView1.Columns.Clear();
+            dataGridView1.Rows.Clear();
+
+            dataGridView1.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Field", Name = "fieldColumn", AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells });
+            dataGridView1.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Info", Name = "infoColumn", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
+
+            dataGridView1.Rows.Add("Width", tex.width);
+            dataGridView1.Rows.Add("Height", tex.height);
+
+            dataGridView1.Rows.Add("BPP", tex.bpp);
+
+            dataGridView1.Rows.Add("Uses External Path", tex.useExternalPath);
+            dataGridView1.Rows.Add("External Path", tex.externalPath);
+
+            string encodingName = encodingTypeNames.Find(x => x.Item2 == (int)tex.bitmap.encoding).Item1;
+
+            dataGridView1.Rows.Add("Texture Encoding", encodingName);
+            dataGridView1.Rows.Add("Number of Mip Maps", tex.bitmap.mipMaps);
+
+            bitmapBox.SizeMode = PictureBoxSizeMode.Zoom;
+
+            // convert the tex into a DDS and load it into the picturebox
+            if (tex.bitmap.encoding == TextureEncoding.DXT1_BC1 || tex.bitmap.encoding == TextureEncoding.DXT5_BC3 || tex.bitmap.encoding == TextureEncoding.ATI2_BC5)
+                LoadDdsIntoPictureBox(tex.bitmap.ConvertToImage(), bitmapBox);
+
+        }
         private void importButton_Click(object sender, EventArgs e)
         {
             // bring up a file dialog for the user to select a DDS file

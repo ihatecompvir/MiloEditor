@@ -27,8 +27,8 @@ namespace MiloLib.Assets.Rnd
             kConstraintFastBillboardXYZ,
         }
 
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
 
         [Name("Local Transform"), Description("The local transform of the object.")]
         public Matrix localXfm = new();

@@ -14,8 +14,8 @@ namespace MiloLib.Assets.Rnd
             kDirectional = 2
         }
 
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
         [Name("Color"), Description("Color of light")]
         public HmxColor4 color = new();
         [Name("Color Owner"), Description("Master for light color and intensity"), MinVersion(11)]

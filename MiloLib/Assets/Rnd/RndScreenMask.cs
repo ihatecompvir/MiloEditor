@@ -7,8 +7,8 @@ namespace MiloLib.Assets.Rnd
     [Name("ScreenMask"), Description("Draws full screen quad with material and color.")]
     public class RndScreenMask : Object
     {
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
 
         public RndDrawable draw = new();
 

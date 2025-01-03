@@ -17,7 +17,7 @@ namespace MiloLib
         /// The maximum size a block can be.
         /// TODO: check if there is some "best" value for this
         /// </summary>
-        private const int MAX_BLOCK_SIZE = 0x200000;
+        private const int MAX_BLOCK_SIZE = 0x700000;
 
         /// <summary>
         /// The type of the Milo file. Determines if it's compressed or not and how it's compressed.
@@ -401,12 +401,22 @@ namespace MiloLib
                     case Type.Uncompressed:
                         dirMeta.Write(writer);
 
-                        // jump to 0xC
-                        writer.SeekTo(0xC);
-
+                        writer.SeekTo(0x8);
                         writer.Endianness = Endian.LittleEndian;
-                        writer.WriteUInt32((uint)writer.BaseStream.Length - startingOffset);
-                        writer.WriteUInt32((uint)writer.BaseStream.Length - startingOffset);
+
+                        // Calculate the number of blocks
+                        uint totalSize = (uint)writer.BaseStream.Length;
+                        uint numBlocks = (totalSize + MAX_BLOCK_SIZE - 1) / MAX_BLOCK_SIZE;
+
+                        writer.WriteUInt32(numBlocks);
+                        writer.WriteUInt32(MAX_BLOCK_SIZE);
+
+
+                        // write block sizes, all the MAX_BLOCK_SIZE as if there are blocks
+                        for (int i = 0; i < numBlocks; i++)
+                        {
+                            writer.WriteUInt32(MAX_BLOCK_SIZE);
+                        }
                         break;
                     default:
                         break;

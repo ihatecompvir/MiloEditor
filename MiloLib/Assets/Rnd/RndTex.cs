@@ -8,8 +8,8 @@ namespace MiloLib.Assets.Rnd
     [Name("Tex"), Description("Tex objects represent bitmaps used by materials. These can be created automatically with 'import tex' on the file menu.")]
     public class RndTex : Object
     {
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
 
         [Name("Width"), Description("Width of the texture in pixels.")]
         public uint width;
@@ -72,6 +72,8 @@ namespace MiloLib.Assets.Rnd
             if (parent.platform == DirectoryMeta.Platform.Wii && revision > 10)
                 unkShort = reader.ReadUInt16();
 
+
+            // bitmaps are stored as Little endian on Wii? wack
             Endian origEndian = reader.Endianness;
 
             if (parent.platform == DirectoryMeta.Platform.Wii && revision > 10)
@@ -122,10 +124,24 @@ namespace MiloLib.Assets.Rnd
             else
                 writer.WriteUInt32(useExternalPath ? 1u : 0u);
 
-            if (altRevision == 1)
+            if (parent.platform == DirectoryMeta.Platform.Wii && altRevision == 1)
                 writer.WriteUInt16(unkShort);
 
+            Endian origEndian = writer.Endianness;
+
+            if (parent.platform == DirectoryMeta.Platform.Wii && revision > 10)
+                writer.Endianness = Endian.LittleEndian;
+
             bitmap.Write(writer, false, parent, entry);
+
+            writer.Endianness = origEndian;
+
+            if (parent.platform == DirectoryMeta.Platform.Wii && revision > 10)
+            {
+                writer.WriteUInt32(unkInt);
+                writer.WriteUInt32(unkInt2);
+                writer.WriteUInt16(unkShort2);
+            }
 
             if (standalone)
             {

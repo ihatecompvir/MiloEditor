@@ -54,8 +54,8 @@ namespace MiloLib.Assets.Ham
             public uint unk5;
         }
 
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
 
         // TODO: add propanim template
         // public PropAnim propAnim;

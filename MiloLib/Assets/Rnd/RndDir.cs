@@ -6,8 +6,8 @@ namespace MiloLib.Assets.Rnd
     [Name("RndDir"), Description("A RndDir specially tracks drawable and animatable objects.")]
     public class RndDir : ObjectDir
     {
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
 
         [Name("Anim")]
         public RndAnimatable anim = new();
@@ -49,7 +49,7 @@ namespace MiloLib.Assets.Rnd
 
             // the RndDir ends immediately when it is an entry unless the entry is a RndDir or Character, probably others too, why?
             // TODO: investigate if this is just for RB3/DC1 or others too
-            if (entry.isEntryInRootDir && entry.type.value != "Character" && entry.type.value != "RndDir" && entry.type.value != "BandCrowdMeterDir" && entry.type.value != "CrowdMeterIcon" && entry.type.value != "EndingBonusDir" && entry.type.value != "UnisonIcon" && entry.type.value != "BandScoreboard" && entry.type.value != "BandStarDisplay" && entry.type.value != "PanelDir" && entry.type.value != "MoveDir" && entry.type.value != "SkeletonDir")
+            if (entry.isEntryInRootDir && entry.type.value != "Character" && entry.type.value != "RndDir" && entry.type.value != "BandCrowdMeterDir" && entry.type.value != "CrowdMeterIcon" && entry.type.value != "EndingBonusDir" && entry.type.value != "UnisonIcon" && entry.type.value != "BandScoreboard" && entry.type.value != "BandStarDisplay" && entry.type.value != "PanelDir" && entry.type.value != "MoveDir" && entry.type.value != "SkeletonDir" && entry.type.value != "WorldDir")
             {
                 return this;
             }
@@ -91,14 +91,9 @@ namespace MiloLib.Assets.Rnd
 
             base.Write(writer, false, parent, entry);
 
-            if (entry != null)
+            if (entry.isEntryInRootDir && entry.type.value != "Character" && entry.type.value != "RndDir" && entry.type.value != "BandCrowdMeterDir" && entry.type.value != "CrowdMeterIcon" && entry.type.value != "EndingBonusDir" && entry.type.value != "UnisonIcon" && entry.type.value != "BandScoreboard" && entry.type.value != "BandStarDisplay" && entry.type.value != "PanelDir" && entry.type.value != "MoveDir" && entry.type.value != "SkeletonDir" && entry.type.value != "WorldDir")
             {
-                if (entry.isEntryInRootDir && entry.type.value != "Character" && entry.type.value != "RndDir" && entry.type.value != "BandCrowdMeterDir" && entry.type.value != "CrowdMeterIcon" && entry.type.value != "EndingBonusDir" && entry.type.value != "UnisonIcon" && entry.type.value != "BandScoreboard" && entry.type.value != "BandStarDisplay" && entry.type.value != "PanelDir" && entry.type.value != "MoveDir" && entry.type.value != "SkeletonDir")
-                {
-                    if (standalone)
-                        writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
-                    return;
-                }
+                return;
             }
 
             anim.Write(writer);

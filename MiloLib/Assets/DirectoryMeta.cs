@@ -66,11 +66,11 @@ namespace MiloLib.Assets
             /// </summary>
             public List<byte> objBytes = new List<byte>();
 
-            public Entry(Symbol type, Symbol name, Object dir)
+            public Entry(Symbol type, Symbol name, Object obj)
             {
                 this.type = type;
                 this.name = name;
-                this.obj = dir;
+                this.obj = obj;
             }
 
             public static Entry CreateDirtyAssetFromBytes(string type, string name, List<byte> bytes)
@@ -305,12 +305,6 @@ namespace MiloLib.Assets
                     skeletonDir.Read(reader, true, this, new Entry(type, name, skeletonDir));
                     directory = skeletonDir;
                     break;
-                //case "EndingBonusDir":
-                //    Debug.WriteLine("Reading EndingBonusDir " + name.value);
-                //    EndingBonusDir endingBonusDir = new EndingBonusDir(0);
-                //    endingBonusDir.Read(reader, true, this, new Entry(type, name, endingBonusDir));
-                //    directory = endingBonusDir;
-                //    break;
                 case "":
                     Debug.WriteLine("GH1-style empty directory detected, just reading children");
                     break;
@@ -333,17 +327,15 @@ namespace MiloLib.Assets
                             reader.ReadByte() == 0xAD &&
                             reader.ReadByte() == 0xDE)
                         {
-                            break; // Pattern found, exit loop
+                            break;
                         }
 
-                        // Pattern not matched, reset to next byte after start
                         reader.BaseStream.Position = currentPos;
                     }
 
                     entry.objBytes.Add(b);
                 }
 
-                // reset the position
                 reader.BaseStream.Position = startPos;
 
                 switch (entry.type.value)
@@ -403,10 +395,14 @@ namespace MiloLib.Assets
                         entry.isEntryInRootDir = true;
                         entry.obj = new Character(0).Read(reader, true, this, entry);
 
-                        dir = new DirectoryMeta();
-                        dir.platform = platform;
-                        dir.Read(reader);
-                        entry.dir = dir;
+                        if (((Character)entry.obj).proxyPath != String.Empty)
+                        {
+                            dir = new DirectoryMeta();
+                            dir.platform = platform;
+                            dir.Read(reader);
+                            entry.dir = dir;
+                        }
+
                         break;
 
                     case "P9Character":
@@ -503,12 +499,28 @@ namespace MiloLib.Assets
                     case "WorldInstance":
                         Debug.WriteLine("Reading entry WorldInstance " + entry.name.value);
                         entry.isEntryInRootDir = true;
-                        entry.obj = new WorldInstance(0).Read(reader, true, this, entry);
 
-                        dir = new DirectoryMeta();
-                        dir.platform = platform;
-                        dir.Read(reader);
-                        entry.dir = dir;
+                        entry.obj = new WorldInstance(0).Read(reader, false, this, entry);
+
+                        // if the world instance has no persistent objects, it will have a dir as expected, otherwise it won't
+                        if (!((WorldInstance)entry.obj).hasPersistentObjects)
+                        {
+                            dir = new DirectoryMeta();
+                            dir.platform = platform;
+                            dir.Read(reader);
+                            entry.dir = dir;
+
+                            if (((WorldInstance)dir.directory).hasPersistentObjects)
+                            {
+                                ((WorldInstance)dir.directory).persistentObjects = new WorldInstance.PersistentObjects().Read(reader, this, entry);
+                            }
+                        }
+                        else
+                        {
+                            ((WorldInstance)entry.obj).persistentObjects = new WorldInstance.PersistentObjects().Read(reader, this, entry);
+                        }
+
+
                         break;
 
                     case "TrackPanelDir":
@@ -604,7 +616,7 @@ namespace MiloLib.Assets
                     //    entry.isEntryInRootDir = true;
                     //    entry.obj = new RndDir(0).Read(reader, true, this, entry);
                     //
-                    //    entry.dir = new DirectoryMeta().Read(reader);
+                    //    entry.obj = new DirectoryMeta().Read(reader);
                     //    break;
 
                     // OBJECTS
@@ -687,6 +699,10 @@ namespace MiloLib.Assets
                         Debug.WriteLine("Reading entry SynthSample " + entry.name.value);
                         entry.obj = new SynthSample().Read(reader, true, this, entry);
                         break;
+                    //case "Mesh":
+                    //    Debug.WriteLine("Reading entry Mesh " + entry.name.value);
+                    //    entry.obj = new RndMesh().Read(reader, true, this, entry);
+                    //    break;
 
                     default:
                         Debug.WriteLine("Unknown entry type " + entry.type.value + " of name " + entry.name.value + ", read an Object and then read until we see 0xADDEADDE to skip over it, curpos" + reader.BaseStream.Position);
@@ -733,10 +749,10 @@ namespace MiloLib.Assets
             Symbol.Write(writer, type);
             Symbol.Write(writer, name);
 
-            writer.WriteInt32((entries.Count * 2) + 2);
+            writer.WriteInt32((entries.Count * 2) + 4);
             writer.WriteUInt32(stringTableSize);
 
-            writer.WriteInt32(entries.Count);
+            writer.WriteInt32((int)entries.Count);
 
             foreach (Entry entry in entries)
             {
@@ -747,70 +763,70 @@ namespace MiloLib.Assets
             switch (type.value)
             {
                 case "ObjectDir":
-                    ((ObjectDir)directory).Write(writer, true, this, null);
+                    ((ObjectDir)directory).Write(writer, true, this, new Entry(type, name, directory));
                     break;
                 case "RndDir":
-                    ((RndDir)directory).Write(writer, true, this, null);
+                    ((RndDir)directory).Write(writer, true, this, new Entry(type, name, directory));
                     break;
                 case "PanelDir":
-                    ((PanelDir)directory).Write(writer, true, this, null);
+                    ((PanelDir)directory).Write(writer, true, this, new Entry(type, name, directory));
                     break;
                 case "WorldDir":
-                    ((WorldDir)directory).Write(writer, true, this, null);
+                    ((WorldDir)directory).Write(writer, true, this, new Entry(type, name, directory));
                     break;
                 case "Character":
-                    ((Character)directory).Write(writer, true, this, null);
+                    ((Character)directory).Write(writer, true, this, new Entry(type, name, directory));
                     break;
                 case "P9Character":
-                    ((P9Character)directory).Write(writer, true, this, null);
+                    ((P9Character)directory).Write(writer, true, this, new Entry(type, name, directory));
                     break;
                 case "CharClipSet":
-                    ((CharClipSet)directory).Write(writer, true, this, null);
+                    ((CharClipSet)directory).Write(writer, true, this, new Entry(type, name, directory));
                     break;
                 case "UILabelDir":
-                    ((UILabelDir)directory).Write(writer, true, this, null);
+                    ((UILabelDir)directory).Write(writer, true, this, new Entry(type, name, directory));
                     break;
                 case "UIListDir":
-                    ((UIListDir)directory).Write(writer, true, this, null);
+                    ((UIListDir)directory).Write(writer, true, this, new Entry(type, name, directory));
                     break;
                 case "BandCrowdMeterDir":
-                    ((BandCrowdMeterDir)directory).Write(writer, true, this, null);
+                    ((BandCrowdMeterDir)directory).Write(writer, true, this, new Entry(type, name, directory));
                     break;
                 case "CrowdMeterIcon":
-                    ((CrowdMeterIcon)directory).Write(writer, true, this, null);
+                    ((CrowdMeterIcon)directory).Write(writer, true, this, new Entry(type, name, directory));
                     break;
                 case "BandCharacter":
-                    ((BandCharacter)directory).Write(writer, true, this, null);
+                    ((BandCharacter)directory).Write(writer, true, this, new Entry(type, name, directory));
                     break;
                 case "WorldInstance":
-                    ((WorldInstance)directory).Write(writer, true, this, null);
+                    ((WorldInstance)directory).Write(writer, true, this, new Entry(type, name, directory));
                     break;
                 case "TrackPanelDir":
-                    ((TrackPanelDir)directory).Write(writer, true, this, null);
+                    ((TrackPanelDir)directory).Write(writer, true, this, new Entry(type, name, directory));
                     break;
                 case "UnisonIcon":
-                    ((UnisonIcon)directory).Write(writer, true, this, null);
+                    ((UnisonIcon)directory).Write(writer, true, this, new Entry(type, name, directory));
                     break;
                 case "EndingBonusDir":
-                    ((RndDir)directory).Write(writer, true, this, null);
+                    ((RndDir)directory).Write(writer, true, this, new Entry(type, name, directory));
                     break;
                 case "BandStarDisplay":
-                    ((BandStarDisplay)directory).Write(writer, true, this, null);
+                    ((BandStarDisplay)directory).Write(writer, true, this, new Entry(type, name, directory));
                     break;
                 case "BandScoreboard":
-                    ((BandScoreboard)directory).Write(writer, true, this, null);
+                    ((BandScoreboard)directory).Write(writer, true, this, new Entry(type, name, directory));
                     break;
                 case "VocalTrackDir":
-                    ((VocalTrackDir)directory).Write(writer, true, this, null);
+                    ((VocalTrackDir)directory).Write(writer, true, this, new Entry(type, name, directory));
                     break;
                 case "GemTrackDir":
-                    ((GemTrackDir)directory).Write(writer, true, this, null);
+                    ((GemTrackDir)directory).Write(writer, true, this, new Entry(type, name, directory));
                     break;
                 case "MoveDir":
-                    ((MoveDir)directory).Write(writer, true, this, null);
+                    ((MoveDir)directory).Write(writer, true, this, new Entry(type, name, directory));
                     break;
                 case "SkeletonDir":
-                    ((SkeletonDir)directory).Write(writer, true, this, null);
+                    ((SkeletonDir)directory).Write(writer, true, this, new Entry(type, name, directory));
                     break;
                 default:
                     throw new Exception("Unknown directory type: " + type.value + ", cannot continue writing Milo scene");
@@ -827,6 +843,7 @@ namespace MiloLib.Assets
                     continue;
                 }
 
+                Debug.WriteLine("Writing " + entry.type.value + " " + entry.name.value);
                 switch (entry.type.value)
                 {
                     case "ObjectDir":
@@ -851,8 +868,11 @@ namespace MiloLib.Assets
                         break;
                     case "Character":
                         ((Character)entry.obj).Write(writer, true, this, entry);
-                        entry.isEntryInRootDir = false;
-                        entry.dir.Write(writer);
+                        if (((Character)entry.obj).proxyPath != String.Empty)
+                        {
+                            entry.isEntryInRootDir = false;
+                            entry.dir.Write(writer);
+                        }
                         break;
                     case "P9Character":
                         ((P9Character)entry.obj).Write(writer, true, this, entry);
@@ -860,12 +880,59 @@ namespace MiloLib.Assets
                         entry.dir.Write(writer);
                         break;
                     case "WorldInstance":
-                        ((WorldInstance)entry.obj).Write(writer, true, this, entry);
+                        // Write the main object
+                        ((WorldInstance)entry.obj).Write(writer, false, this, entry);
                         entry.isEntryInRootDir = false;
-                        entry.dir.Write(writer);
+
+                        if (!((WorldInstance)entry.obj).hasPersistentObjects)
+                        {
+                            // Write the directory
+                            entry.dir.Write(writer);
+
+                            if (((WorldInstance)entry.dir.directory).hasPersistentObjects)
+                            {
+                                // Write the persistent objects
+                                ((WorldInstance)entry.dir.directory).persistentObjects.Write(writer, this, entry);
+                            }
+                        }
+                        else
+                        {
+                            // Write the persistent objects
+                            ((WorldInstance)entry.obj).persistentObjects.Write(writer, this, entry);
+                        }
+
+                        //ase "WorldInstance":
+                        //   Debug.WriteLine("Reading entry WorldInstance " + entry.name.value);
+                        //   entry.isEntryInRootDir = true;
+                        //
+                        //   entry.obj = new WorldInstance(0).Read(reader, true, this, entry);
+                        //
+                        //   // if the world instance has no persistent objects, it will have a dir as expected, otherwise it won't
+                        //   if (!((WorldInstance)entry.obj).hasPersistentObjects)
+                        //   {
+                        //       dir = new DirectoryMeta();
+                        //       dir.platform = platform;
+                        //       dir.Read(reader);
+                        //       entry.dir = dir;
+                        //
+                        //       if (((WorldInstance)dir.directory).hasPersistentObjects)
+                        //       {
+                        //           ((WorldInstance)dir.directory).persistentObjects = new WorldInstance.PersistentObjects().Read(reader, this, entry);
+                        //       }
+                        //   }
+                        //   else
+                        //   {
+                        //       ((WorldInstance)entry.obj).persistentObjects = new WorldInstance.PersistentObjects().Read(reader, this, entry);
+                        //   }
+                        //
+                        //
+                        //   break;
+
+
                         break;
                     case "CharClipSet":
-                        ((CharClipSet)entry.obj).Write(writer, true, this, entry);
+                        writer.WriteUInt32(0x18);
+                        ((ObjectDir)entry.obj).Write(writer, true, this, entry);
                         entry.isEntryInRootDir = false;
                         entry.dir.Write(writer);
                         break;
@@ -928,7 +995,7 @@ namespace MiloLib.Assets
                         ((RndTex)entry.obj).Write(writer, true, this, entry);
                         break;
                     case "Trans":
-                        ((RndTrans)entry.obj).Write(writer, true, this, entry);
+                        ((RndTrans)entry.obj).Write(writer, true, false);
                         break;
                     case "Light":
                         ((RndLight)entry.obj).Write(writer, true, this, entry);
