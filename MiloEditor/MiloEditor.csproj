@@ -58,6 +58,7 @@
     <None Remove="Images\UIColor.png" />
     <None Remove="Images\UILabel.png" />
     <None Remove="Images\WorldDir.png" />
+    <None Remove="Images\WorldInstance.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -182,6 +183,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Images\WorldDir.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\WorldInstance.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="milo.ico" />

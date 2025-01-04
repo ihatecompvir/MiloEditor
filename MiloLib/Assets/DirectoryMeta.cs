@@ -707,6 +707,18 @@ namespace MiloLib.Assets
                         Debug.WriteLine("Reading entry Mesh " + entry.name.value);
                         entry.obj = new RndMesh().Read(reader, true, this, entry);
                         break;
+                    case "Set":
+                        Debug.WriteLine("Reading entry Set " + entry.name.value);
+                        entry.obj = new Set().Read(reader, true, this, entry);
+                        break;
+                    case "SpotlightDrawer":
+                        Debug.WriteLine("Reading entry SpotlightDrawer " + entry.name.value);
+                        entry.obj = new SpotlightDrawer().Read(reader, true, this, entry);
+                        break;
+                    case "WorldCrowd":
+                        Debug.WriteLine("Reading entry WorldCrowd " + entry.name.value);
+                        entry.obj = new WorldCrowd().Read(reader, true, this, entry);
+                        break;
 
                     default:
                         Debug.WriteLine("Unknown entry type " + entry.type.value + " of name " + entry.name.value + ", read an Object and then read until we see 0xADDEADDE to skip over it, curpos" + reader.BaseStream.Position);

@@ -22,11 +22,11 @@ namespace MiloLib.Assets
             public Symbol unkSym = new(0, "");
             public uint unkInt3;
 
-            public uint stringTableCount; // maybe? seems right
-            public uint stringTableSize; // maybe? seems right
+            private uint stringTableCount; // maybe? seems right
+            private uint stringTableSize; // maybe? seems right
 
             private uint objectCount;
-            private List<DirectoryMeta.Entry> perObjs = new(); // the list of perObjs
+            public List<DirectoryMeta.Entry> perObjs = new(); // the list of perObjs
 
 
             public PersistentObjects Read(EndianReader reader, DirectoryMeta parent, DirectoryMeta.Entry entry)

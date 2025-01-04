@@ -110,6 +110,7 @@ namespace MiloEditor
             imageList.Images.Add("FileMerger", Image.FromFile("Images/FileMerger.png"));
             imageList.Images.Add("TransProxy", Image.FromFile("Images/TransProxy.png"));
             imageList.Images.Add("PostProc", Image.FromFile("Images/PostProc.png"));
+            imageList.Images.Add("WorldInstance", Image.FromFile("Images/WorldInstance.png"));
             imageList.Images.Add("", Image.FromFile("Images/NoDir.png"));
 
             imageList.ColorDepth = ColorDepth.Depth32Bit;
@@ -179,6 +180,7 @@ namespace MiloEditor
                     ToolTipText = $"{entry.name ?? "<empty name>"} ({entry.type ?? "Unknown"})"
                 };
 
+
                 if (entry.dir != null)
                 {
                     // create a node for entry.dir.directory
@@ -190,12 +192,26 @@ namespace MiloEditor
 
                     node.Nodes.Add(dirDirectoryNode);
 
+
+                    // Add inline subdirectories within this directory entry
+                    if (entry.dir.directory is ObjectDir objDir && objDir.inlineSubDirs.Count > 0)
+                    {
+                        TreeNode inlinedSubdirsNode = new TreeNode("Inlined Subdirectories", GetImageIndex(imageList, "ObjectDir"), GetImageIndex(imageList, "ObjectDir"));
+                        node.Nodes.Add(inlinedSubdirsNode); // Add inline subdir node to the *entry* node
+
+                        foreach (var subDir in objDir.inlineSubDirs)
+                        {
+                            AddDirectoryNode(subDir, inlinedSubdirsNode);
+                        }
+                    }
                     AddChildNodes(entry.dir, node);
                 }
+
 
                 parentNode.Nodes.Add(node);
             }
         }
+
 
         private void AddDirectoryNode(DirectoryMeta dirMeta, TreeNode parentNode)
         {
