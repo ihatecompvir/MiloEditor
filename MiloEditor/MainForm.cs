@@ -169,7 +169,7 @@ namespace MiloEditor
 
         private void AddChildNodes(DirectoryMeta parentDirMeta, TreeNode parentNode)
         {
-            if (parentDirMeta == null || parentDirMeta.entries == null) return; //Added null check.
+            if (parentDirMeta == null || parentDirMeta.entries == null) return;
 
             foreach (DirectoryMeta.Entry entry in parentDirMeta.entries)
             {
@@ -181,6 +181,15 @@ namespace MiloEditor
 
                 if (entry.dir != null)
                 {
+                    // create a node for entry.dir.directory
+                    TreeNode dirDirectoryNode = new TreeNode("Directory Entry", GetImageIndex(imageList, entry.dir.type), GetImageIndex(imageList, entry.dir.type))
+                    {
+                        Tag = entry.dir,
+                        ToolTipText = $"{entry.dir.name ?? "<empty name>"} ({entry.dir.type ?? "Unknown"})"
+                    };
+
+                    node.Nodes.Add(dirDirectoryNode);
+
                     AddChildNodes(entry.dir, node);
                 }
 

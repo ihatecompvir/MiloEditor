@@ -8,7 +8,7 @@ namespace MiloLib.Assets.Rnd
     [Name("AnimFilter"), Description("An AnimFilter object modifies the playing of another animatable object")]
     public class RndAnimFilter : Object
     {
-        public Dictionary<Game.MiloGame, uint> gameRevisions = new Dictionary<Game.MiloGame, uint>
+        private Dictionary<Game.MiloGame, uint> gameRevisions = new Dictionary<Game.MiloGame, uint>
         {
             { Game.MiloGame.GuitarHero2_PS2, 1 },
             { Game.MiloGame.GuitarHero2_360, 1 },

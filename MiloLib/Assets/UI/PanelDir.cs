@@ -7,7 +7,7 @@ namespace MiloLib.Assets.UI
     [Name("PanelDir"), Description("Top-level UI Object, contains UI components and an optional camera")]
     public class PanelDir : RndDir
     {
-        public Dictionary<Game.MiloGame, uint> gameRevisions = new Dictionary<Game.MiloGame, uint>
+        private Dictionary<Game.MiloGame, uint> gameRevisions = new Dictionary<Game.MiloGame, uint>
         {
             // no dirs before this
             { Game.MiloGame.GuitarHero2_PS2, 2 },

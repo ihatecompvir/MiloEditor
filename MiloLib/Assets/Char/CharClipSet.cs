@@ -7,7 +7,7 @@ namespace MiloLib.Assets.Char
     [Name("CharClipSet"), Description("A CharClip container.")]
     public class CharClipSet : ObjectDir
     {
-        public Dictionary<Game.MiloGame, uint> gameRevisions = new Dictionary<Game.MiloGame, uint>
+        private Dictionary<Game.MiloGame, uint> gameRevisions = new Dictionary<Game.MiloGame, uint>
         {
             // no dirs before this
             { Game.MiloGame.GuitarHero2_PS2, 14 },

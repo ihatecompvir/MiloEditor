@@ -12,7 +12,7 @@ namespace MiloLib.Assets.Band
     [Name("BandCrowdMeterDir"), Description("Crowd meter hud element, has a needle")]
     public class BandCrowdMeterDir : RndDir
     {
-        public Dictionary<Game.MiloGame, uint> gameRevisions = new Dictionary<Game.MiloGame, uint>
+        private Dictionary<Game.MiloGame, uint> gameRevisions = new Dictionary<Game.MiloGame, uint>
         {
             // no dirs before this
             { Game.MiloGame.GuitarHero2_PS2, 3 },

@@ -11,7 +11,7 @@ namespace MiloLib.Assets
     [Name("ColorPalette"), Description("List of primary/secondary colors for OutfitConfig")]
     public class ColorPalette : Object
     {
-        public Dictionary<Game.MiloGame, uint> gameRevisions = new Dictionary<Game.MiloGame, uint>
+        private Dictionary<Game.MiloGame, uint> gameRevisions = new Dictionary<Game.MiloGame, uint>
         {
             { Game.MiloGame.RockBand2, 1 },
             { Game.MiloGame.LegoRockBand, 1 },

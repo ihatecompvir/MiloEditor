@@ -6,7 +6,7 @@ namespace MiloLib.Assets.Rnd
     [Name("Animatable"), Description("Base class for animatable perObjs. Anim perObjs change their state or other perObjs.")]
     public class RndAnimatable
     {
-        public Dictionary<Game.MiloGame, uint> gameRevisions = new Dictionary<Game.MiloGame, uint>
+        private Dictionary<Game.MiloGame, uint> gameRevisions = new Dictionary<Game.MiloGame, uint>
         {
             { Game.MiloGame.Amplitude, 0 },
             { Game.MiloGame.EyeToyAntiGrav, 0 },

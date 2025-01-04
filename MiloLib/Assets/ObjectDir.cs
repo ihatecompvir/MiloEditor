@@ -11,7 +11,7 @@ namespace MiloLib.Assets
     [Name("ObjectDir"), Description("An ObjectDir keeps track of a set of Objects. It can subdir or proxy in other ObjectDirs. To rename subdir or proxy files search for remap_objectdirs in system/run/config/perObjs.dta")]
     public class ObjectDir : Object
     {
-        public Dictionary<Game.MiloGame, uint> gameRevisions = new Dictionary<Game.MiloGame, uint>
+        private Dictionary<Game.MiloGame, uint> gameRevisions = new Dictionary<Game.MiloGame, uint>
         {
             // no dirs before this
             { Game.MiloGame.GuitarHero2_PS2, 16 },

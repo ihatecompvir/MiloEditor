@@ -13,7 +13,7 @@ namespace MiloLib.Assets.Char
     [Name("Character"), Description("Base class for Character perObjs. Contains Geometry, Outfit Loaders, and LOD + Sphere concepts.")]
     public class Character : RndDir
     {
-        public Dictionary<Game.MiloGame, uint> gameRevisions = new Dictionary<Game.MiloGame, uint>
+        private Dictionary<Game.MiloGame, uint> gameRevisions = new Dictionary<Game.MiloGame, uint>
         {
             // no dirs before this
             { Game.MiloGame.GuitarHero2_PS2, 9 },

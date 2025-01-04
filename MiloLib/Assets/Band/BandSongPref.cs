@@ -11,7 +11,7 @@ namespace MiloLib.Assets.Band
     [Name("BandSongPref"), Description("Band Song Preferences, per song file settable properties")]
     public class BandSongPref : Object
     {
-        public Dictionary<Game.MiloGame, uint> gameRevisions = new Dictionary<Game.MiloGame, uint>
+        private Dictionary<Game.MiloGame, uint> gameRevisions = new Dictionary<Game.MiloGame, uint>
         {
             // this is only for RB3
             { Game.MiloGame.RockBand3, 3 },

@@ -6,7 +6,7 @@ namespace MiloLib.Assets.Ham
 {
     public class HamMove : Object
     {
-        public Dictionary<Game.MiloGame, uint> gameRevisions = new Dictionary<Game.MiloGame, uint>
+        private Dictionary<Game.MiloGame, uint> gameRevisions = new Dictionary<Game.MiloGame, uint>
         {
             { Game.MiloGame.DanceCentral, 28 },
         };

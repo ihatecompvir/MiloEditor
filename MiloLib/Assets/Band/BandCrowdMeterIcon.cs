@@ -12,7 +12,7 @@ namespace MiloLib.Assets.Band
     [Name("BandCrowdMeterIcon"), Description("Individual player icon for crowd meter")]
     public class BandCrowdMeterIcon : RndDir
     {
-        public Dictionary<Game.MiloGame, uint> gameRevisions = new Dictionary<Game.MiloGame, uint>
+        private Dictionary<Game.MiloGame, uint> gameRevisions = new Dictionary<Game.MiloGame, uint>
         {
             { Game.MiloGame.GuitarHero2_PS2, 0 },
             { Game.MiloGame.GuitarHero2_360, 0 },
