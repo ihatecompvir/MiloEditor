@@ -94,7 +94,7 @@ namespace MiloLib.Assets.Rnd
                     }
                 }
 
-                if (meshVersion == 33)
+                if (meshVersion == 33 || meshVersion == 34)
                 {
                     for (int i = 0; i < count * 72; i++)
                     {

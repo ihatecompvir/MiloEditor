@@ -48,6 +48,8 @@ namespace MiloLib.Assets.UI
 
         public Symbol testEvent = new(0, "");
 
+        public Symbol unknownSymbol = new(0, "");
+
         public PanelDir(ushort revision, ushort altRevision = 0) : base(revision, altRevision)
         {
             revision = revision;
@@ -68,6 +70,8 @@ namespace MiloLib.Assets.UI
             {
                 if (revision != 0)
                     cam = Symbol.Read(reader);
+                if (revision == 2)
+                    unknownSymbol = Symbol.Read(reader);
             }
 
             if (revision <= 1)
@@ -130,6 +134,8 @@ namespace MiloLib.Assets.UI
             {
                 if (revision != 0)
                     Symbol.Write(writer, cam);
+                if (revision == 2)
+                    Symbol.Write(writer, unknownSymbol);
             }
 
             if (revision <= 1)

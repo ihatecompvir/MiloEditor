@@ -633,6 +633,17 @@ namespace MiloLib.Assets
                         entry.dir = dir;
                         break;
 
+                    case "OverdriveMeterDir":
+                        Debug.WriteLine("Reading entry OverdriveMeterDir " + entry.name.value);
+                        entry.isEntryInRootDir = true;
+                        entry.obj = new OverdriveMeterDir(0).Read(reader, true, this, entry);
+
+                        dir = new DirectoryMeta();
+                        dir.platform = platform;
+                        dir.Read(reader);
+                        entry.dir = dir;
+                        break;
+
                     //case "EndingBonusDir":
                     //    Debug.WriteLine("Reading entry EndingBonusDir " + entry.name.value);
                     //    entry.isEntryInRootDir = true;
@@ -725,10 +736,10 @@ namespace MiloLib.Assets
                         Debug.WriteLine("Reading entry Cam " + entry.name.value);
                         entry.obj = new RndCam().Read(reader, true, this, entry);
                         break;
-                    case "Mesh":
-                        Debug.WriteLine("Reading entry Mesh " + entry.name.value);
-                        entry.obj = new RndMesh().Read(reader, true, this, entry);
-                        break;
+                    //case "Mesh":
+                    //    Debug.WriteLine("Reading entry Mesh " + entry.name.value);
+                    //    entry.obj = new RndMesh().Read(reader, true, this, entry);
+                    //    break;
                     case "Set":
                         Debug.WriteLine("Reading entry Set " + entry.name.value);
                         entry.obj = new Set().Read(reader, true, this, entry);
@@ -870,6 +881,9 @@ namespace MiloLib.Assets
                     break;
                 case "OvershellDir":
                     ((OvershellDir)directory).Write(writer, true, this, new Entry(type, name, directory));
+                    break;
+                case "OverdriveMeterDir":
+                    ((OverdriveMeterDir)directory).Write(writer, true, this, new Entry(type, name, directory));
                     break;
                 default:
                     throw new Exception("Unknown directory type: " + type.value + ", cannot continue writing Milo scene");
@@ -1024,6 +1038,11 @@ namespace MiloLib.Assets
                         entry.isEntryInRootDir = false;
                         entry.dir.Write(writer);
                         break;
+                    case "OverdriveMeterDir":
+                        ((OverdriveMeterDir)entry.obj).Write(writer, true, this, entry);
+                        entry.isEntryInRootDir = false;
+                        entry.dir.Write(writer);
+                        break;
                     case "BandSongPref":
                         ((BandSongPref)entry.obj).Write(writer, true, this, entry);
                         break;
@@ -1128,6 +1147,45 @@ namespace MiloLib.Assets
                     break;
                 case "BandCrowdMeterIcon":
                     dir.directory = new BandCrowdMeterIcon(rootDirRevision);
+                    break;
+                case "BandCharacter":
+                    dir.directory = new BandCharacter(rootDirRevision);
+                    break;
+                case "WorldInstance":
+                    dir.directory = new WorldInstance(rootDirRevision);
+                    break;
+                case "TrackPanelDir":
+                    dir.directory = new TrackPanelDir(rootDirRevision);
+                    break;
+                case "UnisonIcon":
+                    dir.directory = new UnisonIcon(rootDirRevision);
+                    break;
+                case "EndingBonusDir":
+                    dir.directory = new RndDir(rootDirRevision);
+                    break;
+                case "BandStarDisplay":
+                    dir.directory = new BandStarDisplay(rootDirRevision);
+                    break;
+                case "BandScoreboard":
+                    dir.directory = new BandScoreboard(rootDirRevision);
+                    break;
+                case "VocalTrackDir":
+                    dir.directory = new VocalTrackDir(rootDirRevision);
+                    break;
+                case "GemTrackDir":
+                    dir.directory = new GemTrackDir(rootDirRevision);
+                    break;
+                case "MoveDir":
+                    dir.directory = new MoveDir(rootDirRevision);
+                    break;
+                case "SkeletonDir":
+                    dir.directory = new SkeletonDir(rootDirRevision);
+                    break;
+                case "OvershellDir":
+                    dir.directory = new OvershellDir(rootDirRevision);
+                    break;
+                case "OverdriveMeterDir":
+                    dir.directory = new OverdriveMeterDir(rootDirRevision);
                     break;
                 default:
                     throw new Exception("Unknown directory type: " + type.GetType().Name + ", cannot continue creating directory");

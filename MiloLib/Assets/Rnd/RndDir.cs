@@ -56,7 +56,8 @@ namespace MiloLib.Assets.Rnd
 
             anim = anim.Read(reader, parent, entry);
             draw = draw.Read(reader, false, parent, entry);
-            trans = trans.Read(reader, false, parent, entry);
+            if (revision != 0)
+                trans = trans.Read(reader, false, parent, entry);
 
             if (revision < 9)
             {
@@ -67,7 +68,7 @@ namespace MiloLib.Assets.Rnd
             else
             {
                 environ = Symbol.Read(reader);
-                if (revision >= 10)
+                if (revision > 2 && revision != 9)
                     testEvent = Symbol.Read(reader);
             }
 
