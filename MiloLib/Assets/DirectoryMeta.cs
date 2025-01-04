@@ -239,9 +239,9 @@ namespace MiloLib.Assets
                     bandCrowdMeterDir.Read(reader, true, this, new Entry(type, name, bandCrowdMeterDir));
                     directory = bandCrowdMeterDir;
                     break;
-                case "CrowdMeterIcon":
-                    Debug.WriteLine("Reading CrowdMeterIcon " + name.value);
-                    CrowdMeterIcon crowdMeterIcon = new CrowdMeterIcon(0);
+                case "BandCrowdMeterIcon":
+                    Debug.WriteLine("Reading BandCrowdMeterIcon " + name.value);
+                    BandCrowdMeterIcon crowdMeterIcon = new BandCrowdMeterIcon(0);
                     crowdMeterIcon.Read(reader, true, this, new Entry(type, name, crowdMeterIcon));
                     directory = crowdMeterIcon;
                     break;
@@ -474,10 +474,10 @@ namespace MiloLib.Assets
                         entry.dir = dir;
                         break;
 
-                    case "CrowdMeterIcon":
-                        Debug.WriteLine("Reading entry CrowdMeterIcon " + entry.name.value);
+                    case "BandCrowdMeterIcon":
+                        Debug.WriteLine("Reading entry BandCrowdMeterIcon " + entry.name.value);
                         entry.isEntryInRootDir = true;
-                        entry.obj = new CrowdMeterIcon(0).Read(reader, true, this, entry);
+                        entry.obj = new BandCrowdMeterIcon(0).Read(reader, true, this, entry);
 
                         dir = new DirectoryMeta();
                         dir.platform = platform;
@@ -502,7 +502,7 @@ namespace MiloLib.Assets
 
                         entry.obj = new WorldInstance(0).Read(reader, false, this, entry);
 
-                        // if the world instance has no persistent objects, it will have a dir as expected, otherwise it won't
+                        // if the world instance has no persistent perObjs, it will have a dir as expected, otherwise it won't
                         if (!((WorldInstance)entry.obj).hasPersistentObjects)
                         {
                             dir = new DirectoryMeta();
@@ -703,10 +703,10 @@ namespace MiloLib.Assets
                         Debug.WriteLine("Reading entry Cam " + entry.name.value);
                         entry.obj = new RndCam().Read(reader, true, this, entry);
                         break;
-                    //case "Mesh":
-                    //    Debug.WriteLine("Reading entry Mesh " + entry.name.value);
-                    //    entry.obj = new RndMesh().Read(reader, true, this, entry);
-                    //    break;
+                    case "Mesh":
+                        Debug.WriteLine("Reading entry Mesh " + entry.name.value);
+                        entry.obj = new RndMesh().Read(reader, true, this, entry);
+                        break;
 
                     default:
                         Debug.WriteLine("Unknown entry type " + entry.type.value + " of name " + entry.name.value + ", read an Object and then read until we see 0xADDEADDE to skip over it, curpos" + reader.BaseStream.Position);
@@ -796,8 +796,8 @@ namespace MiloLib.Assets
                 case "BandCrowdMeterDir":
                     ((BandCrowdMeterDir)directory).Write(writer, true, this, new Entry(type, name, directory));
                     break;
-                case "CrowdMeterIcon":
-                    ((CrowdMeterIcon)directory).Write(writer, true, this, new Entry(type, name, directory));
+                case "BandCrowdMeterIcon":
+                    ((BandCrowdMeterIcon)directory).Write(writer, true, this, new Entry(type, name, directory));
                     break;
                 case "BandCharacter":
                     ((BandCharacter)directory).Write(writer, true, this, new Entry(type, name, directory));
@@ -895,13 +895,13 @@ namespace MiloLib.Assets
 
                             if (((WorldInstance)entry.dir.directory).hasPersistentObjects)
                             {
-                                // Write the persistent objects
+                                // Write the persistent perObjs
                                 ((WorldInstance)entry.dir.directory).persistentObjects.Write(writer, this, entry);
                             }
                         }
                         else
                         {
-                            // Write the persistent objects
+                            // Write the persistent perObjs
                             ((WorldInstance)entry.obj).persistentObjects.Write(writer, this, entry);
                         }
 
@@ -911,7 +911,7 @@ namespace MiloLib.Assets
                         //
                         //   entry.obj = new WorldInstance(0).Read(reader, true, this, entry);
                         //
-                        //   // if the world instance has no persistent objects, it will have a dir as expected, otherwise it won't
+                        //   // if the world instance has no persistent perObjs, it will have a dir as expected, otherwise it won't
                         //   if (!((WorldInstance)entry.obj).hasPersistentObjects)
                         //   {
                         //       dir = new DirectoryMeta();
@@ -921,12 +921,12 @@ namespace MiloLib.Assets
                         //
                         //       if (((WorldInstance)dir.directory).hasPersistentObjects)
                         //       {
-                        //           ((WorldInstance)dir.directory).persistentObjects = new WorldInstance.PersistentObjects().Read(reader, this, entry);
+                        //           ((WorldInstance)dir.directory).perObjs = new WorldInstance.PersistentObjects().Read(reader, this, entry);
                         //       }
                         //   }
                         //   else
                         //   {
-                        //       ((WorldInstance)entry.obj).persistentObjects = new WorldInstance.PersistentObjects().Read(reader, this, entry);
+                        //       ((WorldInstance)entry.obj).perObjs = new WorldInstance.PersistentObjects().Read(reader, this, entry);
                         //   }
                         //
                         //
@@ -1082,8 +1082,8 @@ namespace MiloLib.Assets
                 case "BandCrowdMeterDir":
                     dir.directory = new BandCrowdMeterDir(rootDirRevision);
                     break;
-                case "CrowdMeterIcon":
-                    dir.directory = new CrowdMeterIcon(rootDirRevision);
+                case "BandCrowdMeterIcon":
+                    dir.directory = new BandCrowdMeterIcon(rootDirRevision);
                     break;
                 default:
                     throw new Exception("Unknown directory type: " + type.GetType().Name + ", cannot continue creating directory");

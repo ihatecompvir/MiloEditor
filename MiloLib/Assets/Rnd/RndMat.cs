@@ -148,7 +148,7 @@ namespace MiloLib.Assets.Rnd
         }
     }
 
-    [Name("Mat"), Description("Material objects determine texturing, blending, and the effect of lighting on drawn polys.")]
+    [Name("Mat"), Description("Material perObjs determine texturing, blending, and the effect of lighting on drawn polys.")]
     public class RndMat : Object
     {
         public enum ColorModFlags : byte

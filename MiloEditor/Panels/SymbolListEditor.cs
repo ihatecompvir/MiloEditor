@@ -46,8 +46,8 @@ namespace MiloEditor.Panels
 
             removeButton.Click += (s, ev) =>
             {
-                dataGridView1.Rows.RemoveAt(dataGridView1.RowCount - 1);
-                symbols.RemoveAt(dataGridView1.RowCount - 1);
+                dataGridView1.Rows.RemoveAt(dataGridView1.Rows.GetLastRow(DataGridViewElementStates.None));
+                symbols.Remove(symbols.Last());
                 OnSymbolsChanged();
                 OnSymbolRemoved();
             };

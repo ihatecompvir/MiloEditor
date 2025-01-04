@@ -31,7 +31,7 @@ namespace MiloLib.Assets.Rnd
         [MinVersion(6), MaxVersion(6)]
         public uint unkInt3;
 
-        [Name("Z Range"), Description("The part of the Z-buffer to use, in normalized coordinates. It can be useful to draw a scene where the near and far planes must exceed the 1:1000 ratio (so multiple cameras are used to draw farthest to nearest objects, each using a closer range of the z-buffer) or to leave some z-buffer for HUD overlay objects."), MinVersion(4)]
+        [Name("Z Range"), Description("The part of the Z-buffer to use, in normalized coordinates. It can be useful to draw a scene where the near and far planes must exceed the 1:1000 ratio (so multiple cameras are used to draw farthest to nearest perObjs, each using a closer range of the z-buffer) or to leave some z-buffer for HUD overlay perObjs."), MinVersion(4)]
         public Vector2 zRange = new();
 
         [Name("Target Texture"), MinVersion(5)]

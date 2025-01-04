@@ -3,7 +3,7 @@ using MiloLib.Utils;
 
 namespace MiloLib.Assets.Rnd
 {
-    [Name("Group"), Description("Represents a group of objects to which to propogate animation and messages.")]
+    [Name("Group"), Description("Represents a group of perObjs to which to propogate animation and messages.")]
     public class RndGroup : Object
     {
         private ushort altRevision;
@@ -17,7 +17,7 @@ namespace MiloLib.Assets.Rnd
 
         private uint objectsCount;
 
-        [Name("Objects"), Description("List of objects in the group"), MinVersion(11)]
+        [Name("Objects"), Description("List of perObjs in the group"), MinVersion(11)]
         public List<Symbol> objects = new List<Symbol>();
 
         [Name("Environ"), MinVersion(16)]
@@ -32,7 +32,7 @@ namespace MiloLib.Assets.Rnd
         [Name("LOD Screen Size"), Description("Ratio of screen height for LOD"), MinVersion(12), MaxVersion(15)]
         public float lodScreenSize;
 
-        [Name("Sort In World"), Description("Sort by distance to current camera per frame. This has a CPU cost if there are many objects."), MinVersion(14)]
+        [Name("Sort In World"), Description("Sort by distance to current camera per frame. This has a CPU cost if there are many perObjs."), MinVersion(14)]
         public bool sortInWorld;
 
         [MinVersion(7), MaxVersion(7)]

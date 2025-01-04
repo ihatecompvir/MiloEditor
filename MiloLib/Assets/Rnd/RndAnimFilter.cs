@@ -8,6 +8,24 @@ namespace MiloLib.Assets.Rnd
     [Name("AnimFilter"), Description("An AnimFilter object modifies the playing of another animatable object")]
     public class RndAnimFilter : Object
     {
+        public Dictionary<Game.MiloGame, uint> gameRevisions = new Dictionary<Game.MiloGame, uint>
+        {
+            { Game.MiloGame.GuitarHero2_PS2, 1 },
+            { Game.MiloGame.GuitarHero2_360, 1 },
+            { Game.MiloGame.Phase, 2 },
+            { Game.MiloGame.RockBand, 2 },
+            { Game.MiloGame.RockBand2, 2 },
+            { Game.MiloGame.LegoRockBand, 2 },
+            { Game.MiloGame.TheBeatlesRockBand, 2 },
+            { Game.MiloGame.GreenDayRockBand, 2 },
+            { Game.MiloGame.RockBand3, 2 },
+            { Game.MiloGame.DanceCentral, 2 },
+
+            // todo: double check
+            { Game.MiloGame.DanceCentral2, 2 },
+            { Game.MiloGame.RockBandBlitz, 2 },
+            { Game.MiloGame.DanceCentral3, 2 }
+        };
         public enum AnimEnum
         {
             kAnimRange,
@@ -22,19 +40,24 @@ namespace MiloLib.Assets.Rnd
 
         public Symbol animSymbol = new(0, "");
 
+        [Name("Scale"), Description("Multiplier to speed of animation")]
         public float scale;
+        [Name("Offset"), Description("Amount to offset frame for animation")]
         public float offset;
+        [Name("Start"), Description("Overriden start frame of animation")]
         public float start;
+        [Name("End"), Description("Overriden end frame of animation")]
         public float end;
 
+        [Name("Anim Enum"), Description("How to treat the frame outside of start and end")]
         public AnimEnum animEnum;
 
-        [MinVersion(1)]
+        [Name("Period"), Description("Alternative to scale, overriden period of animation"), MinVersion(1)]
         public float period;
 
-        [MinVersion(2)]
+        [Name("Snap"), Description("Snap frame to nearest multiple"), MinVersion(2)]
         public float snap;
-        [MinVersion(2)]
+        [Name("Jitter"), Description("Jitter frame randomly up to this amount"), MinVersion(2)]
         public float jitter;
 
         public RndAnimFilter Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)

@@ -7,6 +7,23 @@ namespace MiloLib.Assets.UI
     [Name("PanelDir"), Description("Top-level UI Object, contains UI components and an optional camera")]
     public class PanelDir : RndDir
     {
+        public Dictionary<Game.MiloGame, uint> gameRevisions = new Dictionary<Game.MiloGame, uint>
+        {
+            // no dirs before this
+            { Game.MiloGame.GuitarHero2_PS2, 2 },
+            { Game.MiloGame.GuitarHero2_360, 2 },
+            { Game.MiloGame.Phase, 2 },
+            { Game.MiloGame.RockBand, 2 },
+            { Game.MiloGame.RockBand2, 7 },
+            { Game.MiloGame.LegoRockBand, 7 },
+            { Game.MiloGame.TheBeatlesRockBand, 7 },
+            { Game.MiloGame.GreenDayRockBand, 7 },
+            { Game.MiloGame.RockBand3, 8 },
+            { Game.MiloGame.DanceCentral, 8 },
+            { Game.MiloGame.DanceCentral2, 8 },
+            { Game.MiloGame.RockBandBlitz, 8 },
+            { Game.MiloGame.DanceCentral3, 8 }
+        };
         private ushort altRevision;
         private ushort revision;
         [Name("Camera"), Description("Camera to use in game, else standard UI cam")]

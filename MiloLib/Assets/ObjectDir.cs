@@ -8,9 +8,27 @@ using System.Threading.Tasks;
 
 namespace MiloLib.Assets
 {
-    [Name("ObjectDir"), Description("An ObjectDir keeps track of a set of Objects. It can subdir or proxy in other ObjectDirs. To rename subdir or proxy files search for remap_objectdirs in system/run/config/objects.dta")]
+    [Name("ObjectDir"), Description("An ObjectDir keeps track of a set of Objects. It can subdir or proxy in other ObjectDirs. To rename subdir or proxy files search for remap_objectdirs in system/run/config/perObjs.dta")]
     public class ObjectDir : Object
     {
+        public Dictionary<Game.MiloGame, uint> gameRevisions = new Dictionary<Game.MiloGame, uint>
+        {
+            // no dirs before this
+            { Game.MiloGame.GuitarHero2_PS2, 16 },
+            { Game.MiloGame.GuitarHero2_360, 17 },
+            { Game.MiloGame.Phase, 17 },
+            { Game.MiloGame.RockBand, 19 },
+            { Game.MiloGame.RockBand2, 20 },
+            { Game.MiloGame.LegoRockBand, 20 },
+            { Game.MiloGame.TheBeatlesRockBand, 22 },
+            { Game.MiloGame.GreenDayRockBand, 22 },
+            { Game.MiloGame.RockBand3, 27 },
+            { Game.MiloGame.DanceCentral, 27 },
+            { Game.MiloGame.DanceCentral2, 28 },
+            { Game.MiloGame.RockBandBlitz, 28 },
+            { Game.MiloGame.DanceCentral3, 28 }
+        };
+
         public enum ReferenceType : byte
         {
             kInlineNever = 0,
@@ -40,7 +58,7 @@ namespace MiloLib.Assets
         [Name("Sub Directory Count"), Description("The number of subdirectories in the directory."), MinVersion(3)]
         private uint subDirCount;
 
-        [Name("Sub Directories"), Description("Subdirectories of objects"), MinVersion(3)]
+        [Name("Sub Directories"), Description("Subdirectories of perObjs"), MinVersion(3)]
         public List<Symbol> subDirs = new List<Symbol>();
 
         [Name("Inline Sub Directory"), Description("How is this inlined as a subdir? Note that when you change this, you must resave everything subdiring this file for it to take effect"), MinVersion(21)]

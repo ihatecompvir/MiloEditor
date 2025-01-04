@@ -3,9 +3,28 @@ using MiloLib.Utils;
 
 namespace MiloLib.Assets.Rnd
 {
-    [Name("Animatable"), Description("Base class for animatable objects. Anim objects change their state or other objects.")]
+    [Name("Animatable"), Description("Base class for animatable perObjs. Anim perObjs change their state or other perObjs.")]
     public class RndAnimatable
     {
+        public Dictionary<Game.MiloGame, uint> gameRevisions = new Dictionary<Game.MiloGame, uint>
+        {
+            { Game.MiloGame.Amplitude, 0 },
+            { Game.MiloGame.EyeToyAntiGrav, 0 },
+            { Game.MiloGame.GuitarHero, 0 },
+            { Game.MiloGame.GuitarHero2_PS2, 4 },
+            { Game.MiloGame.GuitarHero2_360, 4 },
+            { Game.MiloGame.Phase, 4 },
+            { Game.MiloGame.RockBand, 4 },
+            { Game.MiloGame.RockBand2, 4 },
+            { Game.MiloGame.LegoRockBand, 4 },
+            { Game.MiloGame.TheBeatlesRockBand, 4 },
+            { Game.MiloGame.GreenDayRockBand, 4 },
+            { Game.MiloGame.RockBand3, 4 },
+            { Game.MiloGame.DanceCentral, 4 },
+            { Game.MiloGame.DanceCentral2, 4 },
+            { Game.MiloGame.RockBandBlitz, 4 },
+            { Game.MiloGame.DanceCentral3, 4 }
+        };
         public class AnimEntry
         {
             public Symbol name = new(0, "");

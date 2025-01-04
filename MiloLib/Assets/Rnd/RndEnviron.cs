@@ -56,7 +56,7 @@ namespace MiloLib.Assets.Rnd
         [Name("Fade Out End"), Description("World space distance fade out completely"), MinVersion(5)]
         public float fadeEnd;
 
-        [Name("Fade Out Max"), Description("Maximum opacity of faded objects"), MinVersion(6)]
+        [Name("Fade Out Max"), Description("Maximum opacity of faded perObjs"), MinVersion(6)]
         public float fadeMax;
 
         [Name("Fade Reference"), Description("reference object to left/right fade along x-axis"), MinVersion(9)]

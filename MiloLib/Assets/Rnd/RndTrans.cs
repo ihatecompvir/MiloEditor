@@ -11,7 +11,7 @@ using static System.Formats.Asn1.AsnWriter;
 
 namespace MiloLib.Assets.Rnd
 {
-    [Name("Trans"), Description("Base class for transformable objects. Trans objects have a 3D position, rotation, and scale.")]
+    [Name("Trans"), Description("Base class for transformable perObjs. Trans perObjs have a 3D position, rotation, and scale.")]
     public class RndTrans : Object
     {
         public enum Constraint

@@ -26,7 +26,7 @@ namespace MiloLib.Assets
             public uint stringTableSize; // maybe? seems right
 
             private uint objectCount;
-            private List<DirectoryMeta.Entry> objects = new(); // the list of objects
+            private List<DirectoryMeta.Entry> perObjs = new(); // the list of perObjs
 
 
             public PersistentObjects Read(EndianReader reader, DirectoryMeta parent, DirectoryMeta.Entry entry)
@@ -46,21 +46,21 @@ namespace MiloLib.Assets
                 objectCount = reader.ReadUInt32();
                 for (int i = 0; i < objectCount; i++)
                 {
-                    objects.Add(new DirectoryMeta.Entry(Symbol.Read(reader).value, Symbol.Read(reader).value, null));
+                    perObjs.Add(new DirectoryMeta.Entry(Symbol.Read(reader).value, Symbol.Read(reader).value, null));
                 }
 
                 for (int i = 0; i < objectCount; i++)
                 {
-                    switch (objects[i].type.value)
+                    switch (perObjs[i].type.value)
                     {
                         case "Mesh":
-                            objects[i].obj = new RndMesh().Read(reader, false, parent, objects[i]);
+                            perObjs[i].obj = new RndMesh().Read(reader, false, parent, perObjs[i]);
                             break;
                         default:
-                            throw new Exception("Unknown object type " + objects[i].type.value + " in WorldInstance PersistentObjects");
+                            throw new Exception("Unknown object type " + perObjs[i].type.value + " in WorldInstance PersistentObjects");
                     }
                 }
-                if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of persistent objects but didn't find the expected end bytes, read likely did not succeed");
+                if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of persistent perObjs but didn't find the expected end bytes, read likely did not succeed");
 
                 return this;
             }
@@ -79,20 +79,20 @@ namespace MiloLib.Assets
                 writer.WriteUInt32(stringTableCount);
                 writer.WriteUInt32(stringTableSize);
 
-                writer.WriteUInt32((uint)objects.Count);
+                writer.WriteUInt32((uint)perObjs.Count);
 
                 for (int i = 0; i < objectCount; i++)
                 {
-                    Symbol.Write(writer, objects[i].type);
-                    Symbol.Write(writer, objects[i].name);
+                    Symbol.Write(writer, perObjs[i].type);
+                    Symbol.Write(writer, perObjs[i].name);
                 }
 
                 for (int i = 0; i < objectCount; i++)
                 {
-                    switch (objects[i].type.value)
+                    switch (perObjs[i].type.value)
                     {
                         case "Mesh":
-                            ((RndMesh)objects[i].obj).Write(writer, false, parent, objects[i]);
+                            ((RndMesh)perObjs[i].obj).Write(writer, false, parent, perObjs[i]);
                             break;
                     }
                 }

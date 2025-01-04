@@ -7,6 +7,23 @@ namespace MiloLib.Assets.Char
     [Name("CharClipSet"), Description("A CharClip container.")]
     public class CharClipSet : ObjectDir
     {
+        public Dictionary<Game.MiloGame, uint> gameRevisions = new Dictionary<Game.MiloGame, uint>
+        {
+            // no dirs before this
+            { Game.MiloGame.GuitarHero2_PS2, 14 },
+            { Game.MiloGame.GuitarHero2_360, 16 },
+            { Game.MiloGame.Phase, 17 },
+            { Game.MiloGame.RockBand, 19 },
+            { Game.MiloGame.RockBand2, 23 },
+            { Game.MiloGame.LegoRockBand, 23 },
+            { Game.MiloGame.TheBeatlesRockBand, 24 },
+            { Game.MiloGame.GreenDayRockBand, 25 },
+            { Game.MiloGame.RockBand3, 24 },
+            { Game.MiloGame.DanceCentral, 24 },
+            { Game.MiloGame.DanceCentral2, 24 },
+            { Game.MiloGame.RockBandBlitz, 24 },
+            { Game.MiloGame.DanceCentral3, 24 }
+        };
         public class CharClipPtr
         {
             public Symbol clip = new(0, "");
@@ -98,7 +115,7 @@ namespace MiloLib.Assets.Char
         [MinVersion(0), MaxVersion(5)]
         public string unkString;
 
-        [Name("Char Clip Pointers"), Description("The list of CharClipSamples objects in the directory."), MinVersion(0), MaxVersion(23)]
+        [Name("Char Clip Pointers"), Description("The list of CharClipSamples perObjs in the directory."), MinVersion(0), MaxVersion(23)]
         public List<CharClipPtr> charClipPtrs = new();
 
         private uint unkSymbolListCount;

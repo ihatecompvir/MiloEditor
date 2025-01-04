@@ -4,7 +4,7 @@ using System.Numerics;
 
 namespace MiloLib.Assets.Rnd
 {
-    [Name("Light"), Description("Light objects are added to environments for drawing.")]
+    [Name("Light"), Description("Light perObjs are added to environments for drawing.")]
     public class RndLight : Object
     {
         public enum Type
@@ -40,7 +40,7 @@ namespace MiloLib.Assets.Rnd
 
         private uint shadowObjectsCount;
 
-        [Name("Shadow Objects"), Description("These objects will cast shadows for the projected light"), MinVersion(15)]
+        [Name("Shadow Objects"), Description("These perObjs will cast shadows for the projected light"), MinVersion(15)]
         public List<Symbol> shadowObjects = new();
 
         [MinVersion(13)]

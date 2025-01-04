@@ -7,6 +7,12 @@ namespace MiloLib.Assets.Band
     [Name("BandPlacer"), Description("Stand-in for dir in the UI, polls and draws them, can center about a mesh inside it.")]
     public class BandPlacer : Object
     {
+        public Dictionary<Game.MiloGame, uint> gameRevisions = new Dictionary<Game.MiloGame, uint>
+        {
+            // no dirs before this
+            { Game.MiloGame.GuitarHero2_PS2, 2 },
+            { Game.MiloGame.GuitarHero2_360, 2 },
+        };
         public ushort altRevision;
         public ushort revision;
 

@@ -1,10 +1,15 @@
 using System.Numerics;
+using MiloLib.Classes;
 using MiloLib.Utils;
 
 namespace MiloLib.Assets.Ham
 {
     public class HamMove : Object
     {
+        public Dictionary<Game.MiloGame, uint> gameRevisions = new Dictionary<Game.MiloGame, uint>
+        {
+            { Game.MiloGame.DanceCentral, 28 },
+        };
         public class Language
         {
             public Symbol locale = new(0, "");
@@ -34,7 +39,7 @@ namespace MiloLib.Assets.Ham
             public uint unk;
             public uint unk2;
 
-            public Vector3 vec;
+            public MiloLib.Classes.Vector3 vec;
 
             public uint unk3;
 
@@ -117,7 +122,7 @@ namespace MiloLib.Assets.Ham
                     {
                         unk = reader.ReadUInt32(),
                         unk2 = reader.ReadUInt32(),
-                        vec = new Vector3(reader.ReadFloat(), reader.ReadFloat(), reader.ReadFloat()),
+                        vec = new MiloLib.Classes.Vector3(reader.ReadFloat(), reader.ReadFloat(), reader.ReadFloat()),
                         unk3 = reader.ReadUInt32(),
                         unk4 = reader.ReadByte()
                         // TODO: there is much more here

@@ -6,6 +6,7 @@ namespace MiloLib.Assets.UI
     [Name("UIColor"), Description("Just a color, used by UI components")]
     public class UIColor : Object
     {
+
         public ushort altRevision;
         public ushort revision;
 

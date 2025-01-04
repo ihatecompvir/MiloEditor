@@ -196,14 +196,25 @@ namespace MiloEditor
                 ToolTipText = $"{dirMeta.name ?? "<empty name>"} ({dirMeta.type ?? "Unknown"})"
             };
 
-            //Recursively add entries
+            parentNode.Nodes.Add(subDirNode);
+
+            if (dirMeta.directory is ObjectDir objDir && objDir.inlineSubDirs.Count > 0)
+            {
+                TreeNode inlinedSubdirsNode = new TreeNode("Inlined Subdirectories", GetImageIndex(imageList, "ObjectDir"), GetImageIndex(imageList, "ObjectDir"));
+                subDirNode.Nodes.Add(inlinedSubdirsNode);
+
+                foreach (var subDir in objDir.inlineSubDirs)
+                {
+                    AddDirectoryNode(subDir, inlinedSubdirsNode);
+                }
+            }
+
             if (dirMeta != null)
             {
                 AddChildNodes(dirMeta, subDirNode);
             }
-
-            parentNode.Nodes.Add(subDirNode);
         }
+
 
         private void MiloSceneItemsTree_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
         {
@@ -575,9 +586,7 @@ namespace MiloEditor
         {
             if (currentMiloScene != null)
             {
-                // just for testing so we don't overwrite the original milo
-                // TODO: make it actually save to the original file in the future when we know we didn't break anything
-                currentMiloScene.Save("test.milo_xbox", null);
+                currentMiloScene.Save(null, null);
                 MessageBox.Show("Milo scene saved successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             else

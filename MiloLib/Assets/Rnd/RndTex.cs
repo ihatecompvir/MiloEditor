@@ -5,7 +5,7 @@ namespace MiloLib.Assets.Rnd
 {
 
     // this is a misleading description from Harmonix lol, I guess I could add this though so it is no longer false
-    [Name("Tex"), Description("Tex objects represent bitmaps used by materials. These can be created automatically with 'import tex' on the file menu.")]
+    [Name("Tex"), Description("Tex perObjs represent bitmaps used by materials. These can be created automatically with 'import tex' on the file menu.")]
     public class RndTex : Object
     {
         private ushort altRevision;

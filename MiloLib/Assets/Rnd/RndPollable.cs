@@ -3,7 +3,7 @@ using MiloLib.Utils;
 
 namespace MiloLib.Assets.Rnd
 {
-    [Name("Pollable"), Description("Abstract base class for pollable RND objects")]
+    [Name("Pollable"), Description("Abstract base class for pollable RND perObjs")]
     public class RndPollable : Object
     {
         public Symbol exit = new(0, "");

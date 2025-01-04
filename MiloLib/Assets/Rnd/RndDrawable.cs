@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace MiloLib.Assets.Rnd
 {
-    [Name("Drawable"), Description("Base class for drawable objects. Draw objects either render polys or determine rendering state.")]
+    [Name("Drawable"), Description("Base class for drawable perObjs. Draw perObjs either render polys or determine rendering state.")]
     public class RndDrawable : Object
     {
         public enum OverrideIncludeInDepthOnlyPass

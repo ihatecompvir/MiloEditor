@@ -10,9 +10,26 @@ using static MiloLib.Assets.DirectoryMeta;
 
 namespace MiloLib.Assets.Char
 {
-    [Name("Character"), Description("Base class for Character objects. Contains Geometry, Outfit Loaders, and LOD + Sphere concepts.")]
+    [Name("Character"), Description("Base class for Character perObjs. Contains Geometry, Outfit Loaders, and LOD + Sphere concepts.")]
     public class Character : RndDir
     {
+        public Dictionary<Game.MiloGame, uint> gameRevisions = new Dictionary<Game.MiloGame, uint>
+        {
+            // no dirs before this
+            { Game.MiloGame.GuitarHero2_PS2, 9 },
+            { Game.MiloGame.GuitarHero2_360, 10 },
+            { Game.MiloGame.RockBand, 12 },
+            { Game.MiloGame.RockBand2, 12 },
+            { Game.MiloGame.LegoRockBand, 12 },
+            { Game.MiloGame.TheBeatlesRockBand, 15 },
+            { Game.MiloGame.GreenDayRockBand, 15 },
+            { Game.MiloGame.RockBand3, 18 },
+            { Game.MiloGame.DanceCentral, 18 },
+            { Game.MiloGame.DanceCentral2, 18 },
+            { Game.MiloGame.RockBandBlitz, 21 },
+            { Game.MiloGame.DanceCentral3, 21 }
+        };
+
         public class LOD
         {
             public float screenSize;

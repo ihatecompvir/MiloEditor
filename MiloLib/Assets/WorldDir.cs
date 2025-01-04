@@ -5,7 +5,7 @@ using MiloLib.Assets.Rnd;
 
 namespace MiloLib.Assets
 {
-    [Name("WorldDir"), Description("A WorldDir contains world objects.")]
+    [Name("WorldDir"), Description("A WorldDir contains world perObjs.")]
     public class WorldDir : PanelDir
     {
         public ushort altRevision;
@@ -39,7 +39,7 @@ namespace MiloLib.Assets
 
         public List<MatOverride> matOverrides = new List<MatOverride>();
 
-        [Name("Hide Overrides"), Description("Subdir objects to hide")]
+        [Name("Hide Overrides"), Description("Subdir perObjs to hide")]
         public List<Symbol> hideOverrides = new List<Symbol>();
         [Name("Cam Shot Overrides"), Description("Subdir camshots to inhibit")]
         public List<Symbol> camShotOverrides = new List<Symbol>();

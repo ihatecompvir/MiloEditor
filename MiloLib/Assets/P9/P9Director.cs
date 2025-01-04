@@ -7,6 +7,12 @@ namespace MiloLib.Assets.P9
     [Name("P9 Director"), Description("P9 Director, sits in each song file and manages camera + scene changes")]
     public class P9Director : Object
     {
+        public Dictionary<Game.MiloGame, uint> gameRevisions = new Dictionary<Game.MiloGame, uint>
+        {
+            { Game.MiloGame.TheBeatlesRockBand, 5 },
+            { Game.MiloGame.GreenDayRockBand, 5 },
+            { Game.MiloGame.RockBand3, 5 },
+        };
         private ushort altRevision;
         private ushort revision;
 
