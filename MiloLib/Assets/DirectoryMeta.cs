@@ -61,6 +61,12 @@ namespace MiloLib.Assets
             public bool dirty = false;
 
             /// <summary>
+            /// Whether or not the type is recognized by MiloLib.
+            /// Used to handle duplicating and other actions on assets that aren't yet supported.
+            /// </summary>
+            public bool typeRecognized = true;
+
+            /// <summary>
             /// The raw bytes of the object. If we can't deserialize/serialize a particular type yet, we just read and write this directly.
             /// Also used to enable extracting assets.
             /// </summary>
@@ -722,6 +728,8 @@ namespace MiloLib.Assets
 
                     default:
                         Debug.WriteLine("Unknown entry type " + entry.type.value + " of name " + entry.name.value + ", read an Object and then read until we see 0xADDEADDE to skip over it, curpos" + reader.BaseStream.Position);
+
+                        entry.typeRecognized = false;
 
                         // TODO: improve this shit
                         while (true)

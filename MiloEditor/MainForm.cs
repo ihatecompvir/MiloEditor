@@ -146,7 +146,7 @@ namespace MiloEditor
 
             miloSceneItemsTree.Nodes.Add(rootNode);
 
-            // Handle inline subdirectories
+            // Handle inline subdirectories of root
             if (currentMiloScene.dirMeta != null && currentMiloScene.dirMeta.directory is ObjectDir objDir && objDir.inlineSubDirs.Count > 0)
             {
                 TreeNode inlineSubdirsNode = new TreeNode("Inline Subdirectories", GetImageIndex(imageList, "ObjectDir"), GetImageIndex(imageList, "ObjectDir"));
@@ -174,6 +174,7 @@ namespace MiloEditor
 
             foreach (DirectoryMeta.Entry entry in parentDirMeta.entries)
             {
+                // create node for entry
                 TreeNode node = new TreeNode(entry.name.value, GetImageIndex(imageList, entry.type), GetImageIndex(imageList, entry.type))
                 {
                     Tag = entry,
@@ -181,9 +182,10 @@ namespace MiloEditor
                 };
 
 
+                // if this entry is actually a dir, we need to create a node under it called the dir entry
+                // confusing but dirs as entries have the entry, and then the dir itself, with its own fields (but not exactly the same fields!) harmonix whyyyyyyyyyyyy
                 if (entry.dir != null)
                 {
-                    // create a node for entry.dir.directory
                     TreeNode dirDirectoryNode = new TreeNode("Directory Entry", GetImageIndex(imageList, entry.dir.type), GetImageIndex(imageList, entry.dir.type))
                     {
                         Tag = entry.dir,
@@ -193,11 +195,11 @@ namespace MiloEditor
                     node.Nodes.Add(dirDirectoryNode);
 
 
-                    // Add inline subdirectories within this directory entry
+                    // handle inlined subdirs of entries
                     if (entry.dir.directory is ObjectDir objDir && objDir.inlineSubDirs.Count > 0)
                     {
                         TreeNode inlinedSubdirsNode = new TreeNode("Inlined Subdirectories", GetImageIndex(imageList, "ObjectDir"), GetImageIndex(imageList, "ObjectDir"));
-                        node.Nodes.Add(inlinedSubdirsNode); // Add inline subdir node to the *entry* node
+                        node.Nodes.Add(inlinedSubdirsNode);
 
                         foreach (var subDir in objDir.inlineSubDirs)
                         {
@@ -230,6 +232,7 @@ namespace MiloEditor
 
                 foreach (var subDir in objDir.inlineSubDirs)
                 {
+                    // i love recursion
                     AddDirectoryNode(subDir, inlinedSubdirsNode);
                 }
             }
@@ -342,8 +345,18 @@ namespace MiloEditor
             // convert our node's tag to an Object
             DirectoryMeta.Entry entry = (DirectoryMeta.Entry)node.Tag;
 
+            DirectoryMeta.Entry newEntry;
+
             // create a new entry
-            DirectoryMeta.Entry newEntry = new DirectoryMeta.Entry(entry.type, entry.name, entry.obj);
+            if (entry.typeRecognized)
+            {
+                newEntry = new DirectoryMeta.Entry(entry.type, entry.name, entry.obj);
+            }
+            else
+            {
+                // create a dirty entry
+                newEntry = Entry.CreateDirtyAssetFromBytes(entry.type.value, entry.name.value, entry.objBytes);
+            }
 
             // bring up a dialog to get the new name
             string newName = Microsoft.VisualBasic.Interaction.InputBox("Enter the new name for the asset", "Duplicate Asset", entry.name.value);
