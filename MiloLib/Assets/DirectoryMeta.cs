@@ -311,6 +311,12 @@ namespace MiloLib.Assets
                     skeletonDir.Read(reader, true, this, new Entry(type, name, skeletonDir));
                     directory = skeletonDir;
                     break;
+                case "OvershellDir":
+                    Debug.WriteLine("Reading OvershellDir " + name.value);
+                    OvershellDir overshellDir = new OvershellDir(0);
+                    overshellDir.Read(reader, true, this, new Entry(type, name, overshellDir));
+                    directory = overshellDir;
+                    break;
                 case "":
                     Debug.WriteLine("GH1-style empty directory detected, just reading children");
                     break;
@@ -372,6 +378,16 @@ namespace MiloLib.Assets
                             dir.Read(reader);
                             entry.dir = dir;
                         }
+                        break;
+                    case "OvershellDir":
+                        Debug.WriteLine("Reading entry OvershellDir " + entry.name.value);
+                        entry.isEntryInRootDir = true;
+                        entry.obj = new OvershellDir(0).Read(reader, true, this, entry);
+
+                        dir = new DirectoryMeta();
+                        dir.platform = platform;
+                        dir.Read(reader);
+                        entry.dir = dir;
                         break;
                     case "UIPanel":
                     case "PanelDir":
@@ -852,6 +868,9 @@ namespace MiloLib.Assets
                 case "SkeletonDir":
                     ((SkeletonDir)directory).Write(writer, true, this, new Entry(type, name, directory));
                     break;
+                case "OvershellDir":
+                    ((OvershellDir)directory).Write(writer, true, this, new Entry(type, name, directory));
+                    break;
                 default:
                     throw new Exception("Unknown directory type: " + type.value + ", cannot continue writing Milo scene");
             }
@@ -997,6 +1016,11 @@ namespace MiloLib.Assets
                         break;
                     case "SkeletonDir":
                         ((SkeletonDir)entry.obj).Write(writer, true, this, entry);
+                        entry.isEntryInRootDir = false;
+                        entry.dir.Write(writer);
+                        break;
+                    case "OvershellDir":
+                        ((OvershellDir)entry.obj).Write(writer, true, this, entry);
                         entry.isEntryInRootDir = false;
                         entry.dir.Write(writer);
                         break;
