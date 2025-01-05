@@ -31,6 +31,7 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             statusStrip1 = new StatusStrip();
             miloSceneLabel = new ToolStripStatusLabel();
+            miloSceneDetailsLabel = new ToolStripStatusLabel();
             menuStrip1 = new MenuStrip();
             fileToolStripMenuItem = new ToolStripMenuItem();
             newToolStripMenuItem = new ToolStripMenuItem();
@@ -46,8 +47,9 @@
             toolStripSeparator4 = new ToolStripSeparator();
             githubLinkMenuItem = new ToolStripMenuItem();
             splitContainer1 = new SplitContainer();
+            filterComboBox = new ComboBox();
+            filterLabel = new Label();
             miloSceneItemsTree = new TreeView();
-            label1 = new Label();
             statusStrip1.SuspendLayout();
             menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
@@ -57,7 +59,7 @@
             // 
             // statusStrip1
             // 
-            statusStrip1.Items.AddRange(new ToolStripItem[] { miloSceneLabel });
+            statusStrip1.Items.AddRange(new ToolStripItem[] { miloSceneLabel, miloSceneDetailsLabel });
             statusStrip1.Location = new Point(0, 659);
             statusStrip1.Name = "statusStrip1";
             statusStrip1.Size = new Size(1264, 22);
@@ -67,8 +69,16 @@
             // miloSceneLabel
             // 
             miloSceneLabel.Name = "miloSceneLabel";
-            miloSceneLabel.Size = new Size(99, 17);
-            miloSceneLabel.Text = "No Scene Loaded";
+            miloSceneLabel.Size = new Size(1249, 17);
+            miloSceneLabel.Spring = true;
+            miloSceneLabel.Text = "No Milo Scene Loaded";
+            miloSceneLabel.TextAlign = ContentAlignment.MiddleLeft;
+            // 
+            // miloSceneDetailsLabel
+            // 
+            miloSceneDetailsLabel.Name = "miloSceneDetailsLabel";
+            miloSceneDetailsLabel.Size = new Size(0, 17);
+            miloSceneDetailsLabel.TextAlign = ContentAlignment.MiddleRight;
             // 
             // menuStrip1
             // 
@@ -171,8 +181,9 @@
             // 
             // splitContainer1.Panel1
             // 
+            splitContainer1.Panel1.Controls.Add(filterComboBox);
+            splitContainer1.Panel1.Controls.Add(filterLabel);
             splitContainer1.Panel1.Controls.Add(miloSceneItemsTree);
-            splitContainer1.Panel1.Controls.Add(label1);
             // 
             // splitContainer1.Panel2
             // 
@@ -182,24 +193,33 @@
             splitContainer1.SplitterWidth = 5;
             splitContainer1.TabIndex = 2;
             // 
+            // filterComboBox
+            // 
+            filterComboBox.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            filterComboBox.FormattingEnabled = true;
+            filterComboBox.Items.AddRange(new object[] { "None" });
+            filterComboBox.Location = new Point(78, 3);
+            filterComboBox.Name = "filterComboBox";
+            filterComboBox.Size = new Size(178, 23);
+            filterComboBox.TabIndex = 4;
+            // 
+            // filterLabel
+            // 
+            filterLabel.AutoSize = true;
+            filterLabel.Location = new Point(3, 6);
+            filterLabel.Name = "filterLabel";
+            filterLabel.Size = new Size(69, 15);
+            filterLabel.TabIndex = 3;
+            filterLabel.Text = "Filter Assets";
+            // 
             // miloSceneItemsTree
             // 
-            miloSceneItemsTree.Dock = DockStyle.Fill;
-            miloSceneItemsTree.Location = new Point(0, 0);
-            miloSceneItemsTree.MinimumSize = new Size(250, 180);
+            miloSceneItemsTree.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            miloSceneItemsTree.Location = new Point(0, 28);
+            miloSceneItemsTree.MinimumSize = new Size(100, 180);
             miloSceneItemsTree.Name = "miloSceneItemsTree";
-            miloSceneItemsTree.Size = new Size(256, 635);
+            miloSceneItemsTree.Size = new Size(256, 604);
             miloSceneItemsTree.TabIndex = 2;
-            miloSceneItemsTree.AfterSelect += miloSceneItemsTree_AfterSelect;
-            // 
-            // label1
-            // 
-            label1.AutoSize = true;
-            label1.Location = new Point(3, 0);
-            label1.Name = "label1";
-            label1.Size = new Size(74, 15);
-            label1.TabIndex = 1;
-            label1.Text = "Scene Assets";
             // 
             // MainForm
             // 
@@ -248,5 +268,8 @@
         private ToolStripMenuItem aboutToolStripMenuItem;
         private ToolStripSeparator toolStripSeparator4;
         private ToolStripMenuItem githubLinkMenuItem;
+        private Label filterLabel;
+        private ComboBox filterComboBox;
+        private ToolStripStatusLabel miloSceneDetailsLabel;
     }
 }

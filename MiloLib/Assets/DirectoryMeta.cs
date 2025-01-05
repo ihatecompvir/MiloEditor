@@ -756,6 +756,10 @@ namespace MiloLib.Assets
                         Debug.WriteLine("Reading entry CharClipGroup " + entry.name.value);
                         entry.obj = new CharClipGroup().Read(reader, true, this, entry);
                         break;
+                    case "MatAnim":
+                        Debug.WriteLine("Reading entry MatAnim " + entry.name.value);
+                        entry.obj = new RndMatAnim().Read(reader, true, this, entry);
+                        break;
                     // re-enable when the class is 100%
                     //case "CharClip":
                     //    Debug.WriteLine("Reading entry CharClip " + entry.name.value);
@@ -1099,6 +1103,21 @@ namespace MiloLib.Assets
                         break;
                     case "SynthSample":
                         ((SynthSample)entry.obj).Write(writer, true, this, entry);
+                        break;
+                    case "Cam":
+                        ((RndCam)entry.obj).Write(writer, true, this, entry);
+                        break;
+                    case "Set":
+                        ((Set)entry.obj).Write(writer, true, this, entry);
+                        break;
+                    case "SpotlightDrawer":
+                        ((SpotlightDrawer)entry.obj).Write(writer, true, this, entry);
+                        break;
+                    case "CharClipGroup":
+                        ((CharClipGroup)entry.obj).Write(writer, true, this, entry);
+                        break;
+                    case "MatAnim":
+                        ((RndMatAnim)entry.obj).Write(writer, true, this, entry);
                         break;
                     //case "Mat":
                     //    ((RndMat)entry.obj).Write(writer, false);

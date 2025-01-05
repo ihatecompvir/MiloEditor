@@ -91,14 +91,36 @@ public class ByteListPanel : Panel
     {
         using (SaveFileDialog saveFileDialog = new SaveFileDialog())
         {
-            saveFileDialog.Filter = "Binary Files (*.bin)|*.bin|All files (*.*)|*.*";
+            saveFileDialog.Filter = "All files (*.*)|*.*";
             saveFileDialog.Title = "Export Bytes to File";
 
             if (saveFileDialog.ShowDialog() == DialogResult.OK)
             {
                 try
                 {
-                    File.WriteAllBytes(saveFileDialog.FileName, _byteList.ToArray());
+                    byte[] bytes = _byteList.ToArray();
+
+                    // detect if the first 4 bytes are "iKIB"
+                    if (bytes != null && bytes.Length > 0)
+                    {
+                        if (bytes[0] == 0x69 && bytes[1] == 0x4B && bytes[2] == 0x49 && bytes[3] == 0x42)
+                        {
+                            // this is a bik, so byte swap every 4 bytes
+                            for (int i = 0; i < bytes.Length; i += 4)
+                            {
+                                byte temp = bytes[i];
+                                bytes[i] = bytes[i + 3];
+                                bytes[i + 3] = temp;
+
+                                temp = bytes[i + 1];
+                                bytes[i + 1] = bytes[i + 2];
+                                bytes[i + 2] = temp;
+                            }
+                        }
+                    }
+
+
+                    File.WriteAllBytes(saveFileDialog.FileName, bytes);
                     MessageBox.Show("Bytes exported successfully", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 catch (Exception ex)
@@ -122,6 +144,25 @@ public class ByteListPanel : Panel
                 try
                 {
                     byte[] importedBytes = File.ReadAllBytes(openFileDialog.FileName);
+
+                    // detect if the first 3 bytes are "BIK"
+                    if (importedBytes != null && importedBytes.Length > 0)
+                    {
+                        if (importedBytes[0] == 0x42 && importedBytes[1] == 0x49 && importedBytes[2] == 0x4B)
+                        {
+                            // this is a bik, so byte swap every 4 bytes because for some reason the bytes are reversed inside milo scenes? cool
+                            for (int i = 0; i < importedBytes.Length; i += 4)
+                            {
+                                byte temp = importedBytes[i];
+                                importedBytes[i] = importedBytes[i + 3];
+                                importedBytes[i + 3] = temp;
+
+                                temp = importedBytes[i + 1];
+                                importedBytes[i + 1] = importedBytes[i + 2];
+                                importedBytes[i + 2] = temp;
+                            }
+                        }
+                    }
                     ByteList = new List<byte>(importedBytes);
                     MessageBox.Show("Bytes imported successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }

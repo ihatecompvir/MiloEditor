@@ -4,6 +4,7 @@ using MiloLib.Assets.Band;
 using MiloLib.Assets.Rnd;
 using MiloLib.Utils;
 using MiloLib.Utils.Conversion;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.DirectoryServices;
 using System.Reflection;
@@ -46,6 +47,12 @@ namespace MiloEditor
         private void Form1_Load(object sender, EventArgs e)
         {
             this.Text = "Milo Editor (" + Application.ProductVersion + ")";
+
+            filterComboBox.SelectedIndex = 0;
+
+            // create handler for when the filter combobox changes
+            filterComboBox.SelectedIndexChanged -= FilterComboBox_SelectedIndexChanged;
+            filterComboBox.SelectedIndexChanged += FilterComboBox_SelectedIndexChanged;
 
         }
 
@@ -124,15 +131,19 @@ namespace MiloEditor
                 throw new Exception("Tried to populate list with milo scene entries when no Milo scene was loaded!");
             }
 
-            miloSceneItemsTree.Nodes.Clear();
+            HashSet<string> expandedNodes = new HashSet<string>();
+            foreach (TreeNode node in miloSceneItemsTree.Nodes)
+            {
+                SaveExpandedNodes(node, expandedNodes);
+            }
 
+            miloSceneItemsTree.Nodes.Clear();
             miloSceneItemsTree.ShowNodeToolTips = true;
 
             splitContainer1.Panel2.Controls.Clear();
-
             miloSceneItemsTree.ImageList = imageList;
 
-            // add a root node for the Milo scene and its dir
+            // Add a root node for the Milo scene and its dir
             string rootName = currentMiloScene.dirMeta?.name ?? "Scene Has No Root Directory";
             if (string.IsNullOrEmpty(rootName))
             {
@@ -153,28 +164,63 @@ namespace MiloEditor
                 TreeNode inlineSubdirsNode = new TreeNode("Inline Subdirectories", GetImageIndex(imageList, "ObjectDir"), GetImageIndex(imageList, "ObjectDir"));
                 foreach (var subDir in objDir.inlineSubDirs)
                 {
-                    AddDirectoryNode(subDir, inlineSubdirsNode);
+                    AddDirectoryNode(subDir, inlineSubdirsNode, filterComboBox.Text);
                 }
                 rootNode.Nodes.Add(inlineSubdirsNode);
             }
 
-
             // Add root entries
             if (currentMiloScene.dirMeta != null)
-                AddChildNodes(currentMiloScene.dirMeta, rootNode);
+            {
+                AddChildNodes(currentMiloScene.dirMeta, rootNode, filterComboBox.Text);
+            }
 
-            // onclick handlers so the tree view actually functions
-            // first we remove any existing handlers then add some to prevent any weird dupe issues
+            foreach (TreeNode node in miloSceneItemsTree.Nodes)
+            {
+                RestoreExpandedNodes(node, expandedNodes);
+            }
+
             miloSceneItemsTree.NodeMouseClick -= MiloSceneItemsTree_NodeMouseClick;
             miloSceneItemsTree.NodeMouseClick += MiloSceneItemsTree_NodeMouseClick;
         }
 
-        private void AddChildNodes(DirectoryMeta parentDirMeta, TreeNode parentNode)
+        private void SaveExpandedNodes(TreeNode node, HashSet<string> expandedNodes)
+        {
+            if (node.IsExpanded)
+            {
+                expandedNodes.Add(node.FullPath);
+            }
+
+            foreach (TreeNode child in node.Nodes)
+            {
+                SaveExpandedNodes(child, expandedNodes);
+            }
+        }
+
+        private void RestoreExpandedNodes(TreeNode node, HashSet<string> expandedNodes)
+        {
+            if (expandedNodes.Contains(node.FullPath))
+            {
+                node.Expand();
+            }
+
+            foreach (TreeNode child in node.Nodes)
+            {
+                RestoreExpandedNodes(child, expandedNodes);
+            }
+        }
+
+
+        private void AddChildNodes(DirectoryMeta parentDirMeta, TreeNode parentNode, string? filterByType)
         {
             if (parentDirMeta == null || parentDirMeta.entries == null) return;
 
             foreach (DirectoryMeta.Entry entry in parentDirMeta.entries)
             {
+                if (filterComboBox.SelectedIndex != 0 && filterByType != null && entry.type.value != filterByType)
+                {
+                    continue;
+                }
                 // create node for entry
                 TreeNode node = new TreeNode(entry.name.value, GetImageIndex(imageList, entry.type), GetImageIndex(imageList, entry.type))
                 {
@@ -204,10 +250,10 @@ namespace MiloEditor
 
                         foreach (var subDir in objDir.inlineSubDirs)
                         {
-                            AddDirectoryNode(subDir, inlinedSubdirsNode);
+                            AddDirectoryNode(subDir, inlinedSubdirsNode, filterByType);
                         }
                     }
-                    AddChildNodes(entry.dir, node);
+                    AddChildNodes(entry.dir, node, filterByType);
                 }
 
 
@@ -216,7 +262,7 @@ namespace MiloEditor
         }
 
 
-        private void AddDirectoryNode(DirectoryMeta dirMeta, TreeNode parentNode)
+        private void AddDirectoryNode(DirectoryMeta dirMeta, TreeNode parentNode, string? filterByType)
         {
             TreeNode subDirNode = new TreeNode(dirMeta.name.value, GetImageIndex(imageList, dirMeta.type), GetImageIndex(imageList, dirMeta.type))
             {
@@ -234,13 +280,13 @@ namespace MiloEditor
                 foreach (var subDir in objDir.inlineSubDirs)
                 {
                     // i love recursion
-                    AddDirectoryNode(subDir, inlinedSubdirsNode);
+                    AddDirectoryNode(subDir, inlinedSubdirsNode, filterByType);
                 }
             }
 
             if (dirMeta != null)
             {
-                AddChildNodes(dirMeta, subDirNode);
+                AddChildNodes(dirMeta, subDirNode, filterByType);
             }
         }
 
@@ -687,10 +733,53 @@ namespace MiloEditor
             {
                 currentMiloScene = new MiloFile(openFileDialog.FileName);
 
+                miloSceneLabel.Text = currentMiloScene.ToString() + " - " + currentMiloScene.dirMeta.ToString() + " - " + currentMiloScene.dirMeta.entries.Count + " entries";
 
-                miloSceneLabel.Text = currentMiloScene.ToString() + " - " + currentMiloScene.dirMeta.ToString();
+                miloSceneDetailsLabel.Text = "Milo Scene Version: " + currentMiloScene.dirMeta.revision + " - Platform: " + currentMiloScene.dirMeta.platform;
+
+                filterComboBox.Items.Clear();
+                filterComboBox.Items.Add("None");
+                filterComboBox.SelectedIndex = 0;
+
+                // this will hold all the unique types of entries across the entire scenee
+                HashSet<string> uniqueTypes = new HashSet<string>();
+                CollectEntryTypesRecursive(currentMiloScene.dirMeta, uniqueTypes);
+
+                foreach (string type in uniqueTypes.ToList().ToImmutableSortedSet())
+                {
+                    filterComboBox.Items.Add(type);
+                }
+
 
                 PopulateListWithEntries();
+            }
+        }
+
+        private void CollectEntryTypesRecursive(DirectoryMeta dirMeta, HashSet<string> uniqueTypes)
+        {
+            if (dirMeta == null) return;
+
+            // its dirs all the way down
+            if (dirMeta.entries != null)
+            {
+                foreach (var entry in dirMeta.entries)
+                {
+                    uniqueTypes.Add(entry.type.value);
+
+                    if (entry.dir != null)
+                    {
+                        CollectEntryTypesRecursive(entry.dir, uniqueTypes);
+                    }
+                }
+            }
+
+            // handle inlines
+            if (dirMeta.directory is ObjectDir objDir && objDir.inlineSubDirs.Count > 0)
+            {
+                foreach (var subDir in objDir.inlineSubDirs)
+                {
+                    CollectEntryTypesRecursive(subDir, uniqueTypes);
+                }
             }
         }
 
@@ -714,14 +803,19 @@ namespace MiloEditor
             }
         }
 
-        private void miloSceneItemsTree_AfterSelect(object sender, TreeViewEventArgs e)
-        {
-
-        }
-
         private void githubLinkMenuItem_Click(object sender, EventArgs e)
         {
             Process.Start(new ProcessStartInfo { FileName = "https://github.com/ihatecompvir/MiloEditor", UseShellExecute = true });
+        }
+
+        private void FilterComboBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (currentMiloScene == null)
+            {
+                return;
+            }
+
+            PopulateListWithEntries();
         }
     }
 }

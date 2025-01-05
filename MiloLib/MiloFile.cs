@@ -17,7 +17,7 @@ namespace MiloLib
         /// The maximum size a block can be.
         /// TODO: check if there is some "best" value for this
         /// </summary>
-        private const int MAX_BLOCK_SIZE = 0x700000;
+        private const int MAX_BLOCK_SIZE = 0xF00000;
 
         /// <summary>
         /// The type of the Milo file. Determines if it's compressed or not and how it's compressed.

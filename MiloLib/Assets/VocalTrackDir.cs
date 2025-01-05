@@ -52,22 +52,18 @@ namespace MiloLib.Assets
         public ushort altRevision;
         public ushort revision;
 
-        public float hiddenPartAlpha;
-        public bool unk2a4;
-        public bool unk2a5;
-        public bool isTop;
-        public bool unk2a7;
-        public int feedbackStateLead;
-        public int feedbackStateHarm1;
-        public int feedbackStateHarm2;
+        public bool unkBool1;
+        public bool unkBool2;
+        public bool unkBool3;
+        public bool unkBool4;
         private uint lyricColorsCount;
         public List<LyricColor> lyricColors = new(32);
+        public List<HmxColor4> lyricColorsOld = new(14);
         private uint lyricAlphaMapCount;
         public List<LyricAlphaMap> lyricAlphaMaps = new(32);
         public Symbol vocalMics = new(0, "");
-        public Symbol unk2f0 = new(0, "");
+        public Symbol unkSymbol1 = new(0, "");
         public float minPitchRange;
-        public float pitchDisplayMargin;
         public float arrowSmoothing;
         private uint configurableObjectsCount;
         public List<Symbol> configurableObjects = new();
@@ -75,7 +71,6 @@ namespace MiloLib.Assets
         public Symbol tambourineSmasher = new(0, "");
         public Symbol tambourineNowShowTrig = new(0, "");
         public Symbol tambourineNowHideTrig = new(0, "");
-        public Symbol leadPhraseFeedbackBottomLbl = new(0, "");
         public Symbol phraseFeedbackTrig = new(0, "");
         public Symbol spotlightSparklesOnlyTrig = new(0, "");
         public Symbol spotlightPhraseSuccessTrig = new(0, "");
@@ -97,6 +92,7 @@ namespace MiloLib.Assets
         public float nowBarWidth;
         public Symbol nowBarMesh = new(0, "");
         public bool remoteVocals;
+        public float unkFloat1;
         public float trackLeftX;
         public float trackRightX;
         public float trackBottomZ;
@@ -104,7 +100,6 @@ namespace MiloLib.Assets
         public float pitchBottomZ;
         public float pitchTopZ;
         public float nowBarX;
-        public float unk42c;
         public Symbol pitchGuides = new(0, "");
         public Symbol tubeStyle = new(0, "");
         public Symbol arrowStyle = new(0, "");
@@ -113,14 +108,8 @@ namespace MiloLib.Assets
         public Symbol harmText = new(0, "");
         public Symbol leadPhonemeText = new(0, "");
         public Symbol harmPhonemeText = new(0, "");
-        public float lastMin;
-        public float lastMax;
-        public float middleCZPos;
-        public int tonic;
         public Symbol rangeScaleAnim = new(0, "");
         public Symbol rangeOffsetAnim = new(0, "");
-        public bool unk4b0;
-        public int unk4b4;
         public Symbol tubeRangeGrp = new(0, "");
         public Symbol tubeSpotlightGrp = new(0, "");
         public Symbol tubeBack0Grp = new(0, "");
@@ -155,30 +144,101 @@ namespace MiloLib.Assets
         public Symbol pitchScrollGroup = new(0, "");
         public Symbol leadLyricScrollGroup = new(0, "");
         public Symbol harmonyLyricScrollGroup = new(0, "");
-        public float unk694;
-        public float unk698;
-        public float unk69c;
-        public float unk6a0;
+        public float unkFloat2;
+        public float unkFloat3;
+        public float unkFloat4;
+        public float unkFloat5;
         public Symbol leadDeployMat = new(0, "");
         public Symbol harmDeployMat = new(0, "");
-        public float glowSize;
-        public float glowAlpha;
-        public int unk6c4;
-        public bool unk6c8;
         public Symbol arrowFxDrawGrp = new(0, "");
-        public float unk6d8;
-        public float unk6dc;
-        public bool unk6e0;
+        public float unkFloat6;
+        public float unkFloat7;
+        public bool unkBool6;
+
+        public float lastMin;
+        public float lastMax;
+        public float middleCZPos;
+        public int tonic;
+
+        public uint unkInt1;
+        public uint unkInt2;
+        public float unkFloat8;
+        public uint unkInt3;
+
+        public Symbol unkSymbol2 = new(0, "");
+        public Symbol unkSymbol3 = new(0, "");
+        public Symbol unkSymbol4 = new(0, "");
+        public Symbol unkSymbol5 = new(0, "");
+
+        public Symbol unkSymbol6 = new(0, "");
+        public Symbol unkSymbol7 = new(0, "");
+        public Symbol unkSymbol8 = new(0, "");
+        public Symbol unkSymbol9 = new(0, "");
+
+        public HmxColor4 unkColor = new HmxColor4();
+        public HmxColor4 unkColor2 = new HmxColor4();
+
+        public float unkFloat9;
+
+        public float unkFloat10;
+
+        public float unkFloat11;
+
+        public float unkFloat12;
+        public float unkFloat13;
+
+        public float unkFloat14;
+
+        public float unkFloat15;
+        public float unkFloat16;
+
+        public Symbol unkSymbol10 = new(0, "");
+        public Symbol unkSymbol11 = new(0, "");
+        public Symbol unkSymbol12 = new(0, "");
+        public Symbol unkSymbol13 = new(0, "");
+
+        public Symbol unkSymbol14 = new(0, "");
+        public Symbol unkSymbol15 = new(0, "");
+        public Symbol unkSymbol16 = new(0, "");
+        public Symbol unkSymbol17 = new(0, "");
+
+        private uint colorsCount;
+        public List<HmxColor4> colors = new();
+
+        private uint floatsCount;
+        public List<float> floats = new();
+
+        public Symbol unkSymbol18 = new(0, "");
+        public Symbol unkSymbol19 = new(0, "");
+        public Symbol unkSymbol20 = new(0, "");
+        public Symbol unkSymbol21 = new(0, "");
+
+        public uint unkInt4;
+        public bool unkBool7;
+
+        public Symbol unkSymbol22 = new(0, "");
+        public Symbol unkSymbol23 = new(0, "");
+        public Symbol unkSymbol24 = new(0, "");
+        public Symbol unkSymbol25 = new(0, "");
+
+        public Symbol unkSymbol26 = new(0, "");
+        public Symbol unkSymbol27 = new(0, "");
+        public Symbol unkSymbol28 = new(0, "");
+        public Symbol unkSymbol29 = new(0, "");
+
+        public Symbol unkSymbol30 = new(0, "");
+        public Symbol unkSymbol31 = new(0, "");
+        public Symbol unkSymbol32 = new(0, "");
+        public Symbol unkSymbol33 = new(0, "");
 
 
-
-
+        public Symbol streakMeter1 = new(0, "");
+        public Symbol streakMeter2 = new(0, "");
 
         public VocalTrackDir(ushort revision, ushort altRevision = 0) : base(revision, altRevision)
         {
-            revision = revision;
-            altRevision = altRevision;
-            return;
+            this.revision = revision;
+            this.altRevision = altRevision;
         }
 
         public VocalTrackDir Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
@@ -191,8 +251,11 @@ namespace MiloLib.Assets
 
             if (revision < 2)
             {
+                unkInt1 = reader.ReadUInt32();
+                unkInt2 = reader.ReadUInt32();
+                unkFloat8 = reader.ReadFloat();
+                unkInt3 = reader.ReadUInt32();
 
-                // Read configurableObjects (List<Symbol>)
                 configurableObjectsCount = reader.ReadUInt32();
                 configurableObjects = new List<Symbol>();
                 for (uint i = 0; i < configurableObjectsCount; i++)
@@ -200,28 +263,97 @@ namespace MiloLib.Assets
                     configurableObjects.Add(Symbol.Read(reader));
                 }
 
-                lyricColors[5] = lyricColors[5].Read(reader);
-                lyricColors[6] = lyricColors[6].Read(reader);
-                lyricColors[7] = lyricColors[7].Read(reader);
-                lyricColors[0x15] = lyricColors[0x15].Read(reader);
-                lyricColors[0x16] = lyricColors[0x16].Read(reader);
-                lyricColors[0x17] = lyricColors[0x17].Read(reader);
-                lyricColors[0xC] = lyricColors[0xC].Read(reader);
-                lyricColors[0xD] = lyricColors[0xD].Read(reader);
-                lyricColors[0xE] = lyricColors[0xE].Read(reader);
-                lyricColors[0xF] = lyricColors[0xF].Read(reader);
-                lyricColors[0x1C] = lyricColors[0x1C].Read(reader);
-                lyricColors[0x1D] = lyricColors[0x1D].Read(reader);
-                lyricColors[0x1E] = lyricColors[0x1E].Read(reader);
-                lyricColors[0x1F] = lyricColors[0x1F].Read(reader);
 
-                unk2f0 = Symbol.Read(reader);
+                for (int i = 0; i < 14; i++)
+                {
+                    lyricColorsOld.Add(new HmxColor4().Read(reader));
+                }
+
+                unkSymbol2 = Symbol.Read(reader);
+                unkSymbol3 = Symbol.Read(reader);
+                unkSymbol4 = Symbol.Read(reader);
+                unkSymbol5 = Symbol.Read(reader);
+
+                unkSymbol6 = Symbol.Read(reader);
+                unkSymbol7 = Symbol.Read(reader);
+                unkSymbol8 = Symbol.Read(reader);
+                unkSymbol9 = Symbol.Read(reader);
+
+
+                unkColor = new HmxColor4().Read(reader);
+                unkColor2 = new HmxColor4().Read(reader);
+
+                unkFloat9 = reader.ReadFloat();
+                unkFloat10 = reader.ReadFloat();
+
+                if (revision >= 1)
+                {
+                    unkFloat11 = reader.ReadFloat();
+                    unkFloat12 = reader.ReadFloat();
+                }
+
+                unkFloat13 = reader.ReadFloat();
+
+                unkSymbol1 = Symbol.Read(reader);
+
+                unkBool1 = reader.ReadBoolean();
+
                 minPitchRange = reader.ReadFloat();
                 arrowSmoothing = reader.ReadFloat();
+
+                unkFloat14 = reader.ReadFloat();
+                unkFloat15 = reader.ReadFloat();
+
+                colorsCount = reader.ReadUInt32();
+                for (int i = 0; i < colorsCount; i++)
+                {
+                    colors.Add(new HmxColor4().Read(reader));
+                }
+
+                floatsCount = reader.ReadUInt32();
+                for (int i = 0; i < floatsCount; i++)
+                {
+                    floats.Add(reader.ReadFloat());
+                }
+
+                unkSymbol10 = Symbol.Read(reader);
+                unkSymbol11 = Symbol.Read(reader);
+                unkSymbol12 = Symbol.Read(reader);
+                unkSymbol13 = Symbol.Read(reader);
+
+                unkSymbol14 = Symbol.Read(reader);
+                unkSymbol15 = Symbol.Read(reader);
+                unkSymbol16 = Symbol.Read(reader);
+                unkSymbol17 = Symbol.Read(reader);
+
 
                 phraseFeedbackTrig = Symbol.Read(reader);
                 spotlightSparklesOnlyTrig = Symbol.Read(reader);
                 spotlightPhraseSuccessTrig = Symbol.Read(reader);
+
+                unkSymbol18 = Symbol.Read(reader);
+                unkSymbol19 = Symbol.Read(reader);
+                unkSymbol20 = Symbol.Read(reader);
+                unkSymbol21 = Symbol.Read(reader);
+
+                unkInt4 = reader.ReadUInt32();
+                unkBool7 = reader.ReadBoolean();
+
+                unkSymbol22 = Symbol.Read(reader);
+                unkSymbol23 = Symbol.Read(reader);
+                unkSymbol24 = Symbol.Read(reader);
+                unkSymbol25 = Symbol.Read(reader);
+
+                unkSymbol26 = Symbol.Read(reader);
+                unkSymbol27 = Symbol.Read(reader);
+                unkSymbol28 = Symbol.Read(reader);
+                unkSymbol29 = Symbol.Read(reader);
+
+
+                unkSymbol30 = Symbol.Read(reader);
+                unkSymbol31 = Symbol.Read(reader);
+                unkSymbol32 = Symbol.Read(reader);
+                unkSymbol33 = Symbol.Read(reader);
             }
             else
             {
@@ -233,11 +365,29 @@ namespace MiloLib.Assets
                 }
 
                 voxCfg = Symbol.Read(reader);
-                unk2f0 = Symbol.Read(reader);
+                unkSymbol1 = Symbol.Read(reader);
                 minPitchRange = reader.ReadFloat();
                 arrowSmoothing = reader.ReadFloat();
 
-                if (revision >= 6)
+                if (revision < 3)
+                    unkFloat1 = reader.ReadFloat();
+                if (revision < 7)
+                    unkFloat2 = reader.ReadFloat();
+
+                if (revision < 3)
+                {
+                    colorsCount = reader.ReadUInt32();
+                    for (int i = 0; i < colorsCount; i++)
+                    {
+                        colors.Add(new HmxColor4().Read(reader));
+                    }
+
+                    unkSymbol2 = Symbol.Read(reader);
+                    unkSymbol3 = Symbol.Read(reader);
+                    unkSymbol4 = Symbol.Read(reader);
+                    unkSymbol5 = Symbol.Read(reader);
+                }
+                else if (revision >= 6)
                 {
                     tambourineSmasher = Symbol.Read(reader);
                     tambourineNowShowTrig = Symbol.Read(reader);
@@ -262,6 +412,14 @@ namespace MiloLib.Assets
                     lyricAlphaMaps.Add(lyricAlphaMap);
                 }
 
+                if (revision < 5)
+                {
+                    streakMeter1 = Symbol.Read(reader);
+                    streakMeter2 = Symbol.Read(reader);
+                }
+
+
+
                 pitchWindow = reader.ReadBoolean();
                 pitchWindowHeight = reader.ReadFloat();
                 pitchWindowMesh = Symbol.Read(reader);
@@ -273,9 +431,22 @@ namespace MiloLib.Assets
                 harmLyricHeight = reader.ReadFloat();
                 harmLyricMesh = Symbol.Read(reader);
 
+                if (revision < 3)
+                {
+                    unkSymbol6 = Symbol.Read(reader);
+                    unkSymbol7 = Symbol.Read(reader);
+                    unkSymbol8 = Symbol.Read(reader);
+                    unkSymbol9 = Symbol.Read(reader);
+
+                    unkFloat3 = reader.ReadFloat();
+                    unkBool1 = reader.ReadBoolean();
+                }
+
                 leftDecoMesh = Symbol.Read(reader);
                 rightDecoMesh = Symbol.Read(reader);
                 nowBarWidth = reader.ReadFloat();
+                if (revision < 3)
+                    unkBool2 = reader.ReadBoolean();
                 nowBarMesh = Symbol.Read(reader);
 
                 remoteVocals = reader.ReadBoolean();
@@ -286,7 +457,6 @@ namespace MiloLib.Assets
                 pitchBottomZ = reader.ReadFloat();
                 pitchTopZ = reader.ReadFloat();
                 nowBarX = reader.ReadFloat();
-
                 pitchGuides = Symbol.Read(reader);
                 tubeStyle = Symbol.Read(reader);
                 arrowStyle = Symbol.Read(reader);
@@ -306,6 +476,16 @@ namespace MiloLib.Assets
                 middleCZPos = reader.ReadFloat();
                 tonic = reader.ReadInt32();
 
+                if (revision < 3)
+                {
+                    unkSymbol10 = Symbol.Read(reader);
+                    unkSymbol11 = Symbol.Read(reader);
+                    unkBool3 = reader.ReadBoolean();
+                    unkBool4 = reader.ReadBoolean();
+                }
+
+
+
                 rangeScaleAnim = Symbol.Read(reader);
                 rangeOffsetAnim = Symbol.Read(reader);
 
@@ -316,9 +496,13 @@ namespace MiloLib.Assets
                 }
             }
 
+            if (standalone)
+                if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");
+
 
             return this;
         }
+
 
 
         public override void Write(EndianWriter writer, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry? entry)

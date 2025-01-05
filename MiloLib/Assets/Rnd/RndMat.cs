@@ -1,5 +1,5 @@
-﻿using MiloLib.Utils;
-using MiloLib.Classes;
+﻿using MiloLib.Classes;
+using MiloLib.Utils;
 
 namespace MiloLib.Assets.Rnd
 {
@@ -164,105 +164,115 @@ namespace MiloLib.Assets.Rnd
         private ushort revision; // constant for revision 68
 
         [Name("Base Color"), Description("Base material color")]
-        public HmxColor4 mColor = new HmxColor4(1f, 1f, 1f, 1f);
+        public HmxColor4 color = new HmxColor4(1f, 1f, 1f, 1f);
 
         [Name("Texture Transform"), Description("Transform for coordinate generation")]
-        public Matrix mTexXfm = new Matrix();
+        public Matrix texXfm = new Matrix();
 
         [Name("Diffuse Texture"), Description("Base texture map, modulated with color and alpha")]
-        public Symbol mDiffuseTex;
+        public Symbol diffuseTex;
 
         [Name("Alpha Threshold"), Description("Alpha level below which gets cut. Ranges from 0 to 255.")]
-        public int mAlphaThresh;
+        public int alphaThreshold;
 
         [Name("Next Pass"), Description("Next material for object")]
-        public Symbol mNextPass;
+        public Symbol nextPass;
 
         [Name("Emissive Multiplier"), Description("Multiplier to apply to emission")]
-        public float mEmissiveMultiplier;
+        public float emissiveMultiplier;
 
         [Name("Emissive Map"), Description("Map for self illumination")]
-        public Symbol mEmissiveMap;
+        public Symbol emissiveMap;
 
         [Name("Refract Strength"), Description("The scale of the refraction of the screen under the material. Ranges from 0 to 100.")]
-        public float mRefractStrength;
+        public float refractStrength;
 
         [Name("Refract Normal Map"), Description("This is a normal map used to distort the screen under the material. If none is specified, the regular normal map will be used.")]
-        public Symbol mRefractNormalMap;
+        public Symbol refractNormalMap;
 
         [Name("Color Modifiers"), Description("Color modifiers for the material")]
-        public List<HmxColor4> mColorMod = new List<HmxColor4>();
+        public List<HmxColor4> colorModifiers = new List<HmxColor4>();
 
         [Name("Performance Settings"), Description("Performance options for this material")]
-        public MatPerfSettings mPerfSettings;
+        public MatPerfSettings performanceSettings;
 
         [Name("Shader Options"), Description("Options pertaining to the shader capabilities")]
-        public MatShaderOptions mShaderOptions;
+        public MatShaderOptions shaderOptions;
 
         [Name("Intensify"), Description("Double the intensity of base map")]
-        public bool mIntensify;
+        public bool intensify;
 
         [Name("Use Environment"), Description("Modulate with environment ambient and lightsReal")]
-        public bool mUseEnviron;
+        public bool useEnviron;
 
         [Name("Pre-Lit"), Description("Use vertex color and alpha for base or ambient")]
-        public bool mPreLit;
+        public bool preLit;
 
         [Name("Alpha Cut"), Description("Cut zero alpha pixels from z-buffer")]
-        public bool mAlphaCut;
+        public bool alphaCut;
 
         [Name("Alpha Write"), Description("Write pixel alpha to screen")]
-        public bool mAlphaWrite;
+        public bool alphaWrite;
 
         [Name("Cull"), Description("Cull backface polygons")]
-        public bool mCull;
+        public bool cull;
 
         [Name("Per Pixel Lit"), Description("Use per-pixel lighting")]
-        public bool mPerPixelLit;
+        public bool perPixelLit;
 
         [Name("Screen Aligned"), Description("Projected material from camera's POV")]
-        public bool mScreenAligned;
+        public bool screenAligned;
 
         [Name("Refract Enabled"), Description("When enabled, this material will refract the screen under the material")]
-        public bool mRefractEnabled;
+        public bool refractEnabled;
 
         [Name("Point Lights Enabled"), Description("Is the Mat lit with point lightsReal?")]
-        public bool mPointLights;
+        public bool pointLights;
 
         [Name("Fog Enabled"), Description("Is the Mat affected by fog?")]
-        public bool mFog;
+        public bool fog;
 
         [Name("Fadeout Enabled"), Description("Is the Mat affected its Environment's fade_out?")]
-        public bool mFadeout;
+        public bool fadeout;
 
         [Name("Color Adjust Enabled"), Description("Is the Mat affected its Environment's color adjust?")]
-        public bool mColorAdjust;
+        public bool colorAdjust;
 
         public byte unkbool;
 
         [Name("Blend Mode"), Description("How to blend poly into screen")]
-        public Blend mBlend;
+        public Blend blend;
 
         [Name("Texture Coordinate Generation"), Description("How to generate texture coordinates")]
-        public TexGen mTexGen;
+        public TexGen texGen;
 
         [Name("Texture Mapping Mode"), Description("Texture mapping mode")]
-        public TexWrap mTexWrap;
+        public TexWrap texWrap;
 
         [Name("Z-Buffer Mode"), Description("How to read and write z-buffer")]
-        public ZMode mZMode;
+        public ZMode ZMode;
 
         [Name("Stencil Mode"), Description("How to read and write the stencil buffer")]
-        public StencilMode mStencilMode;
+        public StencilMode stencilMode;
 
         [Name("Shader Variation"), Description("Select a variation on the shader to enable a new range of rendering features.")]
-        public ShaderVariation mShaderVariation;
+        public ShaderVariation shaderVariation;
 
         [Name("Color Modification Flags"), Description("Flags pertaining to color modifiers")]
-        public ColorModFlags mColorModFlags;
+        public ColorModFlags colorModFlags;
 
         [Name("Dirty Flags"), Description("Dirty flags that denote changes to the material")]
-        public byte mDirty;
+        public byte dirty;
+
+        public HmxColor4 shaderVariationColor = new HmxColor4(1f, 1f, 1f, 1f);
+
+        public HmxColor4 locColor = new HmxColor4(1f, 1f, 1f, 1f);
+
+        public HmxColor4 unkColor = new HmxColor4(1f, 1f, 1f, 1f);
+
+        public bool unkBool1;
+
+        public Symbol unkSym = new Symbol(0, "");
 
         public RndMat Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
@@ -277,42 +287,36 @@ namespace MiloLib.Assets.Rnd
 
             base.Read(reader, false, parent, entry);
 
-            mBlend = (Blend)reader.ReadInt32();
-            mColor = new HmxColor4().Read(reader);
-            mUseEnviron = reader.ReadBoolean();
-            mPreLit = reader.ReadBoolean();
-            mZMode = (ZMode)reader.ReadInt32();
-            mAlphaCut = reader.ReadBoolean();
-            mAlphaThresh = reader.ReadInt32();
-            mAlphaWrite = reader.ReadBoolean();
-            mTexGen = (TexGen)reader.ReadInt32();
-            mTexWrap = (TexWrap)reader.ReadInt32();
-            mTexXfm = new Matrix().Read(reader);
-            mDiffuseTex = Symbol.Read(reader);
-            mNextPass = Symbol.Read(reader);
+            blend = (Blend)reader.ReadInt32();
+            color = new HmxColor4().Read(reader);
+            useEnviron = reader.ReadBoolean();
+            preLit = reader.ReadBoolean();
+            ZMode = (ZMode)reader.ReadInt32();
+            alphaCut = reader.ReadBoolean();
+            if (revision > 0x25)
+                alphaThreshold = reader.ReadInt32();
+            alphaWrite = reader.ReadBoolean();
+            texGen = (TexGen)reader.ReadInt32();
+            texWrap = (TexWrap)reader.ReadInt32();
+            texXfm = new Matrix().Read(reader);
+            diffuseTex = Symbol.Read(reader);
+            nextPass = Symbol.Read(reader);
+            intensify = reader.ReadBoolean();
 
-            mIntensify = reader.ReadBoolean();
-            mDirty = 3;
-            HmxColor4 loc_color;
-            mCull = reader.ReadBoolean();
-            mEmissiveMultiplier = reader.ReadFloat();
-            loc_color = new HmxColor4().Read(reader);
+            cull = reader.ReadBoolean();
+            emissiveMultiplier = reader.ReadFloat();
+            locColor = new HmxColor4().Read(reader);
 
-            Symbol texPtr = Symbol.Read(reader);
-
-            mEmissiveMap = Symbol.Read(reader);
-            texPtr = Symbol.Read(reader);
-            texPtr = Symbol.Read(reader);
+            emissiveMap = Symbol.Read(reader);
 
 
-            mStencilMode = (StencilMode)reader.ReadInt32();
+            stencilMode = (StencilMode)reader.ReadInt32();
 
 
             Symbol sym = Symbol.Read(reader);
-            texPtr = Symbol.Read(reader);
 
             HmxColor4 color2 = new HmxColor4().Read(reader);
-            texPtr = Symbol.Read(reader);
+            //texPtr = Symbol.Read(reader);
 
             int i = reader.ReadInt32();
             i = reader.ReadInt32();
@@ -321,44 +325,60 @@ namespace MiloLib.Assets.Rnd
             i2 = reader.ReadInt32();
             new HmxColor4().Read(reader);
             int b2 = reader.ReadInt32();
-            texPtr = Symbol.Read(reader);
-            texPtr = Symbol.Read(reader);
+            //texPtr = Symbol.Read(reader);
+            //texPtr = Symbol.Read(reader);
 
-            mPointLights = reader.ReadBoolean();
-            mFog = reader.ReadBoolean();
-            mFadeout = reader.ReadBoolean();
-            mColorAdjust = reader.ReadBoolean();
+            if (revision > 0x2a)
+            {
+                if (revision > 0x2c)
+                    pointLights = reader.ReadBoolean();
 
-
-            HmxColor4 color2f = new HmxColor4().Read(reader);
-            texPtr = Symbol.Read(reader);
-            byte b = reader.ReadByte();
-
-            mScreenAligned = reader.ReadBoolean();
-
-            mShaderVariation = (ShaderVariation)reader.ReadInt32();
-            HmxColor4 col32 = new HmxColor4().Read(reader);
+                fog = reader.ReadBoolean();
+                fadeout = reader.ReadBoolean();
+                if (revision > 0x2E)
+                    colorAdjust = reader.ReadBoolean();
+            }
 
 
-            mColorMod = new List<HmxColor4>();
+            if (revision > 0x2F)
+            {
+                unkColor = new HmxColor4().Read(reader);
+                unkSym = Symbol.Read(reader);
+                byte b = reader.ReadByte();
+            }
+
+            if (revision > 0x30)
+                screenAligned = reader.ReadBoolean();
+
+            if (revision == 0x32)
+                unkBool1 = reader.ReadBoolean();
+
+            if (revision > 0x32)
+            {
+                shaderVariation = (ShaderVariation)reader.ReadInt32();
+                shaderVariationColor = new HmxColor4().Read(reader);
+            }
+
+
+            colorModifiers = new List<HmxColor4>();
             for (int x = 0; x < 3; x++)
             {
-                mColorMod.Add(new HmxColor4(1f, 1f, 1f, 1f));
+                colorModifiers.Add(new HmxColor4(1f, 1f, 1f, 1f));
             }
 
 
 
             Symbol objPtr = Symbol.Read(reader);
 
-            byte b3 = reader.ReadByte();
-            mPerfSettings.mPS3ForceTrilinear = b3 != 0;
+            if (revision > 0x3E)
+                performanceSettings.Read(reader);
 
-            mPerfSettings.Read(reader);
-            mPerfSettings.mRecvPointCubeTex = reader.ReadBoolean();
-
-            mRefractEnabled = reader.ReadBoolean();
-            mRefractStrength = reader.ReadFloat();
-            mRefractNormalMap = Symbol.Read(reader);
+            if (revision > 0x3F)
+            {
+                refractEnabled = reader.ReadBoolean();
+                refractStrength = reader.ReadFloat();
+                refractNormalMap = Symbol.Read(reader);
+            }
 
             if (standalone)
             {
@@ -371,29 +391,29 @@ namespace MiloLib.Assets.Rnd
         {
             base.Write(writer, standalone, parent, entry);
             writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
-            writer.WriteInt32((int)mBlend);
-            mColor.Write(writer);
-            writer.WriteByte((byte)(mUseEnviron ? 1 : 0));
-            writer.WriteByte((byte)(mPreLit ? 1 : 0));
-            writer.WriteInt32((int)mZMode);
-            writer.WriteByte((byte)(mAlphaCut ? 1 : 0));
-            writer.WriteInt32(mAlphaThresh);
-            writer.WriteByte((byte)(mAlphaWrite ? 1 : 0));
-            writer.WriteInt32((int)mTexGen);
-            writer.WriteInt32((int)mTexWrap);
-            mTexXfm.Write(writer);
-            Symbol.Write(writer, mDiffuseTex);
-            Symbol.Write(writer, mNextPass);
-            writer.WriteByte((byte)(mIntensify ? 1 : 0));
-            writer.WriteByte((byte)(mCull ? 1 : 0));
-            writer.WriteFloat(mEmissiveMultiplier);
+            writer.WriteInt32((int)blend);
+            color.Write(writer);
+            writer.WriteByte((byte)(useEnviron ? 1 : 0));
+            writer.WriteByte((byte)(preLit ? 1 : 0));
+            writer.WriteInt32((int)ZMode);
+            writer.WriteByte((byte)(alphaCut ? 1 : 0));
+            writer.WriteInt32(alphaThreshold);
+            writer.WriteByte((byte)(alphaWrite ? 1 : 0));
+            writer.WriteInt32((int)texGen);
+            writer.WriteInt32((int)texWrap);
+            texXfm.Write(writer);
+            Symbol.Write(writer, diffuseTex);
+            Symbol.Write(writer, nextPass);
+            writer.WriteByte((byte)(intensify ? 1 : 0));
+            writer.WriteByte((byte)(cull ? 1 : 0));
+            writer.WriteFloat(emissiveMultiplier);
             new HmxColor4().Write(writer);
             Symbol.Write(writer, null);
-            Symbol.Write(writer, mEmissiveMap);
+            Symbol.Write(writer, emissiveMap);
             Symbol.Write(writer, null);
             Symbol.Write(writer, null);
 
-            writer.WriteInt32((int)mStencilMode);
+            writer.WriteInt32((int)stencilMode);
 
             Symbol.Write(writer, null);
             Symbol.Write(writer, null);
@@ -408,35 +428,35 @@ namespace MiloLib.Assets.Rnd
             Symbol.Write(writer, null);
             Symbol.Write(writer, null);
 
-            writer.WriteByte((byte)(mPointLights ? 1 : 0));
-            writer.WriteByte((byte)(mFog ? 1 : 0));
-            writer.WriteByte((byte)(mFadeout ? 1 : 0));
-            writer.WriteByte((byte)(mColorAdjust ? 1 : 0));
+            writer.WriteByte((byte)(pointLights ? 1 : 0));
+            writer.WriteByte((byte)(fog ? 1 : 0));
+            writer.WriteByte((byte)(fadeout ? 1 : 0));
+            writer.WriteByte((byte)(colorAdjust ? 1 : 0));
 
             new HmxColor4().Write(writer);
             Symbol.Write(writer, null);
             writer.WriteByte(0);
-            writer.WriteByte((byte)(mScreenAligned ? 1 : 0));
+            writer.WriteByte((byte)(screenAligned ? 1 : 0));
 
-            writer.WriteInt32((int)mShaderVariation);
+            writer.WriteInt32((int)shaderVariation);
             new HmxColor4().Write(writer);
 
 
-            if (mColorMod == null)
+            if (colorModifiers == null)
             {
                 for (int i = 0; i < 3; i++)
                 {
-                    mColorMod = new List<HmxColor4>();
-                    mColorMod.Add(new HmxColor4(1f, 1f, 1f, 1f));
+                    colorModifiers = new List<HmxColor4>();
+                    colorModifiers.Add(new HmxColor4(1f, 1f, 1f, 1f));
                 }
             }
             Symbol.Write(writer, null);
-            writer.WriteByte((byte)(mPerfSettings.mPS3ForceTrilinear ? 1 : 0));
-            mPerfSettings.Write(writer);
-            writer.WriteByte((byte)(mPerfSettings.mRecvPointCubeTex ? 1 : 0));
-            writer.WriteByte((byte)(mRefractEnabled ? 1 : 0));
-            writer.WriteFloat(mRefractStrength);
-            Symbol.Write(writer, mRefractNormalMap);
+            writer.WriteByte((byte)(performanceSettings.mPS3ForceTrilinear ? 1 : 0));
+            performanceSettings.Write(writer);
+            writer.WriteByte((byte)(performanceSettings.mRecvPointCubeTex ? 1 : 0));
+            writer.WriteByte((byte)(refractEnabled ? 1 : 0));
+            writer.WriteFloat(refractStrength);
+            Symbol.Write(writer, refractNormalMap);
 
             if (standalone)
             {

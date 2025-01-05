@@ -100,6 +100,9 @@ namespace MiloLib.Assets
         [Name("Unknown String 5"), MinVersion(16), MaxVersion(18)]
         public Symbol unknownString5 = new(0, "");
 
+        public uint unk1;
+        public uint unk2;
+
         // this shouldn't be under ObjectDir
         // TODO: Put this under WorldInstance where it belongs
         public bool hasPersistentObjects = false;
@@ -143,8 +146,8 @@ namespace MiloLib.Assets
 
                 if (revision >= 27)
                 {
-                    // skip forward 8 bytes
-                    reader.BaseStream.Position += 8;
+                    unk1 = reader.ReadUInt32();
+                    unk2 = reader.ReadUInt32();
                 }
 
                 viewportCount = reader.ReadUInt32();
@@ -339,8 +342,8 @@ namespace MiloLib.Assets
             {
                 if (revision >= 27)
                 {
-                    // write 8 bytes of padding
-                    writer.WriteUInt64(0);
+                    writer.WriteUInt32(unk1);
+                    writer.WriteUInt32(unk2);
                 }
 
                 writer.WriteUInt32((uint)viewports.Count);
