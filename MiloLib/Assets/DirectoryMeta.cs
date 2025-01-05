@@ -752,6 +752,15 @@ namespace MiloLib.Assets
                         Debug.WriteLine("Reading entry WorldCrowd " + entry.name.value);
                         entry.obj = new WorldCrowd().Read(reader, true, this, entry);
                         break;
+                    case "CharClipGroup":
+                        Debug.WriteLine("Reading entry CharClipGroup " + entry.name.value);
+                        entry.obj = new CharClipGroup().Read(reader, true, this, entry);
+                        break;
+                    // re-enable when the class is 100%
+                    //case "CharClip":
+                    //    Debug.WriteLine("Reading entry CharClip " + entry.name.value);
+                    //    entry.obj = new CharClip().Read(reader, true, this, entry);
+                    //    break;
 
                     default:
                         Debug.WriteLine("Unknown entry type " + entry.type.value + " of name " + entry.name.value + ", read an Object and then read until we see 0xADDEADDE to skip over it, curpos" + reader.BaseStream.Position);

@@ -433,7 +433,7 @@ namespace MiloLib.Assets
                 }
             }
 
-            if (entry.type.value == "WorldInstance")
+            if (entry != null && entry.type.value == "WorldInstance")
             {
                 writer.WriteBoolean(hasPersistentObjects);
                 if (entry.isEntryInRootDir)

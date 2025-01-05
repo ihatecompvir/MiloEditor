@@ -24,6 +24,8 @@ namespace MiloLib.Assets.Char
             { Game.MiloGame.RockBandBlitz, 24 },
             { Game.MiloGame.DanceCentral3, 24 }
         };
+
+
         public class CharClipPtr
         {
             public Symbol clip = new(0, "");
@@ -113,7 +115,7 @@ namespace MiloLib.Assets.Char
         public Symbol unknownSymbol2 = new(0, "");
 
         [MinVersion(0), MaxVersion(5)]
-        public string unkString;
+        public Symbol unkSym = new(0, "");
 
         [Name("Char Clip Pointers"), Description("The list of CharClipSamples perObjs in the directory."), MinVersion(0), MaxVersion(23)]
         public List<CharClipPtr> charClipPtrs = new();
@@ -129,13 +131,15 @@ namespace MiloLib.Assets.Char
         [MinVersion(5), MaxVersion(23)]
         public List<string> unkStrings2 = new();
 
+        public uint unkClipStructureCount = 0;
+
         public CharClipSet Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
             uint charClipSampleCount = 0;
             // go through all entries in the parent and count how many CharClipSamples there are
             foreach (DirectoryMeta.Entry parentEntry in parent.entries)
             {
-                if (parentEntry.type.value == "CharClipSample") charClipSampleCount++;
+                if (parentEntry.type.value == "CharClipSamples") charClipSampleCount++;
             }
 
 
@@ -152,15 +156,13 @@ namespace MiloLib.Assets.Char
             }
 
             if (revision == 0xF || revision == 0x10)
-            {
                 unkInt3 = reader.ReadInt32();
-            }
 
             if (revision < 9)
                 graphPath = Symbol.Read(reader);
 
             if (revision < 6)
-                unkString = reader.ReadUTF8();
+                unkSym = Symbol.Read(reader);
 
             if (revision < 7)
                 unkInt4 = reader.ReadInt32();
@@ -194,7 +196,9 @@ namespace MiloLib.Assets.Char
                 }
             }
 
-            if (revision >= 5 && revision <= 0x17)
+            if (revision == 5 || revision == 6 || revision == 7 || revision == 8 || revision == 9 || revision == 0xA || revision == 0xB ||
+        revision == 0xC || revision == 0xD || revision == 0xE || revision == 0xF || revision == 0x10 || revision == 0x11 ||
+        revision == 0x12 || revision == 0x13 || revision == 0x14 || revision == 0x15 || revision == 0x16 || revision == 0x17)
             {
                 unkStrings1Count = reader.ReadUInt32();
                 for (int i = 0; i < unkStrings1Count; i++)
@@ -264,7 +268,7 @@ namespace MiloLib.Assets.Char
                 Symbol.Write(writer, graphPath);
 
             if (revision < 6)
-                writer.WriteUTF8(unkString);
+                Symbol.Write(writer, unkSym);
 
             if (revision < 7)
                 writer.WriteInt32(unkInt4);

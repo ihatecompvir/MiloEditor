@@ -44,19 +44,59 @@ class Program
                 string renameDirectory = GetOption(args, "--directory");
                 RenameCommand(args[1], args[2], args[3], renameDirectory);
                 break;
+
             case "extract":
-                if (args.Length < 4)
+                if (args.Length < 3)
                 {
-                    Console.WriteLine("Usage: MiloUtil extract <filePath> <asset> <outputPath> [--directory <directory>]");
+                    Console.WriteLine("Usage: MiloUtil extract <filePath> <asset> [<outputPath>] [--directory <directory>]");
                     return;
                 }
+
+                string extractFilePath = args[1];
+                string assetName = args[2];
+                string outputPath = args.Length > 3 && !args[3].StartsWith("--") ? args[3] : null;
                 string extractDirectory = GetOption(args, "--directory");
-                ExtractCommand(args[1], args[2], args[3], extractDirectory);
+
+                ExtractCommand(extractFilePath, assetName, outputPath, extractDirectory);
                 break;
+
             default:
                 Console.WriteLine($"Unknown command: {command}");
                 ShowHelp();
                 break;
+        }
+    }
+
+    /// <summary>
+    /// Recursively prints information about directory entries.
+    /// </summary>
+    /// <param name="entry">The entry to process.</param>
+    /// <param name="indentLevel">The level of indentation for formatting.</param>
+    static void PrintEntry(DirectoryMeta.Entry entry, int indentLevel)
+    {
+        string indent = new string(' ', indentLevel * 4);
+        Console.WriteLine($"{indent}{entry.name} ({entry.type})");
+
+        if (entry.dir != null)
+        {
+            Console.WriteLine($"{indent}Directory: {entry.dir.name}");
+            foreach (var subEntry in entry.dir.entries)
+            {
+                PrintEntry(subEntry, indentLevel + 1);
+            }
+
+            ObjectDir subDir = entry.dir.directory as ObjectDir;
+            if (subDir != null)
+            {
+                foreach (var inlineSubDir in subDir.inlineSubDirs)
+                {
+                    Console.WriteLine($"{indent}    Inline Subdirectory: {inlineSubDir.name}");
+                    foreach (var inlineEntry in inlineSubDir.entries)
+                    {
+                        PrintEntry(inlineEntry, indentLevel + 2);
+                    }
+                }
+            }
         }
     }
 
@@ -76,35 +116,24 @@ class Program
             Console.WriteLine($"    Name / Type: {file.dirMeta.name} ({file.dirMeta.type})");
         }
         Console.WriteLine($"    Number of entries: {file.dirMeta.entries.Count}");
+
+        // Traverse the root directory
         foreach (var entry in file.dirMeta.entries)
         {
-            Console.WriteLine($"        {entry.name} ({entry.type})");
-
-            if (entry.dir != null)
-            {
-                Console.WriteLine($"            Directory: {entry.dir.name}");
-
-                foreach (var subEntry in entry.dir.entries)
-                {
-                    Console.WriteLine($"                {subEntry.name} ({subEntry.type})");
-                }
-            }
-
+            PrintEntry(entry, 1);
         }
 
         if (file.dirMeta.type != "")
         {
             ObjectDir dir = (ObjectDir)file.dirMeta.directory;
 
-
             Console.WriteLine($"    Inlined Sub Directories: {dir.inlineSubDirs.Count}");
             foreach (var subDir in dir.inlineSubDirs)
             {
-                Console.WriteLine($"        {subDir.name}");
-
+                Console.WriteLine($"        Subdirectory: {subDir.name}");
                 foreach (var entry in subDir.entries)
                 {
-                    Console.WriteLine($"            {entry.name} ({entry.type})");
+                    PrintEntry(entry, 2);
                 }
             }
         }
@@ -126,19 +155,23 @@ class Program
         // Logic for renaming an asset
     }
 
-    static void ExtractCommand(string filePath, string asset, string outputPath, string directory)
+    static void ExtractCommand(string filePath, string asset, string outputPath = null, string directory = null)
     {
-        Console.WriteLine($"Extracting asset '{asset}' from Milo file at: {filePath} to: {outputPath}");
+
+        // Default the outputPath to the asset name if not specified
+        outputPath ??= $"{asset}";
+
+        Console.WriteLine($"Output path: {outputPath}");
 
         MiloFile miloFile = new MiloFile(filePath);
 
         // look through the entries to find the asset
         foreach (var entry in miloFile.dirMeta.entries)
         {
-            if (entry.name == asset)
+            if (entry.name == asset && (string.IsNullOrEmpty(directory) || miloFile.dirMeta.name == directory))
             {
                 // found the asset
-                Console.WriteLine($"Found asset '{asset}' of type '{entry.type}'");
+                Console.WriteLine($"Found asset '{asset}' of type '{entry.type}' in directory '{miloFile.dirMeta.name}'");
 
                 // extract the asset
                 System.IO.File.WriteAllBytes(outputPath, entry.objBytes.ToArray());
@@ -151,24 +184,76 @@ class Program
         // if we didn't find it in the entries, look through all inlined subdirectories
         foreach (var dir in ((ObjectDir)miloFile.dirMeta.directory).inlineSubDirs)
         {
-            foreach (var entry in dir.entries)
+            if (string.IsNullOrEmpty(directory) || dir.name == directory)
             {
-                if (entry.name == asset)
+                foreach (var entry in dir.entries)
                 {
-                    // found the asset
-                    Console.WriteLine($"Found asset '{asset}' of type '{entry.type}' in inlined subdirectory '{dir.name}'");
+                    if (entry.name == asset)
+                    {
+                        // found the asset
+                        Console.WriteLine($"Found asset '{asset}' of type '{entry.type}' in inlined subdirectory '{dir.name}'");
 
-                    // extract the asset
-                    System.IO.File.WriteAllBytes(outputPath, entry.objBytes.ToArray());
+                        // extract the asset
+                        System.IO.File.WriteAllBytes(outputPath, entry.objBytes.ToArray());
 
-                    Console.WriteLine($"Extracted asset to: {outputPath}");
-                    return;
+                        Console.WriteLine($"Extracted asset to: {outputPath}");
+                        return;
+                    }
                 }
             }
         }
 
-        // TODO: look through all entries that are directories
+        // look through all entries as directories
+        foreach (var entry in miloFile.dirMeta.entries)
+        {
+            if (entry.dir != null)
+            {
+                if (string.IsNullOrEmpty(directory) || entry.name == directory)
+                {
+                    foreach (var subEntry in entry.dir.entries)
+                    {
+                        if (subEntry.name == asset)
+                        {
+                            // found the asset
+                            Console.WriteLine($"Found asset '{asset}' of type '{subEntry.type}' in directory '{entry.name}'");
+
+                            // extract the asset
+                            System.IO.File.WriteAllBytes(outputPath, subEntry.objBytes.ToArray());
+
+                            Console.WriteLine($"Extracted asset to: {outputPath}");
+                            return;
+                        }
+                    }
+
+                    // look through inlined subdirs of this directory
+                    foreach (var dir in ((ObjectDir)entry.dir.directory).inlineSubDirs)
+                    {
+                        if (string.IsNullOrEmpty(directory) || dir.name == directory)
+                        {
+                            foreach (var subEntry in dir.entries)
+                            {
+                                if (subEntry.name == asset)
+                                {
+                                    // found the asset
+                                    Console.WriteLine($"Found asset '{asset}' of type '{subEntry.type}' in inlined subdirectory '{dir.name}' of directory '{entry.name}'");
+
+                                    // extract the asset
+                                    System.IO.File.WriteAllBytes(outputPath, subEntry.objBytes.ToArray());
+
+                                    Console.WriteLine($"Extracted asset to: {outputPath}");
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        Console.WriteLine($"Asset '{asset}' not found in the Milo file.");
     }
+
+
 
     static string GetOption(string[] args, string optionName)
     {

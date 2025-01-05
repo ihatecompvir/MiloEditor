@@ -24,6 +24,7 @@
     <None Remove="Images\Camera.png" />
     <None Remove="Images\Character.png" />
     <None Remove="Images\CharClip.png" />
+    <None Remove="Images\CharClipGroup.png" />
     <None Remove="Images\ColorPalette.png" />
     <None Remove="Images\default.png" />
     <None Remove="Images\Environ.png" />
@@ -84,6 +85,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Images\CharClip.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\CharClipGroup.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Images\ColorPalette.png">

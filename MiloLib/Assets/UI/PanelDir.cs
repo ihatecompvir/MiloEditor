@@ -70,8 +70,6 @@ namespace MiloLib.Assets.UI
             {
                 if (revision != 0)
                     cam = Symbol.Read(reader);
-                if (revision == 2)
-                    unknownSymbol = Symbol.Read(reader);
             }
 
             if (revision <= 1)

@@ -111,6 +111,7 @@ namespace MiloEditor
             imageList.Images.Add("TransProxy", Image.FromFile("Images/TransProxy.png"));
             imageList.Images.Add("PostProc", Image.FromFile("Images/PostProc.png"));
             imageList.Images.Add("WorldInstance", Image.FromFile("Images/WorldInstance.png"));
+            imageList.Images.Add("CharClipGroup", Image.FromFile("Images/CharClipGroup.png"));
             imageList.Images.Add("", Image.FromFile("Images/NoDir.png"));
 
             imageList.ColorDepth = ColorDepth.Depth32Bit;
@@ -511,6 +512,9 @@ namespace MiloEditor
 
                 // write the asset to the file
                 File.WriteAllBytes(saveFileDialog.FileName, entry.objBytes.ToArray());
+
+                // show a message box
+                MessageBox.Show($"Asset extracted to {saveFileDialog.FileName} successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
 
         }
