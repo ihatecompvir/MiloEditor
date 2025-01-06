@@ -5,10 +5,12 @@ using MiloLib.Utils;
 namespace MiloLib.Assets
 {
     [Name("SpotlightDrawer"), Description("")]
-    public class SpotlightDrawer : RndDrawable
+    public class SpotlightDrawer : Object
     {
         private ushort altRevision;
         private ushort revision;
+
+        public RndDrawable draw = new();
 
         [Name("Intensity"), Description("global intensity scale")]
         public float intensity;
@@ -56,7 +58,7 @@ namespace MiloLib.Assets
 
             if (revision > 0)
             {
-                base.Read(reader, false, parent, entry);
+                draw.Read(reader, false, parent, entry);
             }
             else
             {
@@ -115,7 +117,7 @@ namespace MiloLib.Assets
 
             if (revision > 0)
             {
-                base.Write(writer, false, parent, entry);
+                draw.Write(writer, false, true);
             }
             else
             {

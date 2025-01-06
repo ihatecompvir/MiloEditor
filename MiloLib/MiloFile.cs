@@ -17,7 +17,7 @@ namespace MiloLib
         /// The maximum size a block can be.
         /// TODO: check if there is some "best" value for this
         /// </summary>
-        private const int MAX_BLOCK_SIZE = 0xF00000;
+        private const int MAX_BLOCK_SIZE = 0xFFFFFF;
 
         /// <summary>
         /// The type of the Milo file. Determines if it's compressed or not and how it's compressed.
@@ -202,8 +202,6 @@ namespace MiloLib
 
                         meta = new DirectoryMeta();
                         meta.platform = DetectPlatform();
-                        // write the decompressed data to a file for debugging
-                        File.WriteAllBytes("decompressed.gz", compressedStream.ToArray());
                         dirMeta = meta.Read(decompressedReader);
                         break;
                     case Type.Uncompressed:
@@ -327,6 +325,7 @@ namespace MiloLib
                 MemoryStream compressedStream;
                 EndianWriter compressedWriter;
                 List<byte[]> compressedBlocks;
+                List<int> uncompressedBlockSizes = new List<int>();
 
                 switch (type)
                 {
@@ -348,6 +347,8 @@ namespace MiloLib
                         {
                             byte[] block = new byte[bytesRead];
                             Array.Copy(buffer, block, bytesRead);
+
+                            uncompressedBlockSizes.Add(block.Length);
 
                             byte[] compressedBlock = null;
                             using (MemoryStream blockStream = new MemoryStream())
@@ -380,7 +381,8 @@ namespace MiloLib
                         writer.SeekTo(0x8);
                         writer.Endianness = Endian.LittleEndian;
                         writer.WriteUInt32((uint)compressedBlocks.Count);
-                        writer.WriteUInt32(MAX_BLOCK_SIZE);
+                        uint maxUncompressedBlockSize = (uint)uncompressedBlockSizes.Max();
+                        writer.WriteUInt32(maxUncompressedBlockSize);
                         foreach (var block in compressedBlocks)
                         {
                             if (type == Type.CompressedZlibAlt)
@@ -409,10 +411,17 @@ namespace MiloLib
                         writer.WriteUInt32(MAX_BLOCK_SIZE);
 
 
-                        // write block sizes, all the MAX_BLOCK_SIZE as if there are blocks
                         for (int i = 0; i < numBlocks; i++)
                         {
-                            writer.WriteUInt32(MAX_BLOCK_SIZE);
+                            if (i == numBlocks - 1)
+                            {
+                                uint remainingSize = (totalSize % MAX_BLOCK_SIZE) - startingOffset;
+                                writer.WriteUInt32(remainingSize == 0 ? MAX_BLOCK_SIZE : remainingSize);
+                            }
+                            else
+                            {
+                                writer.WriteUInt32(MAX_BLOCK_SIZE);
+                            }
                         }
                         break;
                     default:
