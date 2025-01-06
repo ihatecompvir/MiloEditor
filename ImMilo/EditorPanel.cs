@@ -1,6 +1,9 @@
+using System.Collections;
 using System.Reflection;
+using System.Text;
 using ImGuiNET;
 using ImMilo.imgui;
+using MiloLib.Assets;
 using MiloLib.Classes;
 using Veldrid;
 using Object = MiloLib.Assets.Object;
@@ -10,11 +13,29 @@ namespace ImMilo;
 
 public class EditorPanel
 {
+
+    public static bool HideFieldDescriptions = false;
+    public static bool HideNestedHMXObjectFields = true;
+    
     // Cache for Reflection info
     private static Dictionary<Type, List<FieldInfo>> _fieldCache = new Dictionary<Type, List<FieldInfo>>();
     private static Dictionary<Type, NameAttribute> _nameAttributeCache = new Dictionary<Type, NameAttribute>();
     private static Dictionary<Type, DescriptionAttribute> _descriptionAttributeCache = new Dictionary<Type, DescriptionAttribute>();
+    private static Dictionary<Type, List<string>> _enumValueCache = new Dictionary<Type, List<string>>();
 
+    private static List<string> GetCachedEnumValues(Type enumType)
+    {
+        if (!_enumValueCache.TryGetValue(enumType, out var enumValues))
+        {
+            enumValues = new List<string>();
+            foreach (var value in Enum.GetValues(enumType))
+            {
+                enumValues.Add(value.ToString());
+            }
+        }
+
+        return enumValues;
+    }
 
     private static List<FieldInfo> GetCachedFields(Type type)
     {
@@ -87,7 +108,7 @@ public class EditorPanel
                         field.FieldType == typeof(short) || field.FieldType == typeof(ushort) ||
                         field.FieldType == typeof(long) || field.FieldType == typeof(ulong) ||
                         field.FieldType == typeof(float) || field.FieldType == typeof(double) ||
-                        field.FieldType == typeof(decimal);
+                        field.FieldType == typeof(decimal) || field.FieldType == typeof(byte);
 
         if (isNumber)
         {
@@ -136,6 +157,10 @@ public class EditorPanel
                     changed = ImGui.InputDouble("", ref tempDouble);
                     newVal = tempDouble; //Not sure how to implement decimal properly. Just using a double.
                     break;
+                case byte b:
+                    changed = Util.InputByte("", ref b);
+                    newVal = b;
+                    break;
             }
 
             if (changed)
@@ -167,6 +192,7 @@ public class EditorPanel
             ImGui.Text(objNameAttr?.Value ?? $"Type: {objType.Name}");
             ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 0.5f);
             ImGui.TextWrapped(objDescriptionAttr?.Value ?? "No description available.");
+            
             ImGui.PopStyleVar();
             ImGui.BeginChild("editor values##"+objType.Name);
         }
@@ -204,9 +230,24 @@ public class EditorPanel
                 ImGui.TextWrapped(displayName);
                 if (description != null)
                 {
-                    ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 0.5f);
-                    ImGui.TextWrapped(description);
-                    ImGui.PopStyleVar();
+                    if (HideFieldDescriptions)
+                    {
+                        ImGui.SameLine();   
+                        ImGui.TextDisabled("(?)");
+                        if (ImGui.BeginItemTooltip())
+                        {
+                            ImGui.PushTextWrapPos(ImGui.GetFontSize() * 50.0f);
+                            ImGui.TextWrapped(description);
+                            ImGui.PopTextWrapPos();
+                            ImGui.EndTooltip();
+                        }
+                    }
+                    else
+                    {
+                        ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 0.5f);
+                        ImGui.TextWrapped(description);
+                        ImGui.PopStyleVar();
+                    }
                 }
                 
                 ImGui.TableSetColumnIndex(1);
@@ -230,6 +271,87 @@ public class EditorPanel
                         }
 
                         break;
+                    case List<Symbol> symbolsValue:
+                        ImGui.BeginChild("symbols##"+field.GetHashCode(), new Vector2(0, 100f), ImGuiChildFlags.Borders | ImGuiChildFlags.ResizeY);
+                        for (int i = 0; i < symbolsValue.Count; i++)
+                        {
+                            var symbol = symbolsValue[i];
+                            var stringValue = symbol.ToString();
+                            if (ImGui.Button("-##"+i))
+                            {
+                                symbolsValue.Remove(symbol);
+                                field.SetValue(obj, symbolsValue);
+                                i--;
+                                continue;
+                            }
+                            ImGui.SameLine();
+                            if (ImGui.InputText("##" + i, ref stringValue, 128))
+                            {
+                                var symbolValue = new Symbol((uint)stringValue.Length, stringValue);
+                                symbolsValue[i] = symbolValue;
+                                field.SetValue(obj, symbolsValue);
+                            }
+                        }
+
+                        if (ImGui.Button("+"))
+                        {
+                            symbolsValue.Add(new Symbol(0, ""));
+                            field.SetValue(obj, symbolsValue);
+                        }
+                        ImGui.EndChild();
+                        unsafe
+                        {
+                            if (ImGui.BeginDragDropTarget())
+                            {
+                                ImGuiPayloadPtr payload = ImGui.AcceptDragDropPayload("TreeEntryObject"); //TODO: maybe make a wrapper for drag and drop, it will be used later.
+                                if (payload.NativePtr != null)
+                                {
+                                    byte* payDataPtr = (byte*)payload.NativePtr->Data;
+                                    byte[] payData = new byte[payload.DataSize];
+                                    for (int i = 0; i < payload.DataSize; i++)
+                                    {
+                                        payData[i] = payDataPtr[i];
+                                    }
+                                    var rebuildString = Encoding.UTF8.GetString(payData);
+                                    symbolsValue.Add(new Symbol((uint)rebuildString.Length, rebuildString));
+                                    field.SetValue(obj, symbolsValue);
+                                }
+                                payload = ImGui.AcceptDragDropPayload("TreeEntryDir");
+                                if (payload.NativePtr != null)
+                                {
+                                    byte* payDataPtr = (byte*)payload.NativePtr->Data;
+                                    byte[] payData = new byte[payload.DataSize];
+                                    for (int i = 0; i < payload.DataSize; i++)
+                                    {
+                                        payData[i] = payDataPtr[i];
+                                    }
+                                    var rebuildString = Encoding.UTF8.GetString(payData);
+                                    symbolsValue.Add(new Symbol((uint)rebuildString.Length, rebuildString));
+                                    field.SetValue(obj, symbolsValue);
+                                }
+                                ImGui.EndDragDropTarget();
+                            }
+                        }
+                        break;
+                    case IEnumerable collection:
+                        ImGui.SetNextWindowSizeConstraints(new Vector2(-1f, 0f), new Vector2(0, 100f));
+                        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
+                        ImGui.BeginChild("values##"+field.GetHashCode(), new Vector2(0, 0), ImGuiChildFlags.Borders);
+                        if (ImGui.BeginTable("valuesTable##" + field.GetHashCode(), 1,
+                                ImGuiTableFlags.RowBg | ImGuiTableFlags.BordersInnerH | ImGuiTableFlags.NoPadOuterX))
+                        {
+                            foreach (var value in collection)
+                            {
+                                ImGui.TableNextRow();
+                                ImGui.TableSetColumnIndex(0);
+                                ImGui.TextWrapped(value.ToString());
+                            }
+                            ImGui.EndTable();
+                        }
+                        
+                        ImGui.EndChild();
+                        ImGui.PopStyleVar();
+                        break;
                     case bool boolValue:
                         if (ImGui.Checkbox("", ref boolValue))
                         {
@@ -238,20 +360,34 @@ public class EditorPanel
 
                         break;
                     case Matrix matrixValue:
-                        ImGui.Text("(Matrix hidden)"); // TODO nice gridded matrix editor
+                        ImGui.Text("(Matrix hidden)"); // TODO: nice gridded matrix editor
                         break;
                     case object primitiveValue when field.FieldType.IsPrimitive:
                         DrawPrimitiveEdit(obj, primitiveValue, field);
                         ImGui.SameLine();
                         ImGui.TextDisabled(field.FieldType.Name);
                         break;
+                    case object enumValue when field.FieldType.IsEnum:
+                        var values = GetCachedEnumValues(field.FieldType);
+                        var curValue = values.IndexOf(enumValue.ToString());
+                        if (ImGui.Combo("", ref curValue, values.ToArray(), values.Count))
+                        {
+                            field.SetValue(obj, Enum.Parse(field.FieldType, values[curValue]));
+                        }
+                        break;
                     case object nestedObject when fieldValue != null:
-                        
-                        Draw(nestedObject, id+1, false, ImGuiTableFlags.NoPadOuterX);
-                        
+
+                        if (HideNestedHMXObjectFields && !drawLabels && nestedObject.GetType() == typeof(ObjectFields))
+                        {
+                            ImGui.TextDisabled("(nested fields hidden)");
+                        }
+                        else
+                        {
+                            Draw(nestedObject, id+1, false, ImGuiTableFlags.NoPadOuterX | ImGuiTableFlags.BordersOuter);
+                        }
                         break;
                     default:
-                        ImGui.Text(field.FieldType.Name);
+                        ImGui.TextWrapped(field.FieldType.FullName);
                         ImGui.Text("(No editor)");
                         break;
                 }

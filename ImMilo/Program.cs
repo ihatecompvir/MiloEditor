@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Numerics;
+using System.Text;
 using ImGuiNET;
 using ImMilo.imgui;
 using MiloLib;
@@ -31,6 +32,7 @@ class Program
 
     private static Object viewingObject;
     private static string filter = "";
+    private static bool filterActive;
     
     static void Main(string[] args)
     {
@@ -160,18 +162,31 @@ class Program
                 }
                 ImGui.EndMenu();
             }
+
+            if (ImGui.BeginMenu("View"))
+            {
+                ImGui.MenuItem("Hide Field Descriptions", null, ref EditorPanel.HideFieldDescriptions);
+                ImGui.MenuItem("Hide Nested Hmx::Object Fields", null, ref EditorPanel.HideNestedHMXObjectFields);
+                ImGui.EndMenu();
+            }
             ImGui.EndMainMenuBar();
         }
     }
 
     static void DirNode(DirectoryMeta dir, int id = 0, bool root = false)
     {
+        var filterActive = filter != "";
         ImGui.PushID(id);
         var flags = ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.OpenOnDoubleClick |
                     ImGuiTreeNodeFlags.SpanAvailWidth;
-        if (root)
+        if (root || filterActive)
         {
             flags |= ImGuiTreeNodeFlags.DefaultOpen;
+        }
+
+        if (filterActive)
+        {
+            ImGui.SetNextItemStorageID(ImGui.GetID("filtering"));
         }
 
         if (viewingObject == dir.directory)
@@ -180,6 +195,22 @@ class Program
         }
         if (ImGui.TreeNodeEx(dir.name, flags))
         {
+            unsafe
+            {
+                if (ImGui.BeginDragDropSource())
+                {
+                    var payload = dir.name.ToString();
+                    var payloadBytes = Encoding.UTF8.GetBytes(payload);
+                    fixed (byte* payloadPtr = payloadBytes)
+                    {
+                        ImGui.SetDragDropPayload("TreeEntryDir", (IntPtr)(payloadPtr), (uint)payloadBytes.Length);
+                        
+                        ImGui.Text(payload);
+                        ImGui.EndDragDropSource();
+                    }
+                        
+                }
+            }
             if (ImGui.IsItemClicked() && !ImGui.IsItemToggledOpen())
                 viewingObject = dir.directory;
             var i = 0;
@@ -196,7 +227,12 @@ class Program
 
             foreach (var entry in dir.entries)
             {
+                var matchesFilter = filterActive && entry.name.ToString().ToLower().Contains(filter.ToLower());
                 i++;
+                if (matchesFilter)
+                {
+                    ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1f, 1f, 0f, 1f));
+                }
                 if (entry.dir != null)
                 {
                     //ImGui.Button("Test");
@@ -206,17 +242,43 @@ class Program
                 }
                 else
                 {
-                    if (filter != "")
+                    if (filterActive && !matchesFilter)
                     {
-                        if (!entry.name.ToString().Contains(filter))
-                        {
-                            continue;
-                        }
+                        continue;
+                    }
+
+                    if (entry.obj == null)
+                    {
+                        ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 0.5f);
                     }
                     if (ImGui.Selectable(entry.name, viewingObject != null && viewingObject == entry.obj) && entry.obj != null)
                     {
                         viewingObject = entry.obj;
                     }
+                    unsafe
+                    {
+                        if (ImGui.BeginDragDropSource())
+                        {
+                            var payload = entry.name.ToString();
+                            var payloadBytes = Encoding.UTF8.GetBytes(payload);
+                            fixed (byte* payloadPtr = payloadBytes)
+                            {
+                                ImGui.SetDragDropPayload("TreeEntryObject", (IntPtr)(payloadPtr), (uint)payloadBytes.Length);
+                            }
+
+                            ImGui.Text(payload);
+                            ImGui.EndDragDropSource();
+
+                        }
+                    }
+                    if (entry.obj == null)
+                    {
+                        ImGui.PopStyleVar();
+                    }
+                }
+                if (matchesFilter)
+                {
+                    ImGui.PopStyleColor();
                 }
             }
             ImGui.TreePop();
@@ -241,6 +303,7 @@ class Program
             ImGui.BeginChild("left pane", new Vector2(150, 0), ImGuiChildFlags.Borders | ImGuiChildFlags.ResizeX);
             ImGui.InputText("Filter", ref filter, 64);
             ImGui.BeginChild("entries");
+            filterActive = filter == "";
             if (currentScene != null)
             {
                 if (currentScene.dirMeta != null)

@@ -44,4 +44,12 @@ public class Util
         }
     }
     
+    public static unsafe bool InputByte(string label, ref byte value)
+    {
+        fixed (byte* ptr = &value)
+        {
+            return ImGui.InputScalar(label, ImGuiDataType.U8, (IntPtr)ptr);
+        }
+    }
+    
 }
