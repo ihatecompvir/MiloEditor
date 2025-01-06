@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MiloLib.Tests", "MiloLib.Te
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MiloUtil", "MiloUtil\MiloUtil.csproj", "{B39415F3-213A-4307-9B93-D679792781C2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImMilo", "ImMilo\ImMilo.csproj", "{C77D0F65-A9E9-45A9-BD0F-82460D62BBFF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{B39415F3-213A-4307-9B93-D679792781C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B39415F3-213A-4307-9B93-D679792781C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B39415F3-213A-4307-9B93-D679792781C2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C77D0F65-A9E9-45A9-BD0F-82460D62BBFF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C77D0F65-A9E9-45A9-BD0F-82460D62BBFF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C77D0F65-A9E9-45A9-BD0F-82460D62BBFF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C77D0F65-A9E9-45A9-BD0F-82460D62BBFF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
