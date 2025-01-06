@@ -5,6 +5,7 @@
         <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
     <ItemGroup>
@@ -28,10 +29,6 @@
         <EmbeddedResource Include="imgui/Shaders/SPIR-V/imgui-frag.spv" LogicalName="imgui-frag.spv" />
         <EmbeddedResource Include="imgui/Shaders/Metal/imgui-vertex.metallib" LogicalName="imgui-vertex.metallib" />
         <EmbeddedResource Include="imgui/Shaders/Metal/imgui-frag.metallib" LogicalName="imgui-frag.metallib" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="imgui\" />
     </ItemGroup>
 
 </Project>

@@ -1,5 +1,6 @@
 using System.Reflection;
 using ImGuiNET;
+using ImMilo.imgui;
 using MiloLib.Classes;
 using Veldrid;
 using Object = MiloLib.Assets.Object;
@@ -80,6 +81,71 @@ public class EditorPanel
         return null;
     }
 
+    private static void DrawPrimitiveEdit(object obj, object primitiveValue, FieldInfo field)
+    {
+        bool isNumber = field.FieldType == typeof(int) || field.FieldType == typeof(uint) ||
+                        field.FieldType == typeof(short) || field.FieldType == typeof(ushort) ||
+                        field.FieldType == typeof(long) || field.FieldType == typeof(ulong) ||
+                        field.FieldType == typeof(float) || field.FieldType == typeof(double) ||
+                        field.FieldType == typeof(decimal);
+
+        if (isNumber)
+        {
+            object newVal = primitiveValue;
+            bool changed = false;
+            switch (primitiveValue)
+            {
+                case float f:
+                    changed = ImGui.InputFloat("", ref f);
+                    newVal = f;
+                    break;
+                case int i:
+                    changed = ImGui.InputInt("", ref i);
+                    newVal = i;
+                    break;
+                case uint u:
+                    changed = Util.InputUInt("", ref u);
+                    newVal = u;
+                    break;
+                case short s:
+                    changed = Util.InputShort("", ref s);
+                    newVal = s;
+                    break;
+                case ushort us:
+                    changed = Util.InputUShort("", ref us);
+                    newVal = us;
+                    break;
+                case long l:
+                    changed = Util.InputLong("", ref l);
+                    newVal = l;
+                    break;
+                case ulong ul:
+                    changed = Util.InputULong("", ref ul);
+                    newVal = ul;
+                    break;
+                case double d:
+                    changed = ImGui.InputDouble("", ref d);
+                    newVal = d;
+                    break;
+                case decimal d:
+                    if ((decimal)(double)d != d)
+                    {
+                        Console.WriteLine("Warning: Decimal field " + field.Name + " has a value that is truncated when converted to Double.");
+                    }
+                    var tempDouble = (double)d;
+                    changed = ImGui.InputDouble("", ref tempDouble);
+                    newVal = tempDouble; //Not sure how to implement decimal properly. Just using a double.
+                    break;
+            }
+
+            if (changed)
+            {
+                field.SetValue(obj, newVal);
+            }
+        }
+        
+    }
+
     public static void Draw(object obj, int id = 0, bool drawLabels = true, ImGuiTableFlags toggleFlags = ImGuiTableFlags.None)
     {
         
@@ -102,6 +168,7 @@ public class EditorPanel
             ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 0.5f);
             ImGui.TextWrapped(objDescriptionAttr?.Value ?? "No description available.");
             ImGui.PopStyleVar();
+            ImGui.BeginChild("editor values##"+objType.Name);
         }
         
         
@@ -170,12 +237,19 @@ public class EditorPanel
                         }
 
                         break;
+                    case Matrix matrixValue:
+                        ImGui.Text("(Matrix hidden)"); // TODO nice gridded matrix editor
+                        break;
+                    case object primitiveValue when field.FieldType.IsPrimitive:
+                        DrawPrimitiveEdit(obj, primitiveValue, field);
+                        ImGui.SameLine();
+                        ImGui.TextDisabled(field.FieldType.Name);
+                        break;
                     case object nestedObject when fieldValue != null:
                         
                         Draw(nestedObject, id+1, false, ImGuiTableFlags.NoPadOuterX);
                         
                         break;
-                        
                     default:
                         ImGui.Text(field.FieldType.Name);
                         ImGui.Text("(No editor)");
@@ -190,5 +264,9 @@ public class EditorPanel
         ImGui.PopStyleVar();
         ImGui.PopID();
         ImGui.PopID();
+        if (drawLabels)
+        {
+            ImGui.EndChild();
+        }
     }
 }

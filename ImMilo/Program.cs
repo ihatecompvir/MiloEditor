@@ -30,6 +30,7 @@ class Program
     private static string errorModalMessage;
 
     private static Object viewingObject;
+    private static string filter = "";
     
     static void Main(string[] args)
     {
@@ -92,7 +93,7 @@ class Program
         ImGui.End();
         ImGui.PopStyleVar();
         ImGui.PopStyleVar();
-        //ImGui.ShowDemoWindow();
+        ImGui.ShowDemoWindow();
     }
 
     static void OpenErrorModal(Exception e, string message)
@@ -195,6 +196,7 @@ class Program
 
             foreach (var entry in dir.entries)
             {
+                i++;
                 if (entry.dir != null)
                 {
                     //ImGui.Button("Test");
@@ -204,13 +206,18 @@ class Program
                 }
                 else
                 {
+                    if (filter != "")
+                    {
+                        if (!entry.name.ToString().Contains(filter))
+                        {
+                            continue;
+                        }
+                    }
                     if (ImGui.Selectable(entry.name, viewingObject != null && viewingObject == entry.obj) && entry.obj != null)
                     {
                         viewingObject = entry.obj;
                     }
                 }
-
-                i++;
             }
             ImGui.TreePop();
             //ImGui.Unindent();
@@ -229,9 +236,11 @@ class Program
             ImGui.BeginGroup();
             if (currentScene != null)
             {
-                ImGui.Text(currentScene.dirMeta.entries.Count + " entries");
+                //ImGui.Text(currentScene.dirMeta.entries.Count + " entries");
             }
             ImGui.BeginChild("left pane", new Vector2(150, 0), ImGuiChildFlags.Borders | ImGuiChildFlags.ResizeX);
+            ImGui.InputText("Filter", ref filter, 64);
+            ImGui.BeginChild("entries");
             if (currentScene != null)
             {
                 if (currentScene.dirMeta != null)
@@ -240,6 +249,7 @@ class Program
                 }
                 
             }
+            ImGui.EndChild();
             ImGui.EndChild();
             ImGui.EndGroup();
         }
