@@ -350,454 +350,7 @@ namespace MiloLib.Assets
 
                 reader.BaseStream.Position = startPos;
 
-                switch (entry.type.value)
-                {
-                    // DIRS
-                    // These need special handling, they are different than inlined directories
-
-                    case "ObjectDir":
-                        Debug.WriteLine("Reading entry ObjectDir " + entry.name.value);
-                        entry.isEntryInRootDir = true;
-                        entry.obj = new ObjectDir(0).Read(reader, true, this, entry);
-
-                        DirectoryMeta dir = new DirectoryMeta();
-                        dir.platform = platform;
-                        dir.Read(reader);
-                        entry.dir = dir;
-                        break;
-                    case "EndingBonusDir":
-                    case "RndDir":
-                        Debug.WriteLine("Reading entry RndDir " + entry.name.value);
-                        entry.isEntryInRootDir = true;
-                        entry.obj = new RndDir(0).Read(reader, true, this, entry);
-
-                        if (((ObjectDir)entry.obj).inlineProxy)
-                        {
-                            dir = new DirectoryMeta();
-                            dir.platform = platform;
-                            dir.Read(reader);
-                            entry.dir = dir;
-                        }
-                        break;
-                    case "OvershellDir":
-                        Debug.WriteLine("Reading entry OvershellDir " + entry.name.value);
-                        entry.isEntryInRootDir = true;
-                        entry.obj = new OvershellDir(0).Read(reader, true, this, entry);
-
-                        dir = new DirectoryMeta();
-                        dir.platform = platform;
-                        dir.Read(reader);
-                        entry.dir = dir;
-                        break;
-                    case "UIPanel":
-                    case "PanelDir":
-                        Debug.WriteLine("Reading entry PanelDir " + entry.name.value);
-                        entry.isEntryInRootDir = true;
-                        entry.obj = new PanelDir(0).Read(reader, true, this, entry);
-
-                        dir = new DirectoryMeta();
-                        dir.platform = platform;
-                        dir.Read(reader);
-                        entry.dir = dir;
-                        break;
-
-                    case "WorldDir":
-                        Debug.WriteLine("Reading entry WorldDir " + entry.name.value);
-                        entry.isEntryInRootDir = true;
-                        entry.obj = new WorldDir(0).Read(reader, true, this, entry);
-
-                        dir = new DirectoryMeta();
-                        dir.platform = platform;
-                        dir.Read(reader);
-                        entry.dir = dir;
-                        break;
-
-                    case "Character":
-                        Debug.WriteLine("Reading entry Character " + entry.name.value);
-                        entry.isEntryInRootDir = true;
-                        entry.obj = new Character(0).Read(reader, true, this, entry);
-
-                        if (((Character)entry.obj).proxyPath != String.Empty)
-                        {
-                            dir = new DirectoryMeta();
-                            dir.platform = platform;
-                            dir.Read(reader);
-                            entry.dir = dir;
-                        }
-
-                        break;
-
-                    case "P9Character":
-                        Debug.WriteLine("Reading entry P9Character " + entry.name.value);
-                        entry.isEntryInRootDir = true;
-                        entry.obj = new P9Character(0).Read(reader, true, this, entry);
-
-                        dir = new DirectoryMeta();
-                        dir.platform = platform;
-                        dir.Read(reader);
-                        entry.dir = dir;
-                        break;
-
-                    case "CharClipSet":
-                        Debug.WriteLine("Reading entry CharClipSet " + entry.name.value);
-                        entry.isEntryInRootDir = true;
-
-                        // this is unhinged, why'd they do it like this?
-                        reader.ReadUInt32();
-                        entry.obj = new ObjectDir(0).Read(reader, true, this, entry);
-
-                        dir = new DirectoryMeta();
-                        dir.platform = platform;
-                        dir.Read(reader);
-                        entry.dir = dir;
-                        break;
-
-                    case "CharBoneDir":
-                        Debug.WriteLine("Reading entry CharBoneDir " + entry.name.value);
-                        entry.isEntryInRootDir = true;
-                        entry.obj = new CharBoneDir(0).Read(reader, true, this, entry);
-
-                        dir = new DirectoryMeta();
-                        dir.platform = platform;
-                        dir.Read(reader);
-                        entry.dir = dir;
-                        break;
-
-                    case "UIListDir":
-                        Debug.WriteLine("Reading entry UIListDir " + entry.name.value);
-                        entry.isEntryInRootDir = true;
-                        entry.obj = new UIListDir(0).Read(reader, true, this, entry);
-
-                        dir = new DirectoryMeta();
-                        dir.platform = platform;
-                        dir.Read(reader);
-                        entry.dir = dir;
-                        break;
-
-                    case "UILabelDir":
-                        Debug.WriteLine("Reading entry UILabelDir " + entry.name.value);
-                        entry.isEntryInRootDir = true;
-                        entry.obj = new UILabelDir(0).Read(reader, true, this, entry);
-
-                        dir = new DirectoryMeta();
-                        dir.platform = platform;
-                        dir.Read(reader);
-                        entry.dir = dir;
-                        break;
-
-                    case "BandCrowdMeterDir":
-                        Debug.WriteLine("Reading entry BandCrowdMeterDir " + entry.name.value);
-                        entry.isEntryInRootDir = true;
-                        entry.obj = new BandCrowdMeterDir(0).Read(reader, true, this, entry);
-
-                        dir = new DirectoryMeta();
-                        dir.platform = platform;
-                        dir.Read(reader);
-                        entry.dir = dir;
-                        break;
-
-                    case "BandCrowdMeterIcon":
-                        Debug.WriteLine("Reading entry BandCrowdMeterIcon " + entry.name.value);
-                        entry.isEntryInRootDir = true;
-                        entry.obj = new BandCrowdMeterIcon(0).Read(reader, true, this, entry);
-
-                        dir = new DirectoryMeta();
-                        dir.platform = platform;
-                        dir.Read(reader);
-                        entry.dir = dir;
-                        break;
-
-                    case "BandCharacter":
-                        Debug.WriteLine("Reading entry BandCharacter " + entry.name.value);
-                        entry.isEntryInRootDir = true;
-                        entry.obj = new BandCharacter(0).Read(reader, true, this, entry);
-
-                        dir = new DirectoryMeta();
-                        dir.platform = platform;
-                        dir.Read(reader);
-                        entry.dir = dir;
-                        break;
-
-                    case "WorldInstance":
-                        Debug.WriteLine("Reading entry WorldInstance " + entry.name.value);
-                        entry.isEntryInRootDir = true;
-
-                        entry.obj = new WorldInstance(0).Read(reader, false, this, entry);
-
-                        // if the world instance has no persistent perObjs, it will have a dir as expected, otherwise it won't
-                        if (!((WorldInstance)entry.obj).hasPersistentObjects)
-                        {
-                            dir = new DirectoryMeta();
-                            dir.platform = platform;
-                            dir.Read(reader);
-                            entry.dir = dir;
-
-                            if (((WorldInstance)dir.directory).hasPersistentObjects)
-                            {
-                                ((WorldInstance)dir.directory).persistentObjects = new WorldInstance.PersistentObjects().Read(reader, this, entry);
-                            }
-                        }
-                        else
-                        {
-                            ((WorldInstance)entry.obj).persistentObjects = new WorldInstance.PersistentObjects().Read(reader, this, entry);
-                        }
-
-
-                        break;
-
-                    case "TrackPanelDir":
-                        Debug.WriteLine("Reading entry TrackPanelDir " + entry.name.value);
-                        entry.isEntryInRootDir = true;
-                        entry.obj = new TrackPanelDir(0).Read(reader, true, this, entry);
-
-                        dir = new DirectoryMeta();
-                        dir.platform = platform;
-                        dir.Read(reader);
-                        entry.dir = dir;
-                        break;
-
-                    case "UnisonIcon":
-                        Debug.WriteLine("Reading entry UnisonIcon " + entry.name.value);
-                        entry.isEntryInRootDir = true;
-                        entry.obj = new UnisonIcon(0).Read(reader, true, this, entry);
-
-                        dir = new DirectoryMeta();
-                        dir.platform = platform;
-                        dir.Read(reader);
-                        entry.dir = dir;
-                        break;
-
-                    case "BandScoreboard":
-                        Debug.WriteLine("Reading entry BandScoreboard " + entry.name.value);
-                        entry.isEntryInRootDir = true;
-                        entry.obj = new BandScoreboard(0).Read(reader, true, this, entry);
-
-                        dir = new DirectoryMeta();
-                        dir.platform = platform;
-                        dir.Read(reader);
-                        entry.dir = dir;
-                        break;
-
-                    case "BandStarDisplay":
-                        Debug.WriteLine("Reading entry BandStarDisplay " + entry.name.value);
-                        entry.isEntryInRootDir = true;
-                        entry.obj = new BandStarDisplay(0).Read(reader, true, this, entry);
-
-                        dir = new DirectoryMeta();
-                        dir.platform = platform;
-                        dir.Read(reader);
-                        entry.dir = dir;
-                        break;
-
-                    case "VocalTrackDir":
-                        Debug.WriteLine("Reading entry VocalTrackDir " + entry.name.value);
-                        entry.isEntryInRootDir = true;
-                        entry.obj = new VocalTrackDir(0).Read(reader, true, this, entry);
-
-                        dir = new DirectoryMeta();
-                        dir.platform = platform;
-                        dir.Read(reader);
-                        entry.dir = dir;
-                        break;
-
-                    case "GemTrackDir":
-                        Debug.WriteLine("Reading entry GemTrackDir " + entry.name.value);
-                        entry.isEntryInRootDir = true;
-                        entry.obj = new GemTrackDir(0).Read(reader, true, this, entry);
-
-                        dir = new DirectoryMeta();
-                        dir.platform = platform;
-                        dir.Read(reader);
-                        entry.dir = dir;
-                        break;
-
-                    case "MoveDir":
-                        Debug.WriteLine("Reading entry MoveDir " + entry.name.value);
-                        entry.isEntryInRootDir = true;
-                        entry.obj = new MoveDir(0).Read(reader, true, this, entry);
-
-                        dir = new DirectoryMeta();
-                        dir.platform = platform;
-                        dir.Read(reader);
-                        entry.dir = dir;
-                        break;
-
-                    case "SkeletonDir":
-                        Debug.WriteLine("Reading entry SkeletonDir " + entry.name.value);
-                        entry.isEntryInRootDir = true;
-                        entry.obj = new SkeletonDir(0).Read(reader, true, this, entry);
-
-                        dir = new DirectoryMeta();
-                        dir.platform = platform;
-                        dir.Read(reader);
-                        entry.dir = dir;
-                        break;
-
-                    case "OverdriveMeterDir":
-                        Debug.WriteLine("Reading entry OverdriveMeterDir " + entry.name.value);
-                        entry.isEntryInRootDir = true;
-                        entry.obj = new OverdriveMeterDir(0).Read(reader, true, this, entry);
-
-                        dir = new DirectoryMeta();
-                        dir.platform = platform;
-                        dir.Read(reader);
-                        entry.dir = dir;
-                        break;
-
-                    //case "EndingBonusDir":
-                    //    Debug.WriteLine("Reading entry EndingBonusDir " + entry.name.value);
-                    //    entry.isEntryInRootDir = true;
-                    //    entry.obj = new RndDir(0).Read(reader, true, this, entry);
-                    //
-                    //    entry.obj = new DirectoryMeta().Read(reader);
-                    //    break;
-
-                    // OBJECTS
-
-                    case "Object":
-                        Debug.WriteLine("Reading entry Object " + entry.name.value);
-                        entry.obj = new Object().Read(reader, true, this, entry);
-                        break;
-                    case "BandSongPref":
-                        Debug.WriteLine("Reading entry BandSongPref " + entry.name.value);
-                        entry.obj = new BandSongPref().Read(reader, true, this, entry);
-                        break;
-                    case "Sfx":
-                        Debug.WriteLine("Reading entry Sfx " + entry.name.value);
-                        entry.obj = new Sfx().Read(reader, true, this, entry);
-                        break;
-                    case "Trans":
-                        Debug.WriteLine("Reading entry Trans " + entry.name.value);
-                        entry.obj = new RndTrans().Read(reader, true, this, entry);
-                        break;
-                    case "View":
-                    case "Group":
-                        Debug.WriteLine("Reading entry Group " + entry.name.value);
-                        entry.obj = new RndGroup().Read(reader, true, this, entry);
-                        break;
-                    case "P9Director":
-                        Debug.WriteLine("Reading entry P9Director " + entry.name.value);
-                        entry.obj = new P9Director().Read(reader, true, this, entry);
-                        break;
-                    // TODO: figure out how to read textures properly
-                    case "Tex":
-                        Debug.WriteLine("Reading entry Tex " + entry.name.value);
-                        entry.obj = new RndTex().Read(reader, true, this, entry);
-                        break;
-                    case "ColorPalette":
-                        Debug.WriteLine("Reading entry ColorPalette " + entry.name.value);
-                        entry.obj = new ColorPalette().Read(reader, true, this, entry);
-                        break;
-                    //case "Mat":
-                    //    Debug.WriteLine("Reading entry Mat " + entry.name.value);
-                    //    entry.obj = new RndMat().Read(reader, true, this);
-                    //    break;
-                    case "BandCharDesc":
-                        Debug.WriteLine("Reading entry BandCharDesc " + entry.name.value);
-                        entry.obj = new BandCharDesc().Read(reader, true, this, entry);
-                        break;
-                    case "Light":
-                        Debug.WriteLine("Reading entry Light " + entry.name.value);
-                        entry.obj = new RndLight().Read(reader, true, this, entry);
-                        break;
-                    case "UIColor":
-                        Debug.WriteLine("Reading entry UIColor" + entry.name.value);
-                        entry.obj = new UIColor().Read(reader, true, this, entry);
-                        break;
-                    case "ParticleSys":
-                        Debug.WriteLine("Reading entry ParticleSys " + entry.name.value);
-                        entry.obj = new RndParticleSys().Read(reader, true, this, entry);
-                        break;
-                    case "AnimFilter":
-                        Debug.WriteLine("Reading entry AnimFilter " + entry.name.value);
-                        entry.obj = new RndAnimFilter().Read(reader, true, this, entry);
-                        break;
-                    case "BandPlacer":
-                        Debug.WriteLine("Reading entry BandPlacer " + entry.name.value);
-                        entry.obj = new BandPlacer().Read(reader, true, this, entry);
-                        break;
-                    case "ScreenMask":
-                        Debug.WriteLine("Reading entry ScreenMask " + entry.name.value);
-                        entry.obj = new RndScreenMask().Read(reader, true, this, entry);
-                        break;
-                    case "TexMovie":
-                        Debug.WriteLine("Reading entry TexMovie " + entry.name.value);
-                        entry.obj = new TexMovie().Read(reader, true, this, entry);
-                        break;
-                    case "Environ":
-                        Debug.WriteLine("Reading entry Environ " + entry.name.value);
-                        entry.obj = new RndEnviron().Read(reader, true, this, entry);
-                        break;
-                    case "SynthSample":
-                        Debug.WriteLine("Reading entry SynthSample " + entry.name.value);
-                        entry.obj = new SynthSample().Read(reader, true, this, entry);
-                        break;
-                    case "Cam":
-                        Debug.WriteLine("Reading entry Cam " + entry.name.value);
-                        entry.obj = new RndCam().Read(reader, true, this, entry);
-                        break;
-                    //case "Mesh":
-                    //    Debug.WriteLine("Reading entry Mesh " + entry.name.value);
-                    //    entry.obj = new RndMesh().Read(reader, true, this, entry);
-                    //    break;
-                    case "Set":
-                        Debug.WriteLine("Reading entry Set " + entry.name.value);
-                        entry.obj = new Set().Read(reader, true, this, entry);
-                        break;
-                    case "SpotlightDrawer":
-                        Debug.WriteLine("Reading entry SpotlightDrawer " + entry.name.value);
-                        entry.obj = new SpotlightDrawer().Read(reader, true, this, entry);
-                        break;
-                    case "WorldCrowd":
-                        Debug.WriteLine("Reading entry WorldCrowd " + entry.name.value);
-                        entry.obj = new WorldCrowd().Read(reader, true, this, entry);
-                        break;
-                    case "CharClipGroup":
-                        Debug.WriteLine("Reading entry CharClipGroup " + entry.name.value);
-                        entry.obj = new CharClipGroup().Read(reader, true, this, entry);
-                        break;
-                    case "MatAnim":
-                        Debug.WriteLine("Reading entry MatAnim " + entry.name.value);
-                        entry.obj = new RndMatAnim().Read(reader, true, this, entry);
-                        break;
-                    // re-enable when the class is 100%
-                    //case "CharClip":
-                    //    Debug.WriteLine("Reading entry CharClip " + entry.name.value);
-                    //    entry.obj = new CharClip().Read(reader, true, this, entry);
-                    //    break;
-
-                    default:
-                        Debug.WriteLine("Unknown entry type " + entry.type.value + " of name " + entry.name.value + ", read an Object and then read until we see 0xADDEADDE to skip over it, curpos" + reader.BaseStream.Position);
-
-                        entry.typeRecognized = false;
-
-                        // TODO: improve this shit
-                        while (true)
-                        {
-                            byte b = reader.ReadByte();
-                            if (b == 0xAD)
-                            {
-                                byte b2 = reader.ReadByte();
-                                if (b2 == 0xDE)
-                                {
-                                    byte b3 = reader.ReadByte();
-                                    if (b3 == 0xAD)
-                                    {
-                                        byte b4 = reader.ReadByte();
-                                        if (b4 == 0xDE)
-                                        {
-                                            break;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        Debug.WriteLine("Found ending of file, new position: " + reader.BaseStream.Position);
-
-
-                        break;
-                }
+                ReadEntry(reader, entry);
 
                 if (entry.dir != null)
                     entry.dir.platform = platform;
@@ -905,233 +458,698 @@ namespace MiloLib.Assets
             // write the children entries
             foreach (Entry entry in entries)
             {
-                // handle dirty assets
-                if (entry.dirty)
-                {
-                    writer.WriteBlock(entry.objBytes.ToArray());
-                    writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
-                    continue;
-                }
+                WriteEntry(writer, entry);
+            }
+        }
 
-                Debug.WriteLine("Writing " + entry.type.value + " " + entry.name.value);
-                switch (entry.type.value)
-                {
-                    case "ObjectDir":
-                        ((ObjectDir)entry.obj).Write(writer, true, this, entry);
-                        entry.isEntryInRootDir = false;
-                        entry.dir.Write(writer);
-                        break;
-                    case "RndDir":
-                        ((RndDir)entry.obj).Write(writer, true, this, entry);
-                        entry.isEntryInRootDir = false;
-                        entry.dir.Write(writer);
-                        break;
-                    case "PanelDir":
-                        ((PanelDir)entry.obj).Write(writer, true, this, entry);
-                        entry.isEntryInRootDir = false;
-                        entry.dir.Write(writer);
-                        break;
-                    case "WorldDir":
-                        ((WorldDir)entry.obj).Write(writer, true, this, entry);
-                        entry.isEntryInRootDir = false;
-                        entry.dir.Write(writer);
-                        break;
-                    case "Character":
-                        ((Character)entry.obj).Write(writer, true, this, entry);
-                        if (((Character)entry.obj).proxyPath != String.Empty)
+        public void ReadEntry(EndianReader reader, DirectoryMeta.Entry entry)
+        {
+            switch (entry.type.value)
+            {
+                // DIRS
+                // These need special handling, they are different than inlined directories
+
+                case "ObjectDir":
+                    Debug.WriteLine("Reading entry ObjectDir " + entry.name.value);
+                    entry.isEntryInRootDir = true;
+                    entry.obj = new ObjectDir(0).Read(reader, true, this, entry);
+
+                    DirectoryMeta dir = new DirectoryMeta();
+                    dir.platform = platform;
+                    dir.Read(reader);
+                    entry.dir = dir;
+                    break;
+                case "EndingBonusDir":
+                case "RndDir":
+                    Debug.WriteLine("Reading entry RndDir " + entry.name.value);
+                    entry.isEntryInRootDir = true;
+                    entry.obj = new RndDir(0).Read(reader, true, this, entry);
+
+                    if (((ObjectDir)entry.obj).inlineProxy)
+                    {
+                        dir = new DirectoryMeta();
+                        dir.platform = platform;
+                        dir.Read(reader);
+                        entry.dir = dir;
+                    }
+                    break;
+                case "OvershellDir":
+                    Debug.WriteLine("Reading entry OvershellDir " + entry.name.value);
+                    entry.isEntryInRootDir = true;
+                    entry.obj = new OvershellDir(0).Read(reader, true, this, entry);
+
+                    dir = new DirectoryMeta();
+                    dir.platform = platform;
+                    dir.Read(reader);
+                    entry.dir = dir;
+                    break;
+                case "UIPanel":
+                case "PanelDir":
+                    Debug.WriteLine("Reading entry PanelDir " + entry.name.value);
+                    entry.isEntryInRootDir = true;
+                    entry.obj = new PanelDir(0).Read(reader, true, this, entry);
+
+                    dir = new DirectoryMeta();
+                    dir.platform = platform;
+                    dir.Read(reader);
+                    entry.dir = dir;
+                    break;
+
+                case "WorldDir":
+                    Debug.WriteLine("Reading entry WorldDir " + entry.name.value);
+                    entry.isEntryInRootDir = true;
+                    entry.obj = new WorldDir(0).Read(reader, true, this, entry);
+
+                    dir = new DirectoryMeta();
+                    dir.platform = platform;
+                    dir.Read(reader);
+                    entry.dir = dir;
+                    break;
+
+                case "Character":
+                    Debug.WriteLine("Reading entry Character " + entry.name.value);
+                    entry.isEntryInRootDir = true;
+                    entry.obj = new Character(0).Read(reader, true, this, entry);
+
+                    if (((Character)entry.obj).proxyPath != String.Empty)
+                    {
+                        dir = new DirectoryMeta();
+                        dir.platform = platform;
+                        dir.Read(reader);
+                        entry.dir = dir;
+                    }
+
+                    break;
+
+                case "P9Character":
+                    Debug.WriteLine("Reading entry P9Character " + entry.name.value);
+                    entry.isEntryInRootDir = true;
+                    entry.obj = new P9Character(0).Read(reader, true, this, entry);
+
+                    dir = new DirectoryMeta();
+                    dir.platform = platform;
+                    dir.Read(reader);
+                    entry.dir = dir;
+                    break;
+
+                case "CharClipSet":
+                    Debug.WriteLine("Reading entry CharClipSet " + entry.name.value);
+                    entry.isEntryInRootDir = true;
+
+                    // this is unhinged, why'd they do it like this?
+                    reader.ReadUInt32();
+                    entry.obj = new ObjectDir(0).Read(reader, true, this, entry);
+
+                    dir = new DirectoryMeta();
+                    dir.platform = platform;
+                    dir.Read(reader);
+                    entry.dir = dir;
+                    break;
+
+                case "CharBoneDir":
+                    Debug.WriteLine("Reading entry CharBoneDir " + entry.name.value);
+                    entry.isEntryInRootDir = true;
+                    entry.obj = new CharBoneDir(0).Read(reader, true, this, entry);
+
+                    dir = new DirectoryMeta();
+                    dir.platform = platform;
+                    dir.Read(reader);
+                    entry.dir = dir;
+                    break;
+
+                case "UIListDir":
+                    Debug.WriteLine("Reading entry UIListDir " + entry.name.value);
+                    entry.isEntryInRootDir = true;
+                    entry.obj = new UIListDir(0).Read(reader, true, this, entry);
+
+                    dir = new DirectoryMeta();
+                    dir.platform = platform;
+                    dir.Read(reader);
+                    entry.dir = dir;
+                    break;
+
+                case "UILabelDir":
+                    Debug.WriteLine("Reading entry UILabelDir " + entry.name.value);
+                    entry.isEntryInRootDir = true;
+                    entry.obj = new UILabelDir(0).Read(reader, true, this, entry);
+
+                    dir = new DirectoryMeta();
+                    dir.platform = platform;
+                    dir.Read(reader);
+                    entry.dir = dir;
+                    break;
+
+                case "BandCrowdMeterDir":
+                    Debug.WriteLine("Reading entry BandCrowdMeterDir " + entry.name.value);
+                    entry.isEntryInRootDir = true;
+                    entry.obj = new BandCrowdMeterDir(0).Read(reader, true, this, entry);
+
+                    dir = new DirectoryMeta();
+                    dir.platform = platform;
+                    dir.Read(reader);
+                    entry.dir = dir;
+                    break;
+
+                case "BandCrowdMeterIcon":
+                    Debug.WriteLine("Reading entry BandCrowdMeterIcon " + entry.name.value);
+                    entry.isEntryInRootDir = true;
+                    entry.obj = new BandCrowdMeterIcon(0).Read(reader, true, this, entry);
+
+                    dir = new DirectoryMeta();
+                    dir.platform = platform;
+                    dir.Read(reader);
+                    entry.dir = dir;
+                    break;
+
+                case "BandCharacter":
+                    Debug.WriteLine("Reading entry BandCharacter " + entry.name.value);
+                    entry.isEntryInRootDir = true;
+                    entry.obj = new BandCharacter(0).Read(reader, true, this, entry);
+
+                    dir = new DirectoryMeta();
+                    dir.platform = platform;
+                    dir.Read(reader);
+                    entry.dir = dir;
+                    break;
+
+                case "WorldInstance":
+                    Debug.WriteLine("Reading entry WorldInstance " + entry.name.value);
+                    entry.isEntryInRootDir = true;
+
+                    entry.obj = new WorldInstance(0).Read(reader, false, this, entry);
+
+                    // if the world instance has no persistent perObjs, it will have a dir as expected, otherwise it won't
+                    if (!((WorldInstance)entry.obj).hasPersistentObjects)
+                    {
+                        dir = new DirectoryMeta();
+                        dir.platform = platform;
+                        dir.Read(reader);
+                        entry.dir = dir;
+
+                        if (((WorldInstance)dir.directory).hasPersistentObjects)
                         {
-                            entry.isEntryInRootDir = false;
-                            entry.dir.Write(writer);
+                            ((WorldInstance)dir.directory).persistentObjects = new WorldInstance.PersistentObjects().Read(reader, this, entry);
                         }
-                        break;
-                    case "P9Character":
-                        ((P9Character)entry.obj).Write(writer, true, this, entry);
-                        entry.isEntryInRootDir = false;
-                        entry.dir.Write(writer);
-                        break;
-                    case "WorldInstance":
-                        // Write the main object
-                        ((WorldInstance)entry.obj).Write(writer, false, this, entry);
-                        entry.isEntryInRootDir = false;
+                    }
+                    else
+                    {
+                        ((WorldInstance)entry.obj).persistentObjects = new WorldInstance.PersistentObjects().Read(reader, this, entry);
+                    }
 
-                        if (!((WorldInstance)entry.obj).hasPersistentObjects)
+
+                    break;
+
+                case "TrackPanelDir":
+                    Debug.WriteLine("Reading entry TrackPanelDir " + entry.name.value);
+                    entry.isEntryInRootDir = true;
+                    entry.obj = new TrackPanelDir(0).Read(reader, true, this, entry);
+
+                    dir = new DirectoryMeta();
+                    dir.platform = platform;
+                    dir.Read(reader);
+                    entry.dir = dir;
+                    break;
+
+                case "UnisonIcon":
+                    Debug.WriteLine("Reading entry UnisonIcon " + entry.name.value);
+                    entry.isEntryInRootDir = true;
+                    entry.obj = new UnisonIcon(0).Read(reader, true, this, entry);
+
+                    dir = new DirectoryMeta();
+                    dir.platform = platform;
+                    dir.Read(reader);
+                    entry.dir = dir;
+                    break;
+
+                case "BandScoreboard":
+                    Debug.WriteLine("Reading entry BandScoreboard " + entry.name.value);
+                    entry.isEntryInRootDir = true;
+                    entry.obj = new BandScoreboard(0).Read(reader, true, this, entry);
+
+                    dir = new DirectoryMeta();
+                    dir.platform = platform;
+                    dir.Read(reader);
+                    entry.dir = dir;
+                    break;
+
+                case "BandStarDisplay":
+                    Debug.WriteLine("Reading entry BandStarDisplay " + entry.name.value);
+                    entry.isEntryInRootDir = true;
+                    entry.obj = new BandStarDisplay(0).Read(reader, true, this, entry);
+
+                    dir = new DirectoryMeta();
+                    dir.platform = platform;
+                    dir.Read(reader);
+                    entry.dir = dir;
+                    break;
+
+                case "VocalTrackDir":
+                    Debug.WriteLine("Reading entry VocalTrackDir " + entry.name.value);
+                    entry.isEntryInRootDir = true;
+                    entry.obj = new VocalTrackDir(0).Read(reader, true, this, entry);
+
+                    dir = new DirectoryMeta();
+                    dir.platform = platform;
+                    dir.Read(reader);
+                    entry.dir = dir;
+                    break;
+
+                case "GemTrackDir":
+                    Debug.WriteLine("Reading entry GemTrackDir " + entry.name.value);
+                    entry.isEntryInRootDir = true;
+                    entry.obj = new GemTrackDir(0).Read(reader, true, this, entry);
+
+                    dir = new DirectoryMeta();
+                    dir.platform = platform;
+                    dir.Read(reader);
+                    entry.dir = dir;
+                    break;
+
+                case "MoveDir":
+                    Debug.WriteLine("Reading entry MoveDir " + entry.name.value);
+                    entry.isEntryInRootDir = true;
+                    entry.obj = new MoveDir(0).Read(reader, true, this, entry);
+
+                    dir = new DirectoryMeta();
+                    dir.platform = platform;
+                    dir.Read(reader);
+                    entry.dir = dir;
+                    break;
+
+                case "SkeletonDir":
+                    Debug.WriteLine("Reading entry SkeletonDir " + entry.name.value);
+                    entry.isEntryInRootDir = true;
+                    entry.obj = new SkeletonDir(0).Read(reader, true, this, entry);
+
+                    dir = new DirectoryMeta();
+                    dir.platform = platform;
+                    dir.Read(reader);
+                    entry.dir = dir;
+                    break;
+
+                case "OverdriveMeterDir":
+                    Debug.WriteLine("Reading entry OverdriveMeterDir " + entry.name.value);
+                    entry.isEntryInRootDir = true;
+                    entry.obj = new OverdriveMeterDir(0).Read(reader, true, this, entry);
+
+                    dir = new DirectoryMeta();
+                    dir.platform = platform;
+                    dir.Read(reader);
+                    entry.dir = dir;
+                    break;
+
+                //case "EndingBonusDir":
+                //    Debug.WriteLine("Reading entry EndingBonusDir " + entry.name.value);
+                //    entry.isEntryInRootDir = true;
+                //    entry.obj = new RndDir(0).Read(reader, true, this, entry);
+                //
+                //    entry.obj = new DirectoryMeta().Read(reader);
+                //    break;
+
+                // OBJECTS
+
+                case "Object":
+                    Debug.WriteLine("Reading entry Object " + entry.name.value);
+                    entry.obj = new Object().Read(reader, true, this, entry);
+                    break;
+                case "BandSongPref":
+                    Debug.WriteLine("Reading entry BandSongPref " + entry.name.value);
+                    entry.obj = new BandSongPref().Read(reader, true, this, entry);
+                    break;
+                case "Sfx":
+                    Debug.WriteLine("Reading entry Sfx " + entry.name.value);
+                    entry.obj = new Sfx().Read(reader, true, this, entry);
+                    break;
+                case "Trans":
+                    Debug.WriteLine("Reading entry Trans " + entry.name.value);
+                    entry.obj = new RndTrans().Read(reader, true, this, entry);
+                    break;
+                case "View":
+                case "Group":
+                    Debug.WriteLine("Reading entry Group " + entry.name.value);
+                    entry.obj = new RndGroup().Read(reader, true, this, entry);
+                    break;
+                case "P9Director":
+                    Debug.WriteLine("Reading entry P9Director " + entry.name.value);
+                    entry.obj = new P9Director().Read(reader, true, this, entry);
+                    break;
+                // TODO: figure out how to read textures properly
+                case "Tex":
+                    Debug.WriteLine("Reading entry Tex " + entry.name.value);
+                    entry.obj = new RndTex().Read(reader, true, this, entry);
+                    break;
+                case "ColorPalette":
+                    Debug.WriteLine("Reading entry ColorPalette " + entry.name.value);
+                    entry.obj = new ColorPalette().Read(reader, true, this, entry);
+                    break;
+                //case "Mat":
+                //    Debug.WriteLine("Reading entry Mat " + entry.name.value);
+                //    entry.obj = new RndMat().Read(reader, true, this);
+                //    break;
+                case "BandCharDesc":
+                    Debug.WriteLine("Reading entry BandCharDesc " + entry.name.value);
+                    entry.obj = new BandCharDesc().Read(reader, true, this, entry);
+                    break;
+                case "Light":
+                    Debug.WriteLine("Reading entry Light " + entry.name.value);
+                    entry.obj = new RndLight().Read(reader, true, this, entry);
+                    break;
+                case "UIColor":
+                    Debug.WriteLine("Reading entry UIColor" + entry.name.value);
+                    entry.obj = new UIColor().Read(reader, true, this, entry);
+                    break;
+                case "ParticleSys":
+                    Debug.WriteLine("Reading entry ParticleSys " + entry.name.value);
+                    entry.obj = new RndParticleSys().Read(reader, true, this, entry);
+                    break;
+                case "AnimFilter":
+                    Debug.WriteLine("Reading entry AnimFilter " + entry.name.value);
+                    entry.obj = new RndAnimFilter().Read(reader, true, this, entry);
+                    break;
+                case "BandPlacer":
+                    Debug.WriteLine("Reading entry BandPlacer " + entry.name.value);
+                    entry.obj = new BandPlacer().Read(reader, true, this, entry);
+                    break;
+                case "ScreenMask":
+                    Debug.WriteLine("Reading entry ScreenMask " + entry.name.value);
+                    entry.obj = new RndScreenMask().Read(reader, true, this, entry);
+                    break;
+                case "TexMovie":
+                    Debug.WriteLine("Reading entry TexMovie " + entry.name.value);
+                    entry.obj = new TexMovie().Read(reader, true, this, entry);
+                    break;
+                case "Environ":
+                    Debug.WriteLine("Reading entry Environ " + entry.name.value);
+                    entry.obj = new RndEnviron().Read(reader, true, this, entry);
+                    break;
+                case "SynthSample":
+                    Debug.WriteLine("Reading entry SynthSample " + entry.name.value);
+                    entry.obj = new SynthSample().Read(reader, true, this, entry);
+                    break;
+                case "Cam":
+                    Debug.WriteLine("Reading entry Cam " + entry.name.value);
+                    entry.obj = new RndCam().Read(reader, true, this, entry);
+                    break;
+                //case "Mesh":
+                //    Debug.WriteLine("Reading entry Mesh " + entry.name.value);
+                //    entry.obj = new RndMesh().Read(reader, true, this, entry);
+                //    break;
+                case "Set":
+                    Debug.WriteLine("Reading entry Set " + entry.name.value);
+                    entry.obj = new Set().Read(reader, true, this, entry);
+                    break;
+                case "SpotlightDrawer":
+                    Debug.WriteLine("Reading entry SpotlightDrawer " + entry.name.value);
+                    entry.obj = new SpotlightDrawer().Read(reader, true, this, entry);
+                    break;
+                case "WorldCrowd":
+                    Debug.WriteLine("Reading entry WorldCrowd " + entry.name.value);
+                    entry.obj = new WorldCrowd().Read(reader, true, this, entry);
+                    break;
+                case "CharClipGroup":
+                    Debug.WriteLine("Reading entry CharClipGroup " + entry.name.value);
+                    entry.obj = new CharClipGroup().Read(reader, true, this, entry);
+                    break;
+                case "MatAnim":
+                    Debug.WriteLine("Reading entry MatAnim " + entry.name.value);
+                    entry.obj = new RndMatAnim().Read(reader, true, this, entry);
+                    break;
+                case "EventTrigger":
+                    Debug.WriteLine("Reading entry EventTrigger " + entry.name.value);
+                    entry.obj = new EventTrigger().Read(reader, true, this, entry);
+                    break;
+                case "BandConfiguration":
+                    Debug.WriteLine("Reading entry BandConfiguration " + entry.name.value);
+                    entry.obj = new BandConfiguration().Read(reader, true, this, entry);
+                    break;
+                // re-enable when the class is 100%
+                //case "CharClip":
+                //    Debug.WriteLine("Reading entry CharClip " + entry.name.value);
+                //    entry.obj = new CharClip().Read(reader, true, this, entry);
+                //    break;
+
+                default:
+                    Debug.WriteLine("Unknown entry type " + entry.type.value + " of name " + entry.name.value + ", read an Object and then read until we see 0xADDEADDE to skip over it, curpos" + reader.BaseStream.Position);
+
+                    entry.typeRecognized = false;
+
+                    // TODO: improve this shit
+                    while (true)
+                    {
+                        byte b = reader.ReadByte();
+                        if (b == 0xAD)
                         {
-                            // Write the directory
-                            entry.dir.Write(writer);
-
-                            if (((WorldInstance)entry.dir.directory).hasPersistentObjects)
+                            byte b2 = reader.ReadByte();
+                            if (b2 == 0xDE)
                             {
-                                // Write the persistent perObjs
-                                ((WorldInstance)entry.dir.directory).persistentObjects.Write(writer, this, entry);
+                                byte b3 = reader.ReadByte();
+                                if (b3 == 0xAD)
+                                {
+                                    byte b4 = reader.ReadByte();
+                                    if (b4 == 0xDE)
+                                    {
+                                        break;
+                                    }
+                                }
                             }
                         }
-                        else
+                    }
+
+                    Debug.WriteLine("Found ending of file, new position: " + reader.BaseStream.Position);
+
+
+                    break;
+            }
+        }
+
+        public void WriteEntry(EndianWriter writer, DirectoryMeta.Entry entry)
+        {
+            // handle dirty assets
+            if (entry.dirty)
+            {
+                writer.WriteBlock(entry.objBytes.ToArray());
+                writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
+                return;
+            }
+
+            Debug.WriteLine("Writing " + entry.type.value + " " + entry.name.value);
+            switch (entry.type.value)
+            {
+                case "ObjectDir":
+                    ((ObjectDir)entry.obj).Write(writer, true, this, entry);
+                    entry.isEntryInRootDir = false;
+                    entry.dir.Write(writer);
+                    break;
+                case "RndDir":
+                    ((RndDir)entry.obj).Write(writer, true, this, entry);
+                    entry.isEntryInRootDir = false;
+                    entry.dir.Write(writer);
+                    break;
+                case "PanelDir":
+                    ((PanelDir)entry.obj).Write(writer, true, this, entry);
+                    entry.isEntryInRootDir = false;
+                    entry.dir.Write(writer);
+                    break;
+                case "WorldDir":
+                    ((WorldDir)entry.obj).Write(writer, true, this, entry);
+                    entry.isEntryInRootDir = false;
+                    entry.dir.Write(writer);
+                    break;
+                case "Character":
+                    ((Character)entry.obj).Write(writer, true, this, entry);
+                    if (((Character)entry.obj).proxyPath != String.Empty)
+                    {
+                        entry.isEntryInRootDir = false;
+                        entry.dir.Write(writer);
+                    }
+                    break;
+                case "P9Character":
+                    ((P9Character)entry.obj).Write(writer, true, this, entry);
+                    entry.isEntryInRootDir = false;
+                    entry.dir.Write(writer);
+                    break;
+                case "WorldInstance":
+                    // Write the main object
+                    ((WorldInstance)entry.obj).Write(writer, false, this, entry);
+                    entry.isEntryInRootDir = false;
+
+                    if (!((WorldInstance)entry.obj).hasPersistentObjects)
+                    {
+                        // Write the directory
+                        entry.dir.Write(writer);
+
+                        if (((WorldInstance)entry.dir.directory).hasPersistentObjects)
                         {
                             // Write the persistent perObjs
-                            ((WorldInstance)entry.obj).persistentObjects.Write(writer, this, entry);
+                            ((WorldInstance)entry.dir.directory).persistentObjects.Write(writer, this, entry);
                         }
+                    }
+                    else
+                    {
+                        // Write the persistent perObjs
+                        ((WorldInstance)entry.obj).persistentObjects.Write(writer, this, entry);
+                    }
 
-                        //ase "WorldInstance":
-                        //   Debug.WriteLine("Reading entry WorldInstance " + entry.name.value);
-                        //   entry.isEntryInRootDir = true;
-                        //
-                        //   entry.obj = new WorldInstance(0).Read(reader, true, this, entry);
-                        //
-                        //   // if the world instance has no persistent perObjs, it will have a dir as expected, otherwise it won't
-                        //   if (!((WorldInstance)entry.obj).hasPersistentObjects)
-                        //   {
-                        //       dir = new DirectoryMeta();
-                        //       dir.platform = platform;
-                        //       dir.Read(reader);
-                        //       entry.dir = dir;
-                        //
-                        //       if (((WorldInstance)dir.directory).hasPersistentObjects)
-                        //       {
-                        //           ((WorldInstance)dir.directory).perObjs = new WorldInstance.PersistentObjects().Read(reader, this, entry);
-                        //       }
-                        //   }
-                        //   else
-                        //   {
-                        //       ((WorldInstance)entry.obj).perObjs = new WorldInstance.PersistentObjects().Read(reader, this, entry);
-                        //   }
-                        //
-                        //
-                        //   break;
+                    //ase "WorldInstance":
+                    //   Debug.WriteLine("Reading entry WorldInstance " + entry.name.value);
+                    //   entry.isEntryInRootDir = true;
+                    //
+                    //   entry.obj = new WorldInstance(0).Read(reader, true, this, entry);
+                    //
+                    //   // if the world instance has no persistent perObjs, it will have a dir as expected, otherwise it won't
+                    //   if (!((WorldInstance)entry.obj).hasPersistentObjects)
+                    //   {
+                    //       dir = new DirectoryMeta();
+                    //       dir.platform = platform;
+                    //       dir.Read(reader);
+                    //       entry.dir = dir;
+                    //
+                    //       if (((WorldInstance)dir.directory).hasPersistentObjects)
+                    //       {
+                    //           ((WorldInstance)dir.directory).perObjs = new WorldInstance.PersistentObjects().Read(reader, this, entry);
+                    //       }
+                    //   }
+                    //   else
+                    //   {
+                    //       ((WorldInstance)entry.obj).perObjs = new WorldInstance.PersistentObjects().Read(reader, this, entry);
+                    //   }
+                    //
+                    //
+                    //   break;
 
 
-                        break;
-                    case "CharClipSet":
-                        writer.WriteUInt32(0x18);
-                        ((ObjectDir)entry.obj).Write(writer, true, this, entry);
-                        entry.isEntryInRootDir = false;
-                        entry.dir.Write(writer);
-                        break;
-                    case "UILabelDir":
-                        ((UILabelDir)entry.obj).Write(writer, true, this, entry);
-                        entry.isEntryInRootDir = false;
-                        entry.dir.Write(writer);
-                        break;
-                    case "UIListDir":
-                        ((UIListDir)entry.obj).Write(writer, true, this, entry);
-                        entry.isEntryInRootDir = false;
-                        entry.dir.Write(writer);
-                        break;
-                    case "BandCrowdMeterDir":
-                        ((BandCrowdMeterDir)entry.obj).Write(writer, true, this, entry);
-                        entry.isEntryInRootDir = false;
-                        entry.dir.Write(writer);
-                        break;
-                    case "UnisonIcon":
-                        ((UnisonIcon)entry.obj).Write(writer, true, this, entry);
-                        entry.isEntryInRootDir = false;
-                        entry.dir.Write(writer);
-                        break;
-                    case "EndingBonusDir":
-                        ((RndDir)entry.obj).Write(writer, true, this, entry);
-                        entry.isEntryInRootDir = false;
-                        entry.dir.Write(writer);
-                        break;
-                    case "GemTrackDir":
-                        ((GemTrackDir)entry.obj).Write(writer, true, this, entry);
-                        entry.isEntryInRootDir = false;
-                        entry.dir.Write(writer);
-                        break;
-                    case "MoveDir":
-                        ((MoveDir)entry.obj).Write(writer, true, this, entry);
-                        entry.isEntryInRootDir = false;
-                        entry.dir.Write(writer);
-                        break;
-                    case "SkeletonDir":
-                        ((SkeletonDir)entry.obj).Write(writer, true, this, entry);
-                        entry.isEntryInRootDir = false;
-                        entry.dir.Write(writer);
-                        break;
-                    case "OvershellDir":
-                        ((OvershellDir)entry.obj).Write(writer, true, this, entry);
-                        entry.isEntryInRootDir = false;
-                        entry.dir.Write(writer);
-                        break;
-                    case "OverdriveMeterDir":
-                        ((OverdriveMeterDir)entry.obj).Write(writer, true, this, entry);
-                        entry.isEntryInRootDir = false;
-                        entry.dir.Write(writer);
-                        break;
-                    case "BandSongPref":
-                        ((BandSongPref)entry.obj).Write(writer, true, this, entry);
-                        break;
-                    case "Sfx":
-                        ((Sfx)entry.obj).Write(writer, true, this, entry);
-                        break;
-                    case "BandCharDesc":
-                        ((BandCharDesc)entry.obj).Write(writer, true, this, entry);
-                        break;
-                    case "Group":
-                        ((RndGroup)entry.obj).Write(writer, true, this, entry);
-                        break;
-                    case "ColorPalette":
-                        ((ColorPalette)entry.obj).Write(writer, true, this, entry);
-                        break;
-                    case "Tex":
-                        ((RndTex)entry.obj).Write(writer, true, this, entry);
-                        break;
-                    case "Trans":
-                        ((RndTrans)entry.obj).Write(writer, true, false);
-                        break;
-                    case "Light":
-                        ((RndLight)entry.obj).Write(writer, true, this, entry);
-                        break;
-                    case "UIColor":
-                        ((UIColor)entry.obj).Write(writer, true, this, entry);
-                        break;
-                    case "ParticleSys":
-                        ((RndParticleSys)entry.obj).Write(writer, true, this, entry);
-                        break;
-                    case "AnimFilter":
-                        ((RndAnimFilter)entry.obj).Write(writer, true, this, entry);
-                        break;
-                    case "BandPlacer":
-                        ((BandPlacer)entry.obj).Write(writer, true, this, entry);
-                        break;
-                    case "ScreenMask":
-                        ((RndScreenMask)entry.obj).Write(writer, true, this, entry);
-                        break;
-                    case "TexMovie":
-                        ((TexMovie)entry.obj).Write(writer, true, this, entry);
-                        break;
-                    case "Environ":
-                        ((RndEnviron)entry.obj).Write(writer, true, this, entry);
-                        break;
-                    case "SynthSample":
-                        ((SynthSample)entry.obj).Write(writer, true, this, entry);
-                        break;
-                    case "Cam":
-                        ((RndCam)entry.obj).Write(writer, true, this, entry);
-                        break;
-                    case "Set":
-                        ((Set)entry.obj).Write(writer, true, this, entry);
-                        break;
-                    case "SpotlightDrawer":
-                        ((SpotlightDrawer)entry.obj).Write(writer, true, this, entry);
-                        break;
-                    case "CharClipGroup":
-                        ((CharClipGroup)entry.obj).Write(writer, true, this, entry);
-                        break;
-                    case "MatAnim":
-                        ((RndMatAnim)entry.obj).Write(writer, true, this, entry);
-                        break;
-                    //case "Mat":
-                    //    ((RndMat)entry.obj).Write(writer, false);
-                    //    break;
-                    default:
-                        Debug.WriteLine("Unknown entry type, dumping raw bytes for " + entry.type.value + " of name " + entry.name.value);
+                    break;
+                case "CharClipSet":
+                    writer.WriteUInt32(0x18);
+                    ((ObjectDir)entry.obj).Write(writer, true, this, entry);
+                    entry.isEntryInRootDir = false;
+                    entry.dir.Write(writer);
+                    break;
+                case "UILabelDir":
+                    ((UILabelDir)entry.obj).Write(writer, true, this, entry);
+                    entry.isEntryInRootDir = false;
+                    entry.dir.Write(writer);
+                    break;
+                case "UIListDir":
+                    ((UIListDir)entry.obj).Write(writer, true, this, entry);
+                    entry.isEntryInRootDir = false;
+                    entry.dir.Write(writer);
+                    break;
+                case "BandCrowdMeterDir":
+                    ((BandCrowdMeterDir)entry.obj).Write(writer, true, this, entry);
+                    entry.isEntryInRootDir = false;
+                    entry.dir.Write(writer);
+                    break;
+                case "UnisonIcon":
+                    ((UnisonIcon)entry.obj).Write(writer, true, this, entry);
+                    entry.isEntryInRootDir = false;
+                    entry.dir.Write(writer);
+                    break;
+                case "EndingBonusDir":
+                    ((RndDir)entry.obj).Write(writer, true, this, entry);
+                    entry.isEntryInRootDir = false;
+                    entry.dir.Write(writer);
+                    break;
+                case "GemTrackDir":
+                    ((GemTrackDir)entry.obj).Write(writer, true, this, entry);
+                    entry.isEntryInRootDir = false;
+                    entry.dir.Write(writer);
+                    break;
+                case "MoveDir":
+                    ((MoveDir)entry.obj).Write(writer, true, this, entry);
+                    entry.isEntryInRootDir = false;
+                    entry.dir.Write(writer);
+                    break;
+                case "SkeletonDir":
+                    ((SkeletonDir)entry.obj).Write(writer, true, this, entry);
+                    entry.isEntryInRootDir = false;
+                    entry.dir.Write(writer);
+                    break;
+                case "OvershellDir":
+                    ((OvershellDir)entry.obj).Write(writer, true, this, entry);
+                    entry.isEntryInRootDir = false;
+                    entry.dir.Write(writer);
+                    break;
+                case "OverdriveMeterDir":
+                    ((OverdriveMeterDir)entry.obj).Write(writer, true, this, entry);
+                    entry.isEntryInRootDir = false;
+                    entry.dir.Write(writer);
+                    break;
+                case "BandSongPref":
+                    ((BandSongPref)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "Sfx":
+                    ((Sfx)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "BandCharDesc":
+                    ((BandCharDesc)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "Group":
+                    ((RndGroup)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "ColorPalette":
+                    ((ColorPalette)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "Tex":
+                    ((RndTex)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "Trans":
+                    ((RndTrans)entry.obj).Write(writer, true, false);
+                    break;
+                case "Light":
+                    ((RndLight)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "UIColor":
+                    ((UIColor)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "ParticleSys":
+                    ((RndParticleSys)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "AnimFilter":
+                    ((RndAnimFilter)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "BandPlacer":
+                    ((BandPlacer)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "ScreenMask":
+                    ((RndScreenMask)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "TexMovie":
+                    ((TexMovie)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "Environ":
+                    ((RndEnviron)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "SynthSample":
+                    ((SynthSample)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "Cam":
+                    ((RndCam)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "Set":
+                    ((Set)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "SpotlightDrawer":
+                    ((SpotlightDrawer)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "CharClipGroup":
+                    ((CharClipGroup)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "MatAnim":
+                    ((RndMatAnim)entry.obj).Write(writer, true, this, entry);
+                    break;
+                //case "Mat":
+                //    ((RndMat)entry.obj).Write(writer, false);
+                //    break;
+                default:
+                    Debug.WriteLine("Unknown entry type, dumping raw bytes for " + entry.type.value + " of name " + entry.name.value);
 
-                        // this should allow saving Milos with types that have yet to be implemented
-                        writer.WriteBlock(entry.objBytes.ToArray());
+                    // this should allow saving Milos with types that have yet to be implemented
+                    writer.WriteBlock(entry.objBytes.ToArray());
 
-                        // write the ending bytes
-                        writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
-                        break;
-                }
+                    // write the ending bytes
+                    writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
+                    break;
             }
         }
 

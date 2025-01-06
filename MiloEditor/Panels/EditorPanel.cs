@@ -29,7 +29,6 @@ public class EditorPanel : Panel
     private static Dictionary<Type, (Label NameLabel, Label DescriptionLabel)> _uiElementCache = new Dictionary<Type, (Label, Label)>();
 
     private RndTexEditor bitmapEditor = new RndTexEditor(null);
-    private SymbolListEditor symbolListEditor = new SymbolListEditor();
 
     public EditorPanel(object target, uint objRevision, bool drawTypeLabels = true)
     {
@@ -306,6 +305,7 @@ public class EditorPanel : Panel
                         inputControl = byteListPanel;
                         break;
                     case List<Symbol> symbolsValue:
+                        var symbolListEditor = new SymbolListEditor();
                         symbolListEditor.SetSymbols(symbolsValue);
                         symbolListEditor.Dock = DockStyle.Fill;
 

@@ -190,24 +190,10 @@ namespace MiloLib
 
                         for (int i = 0; i < numBlocks; i++)
                         {
-                            bool compressed = (blockSizes[i] & 0xFF000000) != 0;
-
-                            if (compressed)
-                            {
-                                blockSizes[i] &= 0x00FFFFFF;
-                            }
-
                             MemoryStream blockStream = new MemoryStream(reader.ReadBlock((int)blockSizes[i]));
 
-                            if (compressed)
-                            {
-                                InflaterInputStream inflater = new InflaterInputStream(blockStream);
-                                inflater.CopyTo(compressedStream);
-                            }
-                            else
-                            {
-                                blockStream.CopyTo(compressedStream);
-                            }
+                            GZipInputStream inflater = new GZipInputStream(blockStream);
+                            inflater.CopyTo(compressedStream);
                         }
 
                         decompressedReader = new EndianReader(compressedStream, Endian.BigEndian);
@@ -216,6 +202,8 @@ namespace MiloLib
 
                         meta = new DirectoryMeta();
                         meta.platform = DetectPlatform();
+                        // write the decompressed data to a file for debugging
+                        File.WriteAllBytes("decompressed.gz", compressedStream.ToArray());
                         dirMeta = meta.Read(decompressedReader);
                         break;
                     case Type.Uncompressed:
@@ -233,7 +221,6 @@ namespace MiloLib
 
                 System.Diagnostics.Debug.WriteLine("Done reading Milo file " + path);
             }
-
         }
 
         private DirectoryMeta.Platform DetectPlatform()
