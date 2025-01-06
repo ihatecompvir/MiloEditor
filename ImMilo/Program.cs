@@ -5,6 +5,7 @@ using ImMilo.imgui;
 using MiloLib;
 using MiloLib.Assets;
 using TinyDialogsNet;
+using Object = MiloLib.Assets.Object;
 
 namespace ImMilo;
 
@@ -26,6 +27,9 @@ class Program
 
     private static Exception errorModalException;
     private static bool errorModalOpen;
+    private static string errorModalMessage;
+
+    private static Object viewingObject;
     
     static void Main(string[] args)
     {
@@ -83,29 +87,42 @@ class Program
         ImGui.PushStyleVar(ImGuiStyleVar.WindowBorderSize, 0);
         ImGui.Begin("ImMilo", ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoBringToFrontOnFocus);
         MenuBar();
-        UIContent();
         DrawErrorModal();
+        UIContent();
         ImGui.End();
         ImGui.PopStyleVar();
         ImGui.PopStyleVar();
-        ImGui.ShowDemoWindow();
+        //ImGui.ShowDemoWindow();
     }
 
-    static void OpenErrorModal(Exception e)
+    static void OpenErrorModal(Exception e, string message)
     {
         errorModalException = e;
-        ImGui.OpenPopup("Error");
+        errorModalOpen = true;
+        errorModalMessage = message;
     }
 
     static void DrawErrorModal()
     {
+        if (errorModalOpen)
+        {
+            ImGui.OpenPopup("Error");
+            errorModalOpen = false;
+        }
         ImGui.SetNextWindowPos(ImGui.GetMainViewport().GetCenter(), ImGuiCond.Appearing, new Vector2(0.5f, 0.5f));
 
-        if (ImGui.BeginPopup("Error", ImGuiWindowFlags.AlwaysAutoResize))
+        if (ImGui.BeginPopupModal("Error", ImGuiWindowFlags.AlwaysAutoResize))
         {
-            ImGui.Text("An error has occurred.");
+            ImGui.Text(errorModalMessage);
             ImGui.Text(errorModalException.GetType().Name);
             ImGui.Text(errorModalException.Message);
+            if (ImGui.CollapsingHeader("Callstack"))
+            {
+                ImGui.Text(errorModalException.StackTrace);
+            }
+
+            if (ImGui.Button("OK", new Vector2(ImGui.GetContentRegionAvail().X, 0.0f)))
+                ImGui.CloseCurrentPopup();
             ImGui.EndPopup();
         }
     }
@@ -129,11 +146,13 @@ class Program
                         try
                         {
                             currentScene = new MiloFile(paths.First());
+                            viewingObject = null;
                         }
                         catch (Exception e)
                         {
-                            OpenErrorModal(e);
+                            OpenErrorModal(e, "Error occurred while loading file:");
                             currentScene = null;
+                            Console.WriteLine(e.Message);
                         }
                         
                     }
@@ -153,8 +172,15 @@ class Program
         {
             flags |= ImGuiTreeNodeFlags.DefaultOpen;
         }
+
+        if (viewingObject == dir.directory)
+        {
+            flags |= ImGuiTreeNodeFlags.Selected;
+        }
         if (ImGui.TreeNodeEx(dir.name, flags))
         {
+            if (ImGui.IsItemClicked() && !ImGui.IsItemToggledOpen())
+                viewingObject = dir.directory;
             var i = 0;
             //ImGui.Indent();
             if (dir.directory is ObjectDir objDir && objDir.inlineSubDirs.Count > 0)
@@ -178,7 +204,10 @@ class Program
                 }
                 else
                 {
-                    ImGui.Selectable(entry.name);
+                    if (ImGui.Selectable(entry.name, viewingObject != null && viewingObject == entry.obj) && entry.obj != null)
+                    {
+                        viewingObject = entry.obj;
+                    }
                 }
 
                 i++;
@@ -186,12 +215,22 @@ class Program
             ImGui.TreePop();
             //ImGui.Unindent();
         }
+        else
+        {
+            if (ImGui.IsItemClicked() && !ImGui.IsItemToggledOpen())
+                viewingObject = dir.directory;
+        }
         ImGui.PopID();
     }
 
     static void UIContent()
     {
         {
+            ImGui.BeginGroup();
+            if (currentScene != null)
+            {
+                ImGui.Text(currentScene.dirMeta.entries.Count + " entries");
+            }
             ImGui.BeginChild("left pane", new Vector2(150, 0), ImGuiChildFlags.Borders | ImGuiChildFlags.ResizeX);
             if (currentScene != null)
             {
@@ -202,15 +241,17 @@ class Program
                 
             }
             ImGui.EndChild();
+            ImGui.EndGroup();
         }
         ImGui.SameLine();
         {
             ImGui.BeginGroup();
-            ImGui.BeginChild("right pane", new Vector2(0, -ImGui.GetFrameHeightWithSpacing()));
-            ImGui.Text("hello");
-            ImGui.Indent();
-            ImGui.Text("yep");
-            ImGui.Unindent();
+            ImGui.BeginChild("right pane", new Vector2(0, ImGui.GetContentRegionAvail().Y));
+
+            if (viewingObject != null)
+            {
+                EditorPanel.Draw(viewingObject);
+            }
             ImGui.EndChild();
             ImGui.EndGroup();
         }
