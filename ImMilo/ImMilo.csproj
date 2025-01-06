@@ -8,9 +8,30 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="ImGui.NET" Version="1.91.6.1" />
+      <PackageReference Include="TinyDialogsNet" Version="2.0.0" />
       <PackageReference Include="Veldrid" Version="4.9.0" />
       <PackageReference Include="Veldrid.SDL2" Version="4.9.0" />
       <PackageReference Include="Veldrid.StartupUtilities" Version="4.9.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\MiloLib\MiloLib.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <EmbeddedResource Include="imgui/Shaders/GLSL/imgui-vertex.glsl" LogicalName="imgui-vertex.glsl" />
+        <EmbeddedResource Include="imgui/Shaders/GLSL/imgui-frag.glsl" LogicalName="imgui-frag.glsl" />
+        <EmbeddedResource Include="imgui/Shaders/HLSL/imgui-vertex.hlsl.bytes" LogicalName="imgui-vertex.hlsl.bytes" />
+        <EmbeddedResource Include="imgui/Shaders/HLSL/imgui-frag.hlsl.bytes" LogicalName="imgui-frag.hlsl.bytes" />
+        <EmbeddedResource Include="imgui/Shaders/SPIR-V/imgui-vertex.spv" LogicalName="imgui-vertex.spv" />
+        <EmbeddedResource Include="imgui/Shaders/SPIR-V/imgui-frag.spv" LogicalName="imgui-frag.spv" />
+        <EmbeddedResource Include="imgui/Shaders/Metal/imgui-vertex.metallib" LogicalName="imgui-vertex.metallib" />
+        <EmbeddedResource Include="imgui/Shaders/Metal/imgui-frag.metallib" LogicalName="imgui-frag.metallib" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="imgui\" />
     </ItemGroup>
 
 </Project>
