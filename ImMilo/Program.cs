@@ -50,6 +50,8 @@ class Program
         };
         _cl = gd.ResourceFactory.CreateCommandList();
         controller = new ImGuiController(gd, gd.MainSwapchain.Framebuffer.OutputDescription, _window.Width, _window.Height);
+        ImGui.StyleColorsLight();
+        ImGui.GetStyle().FrameBorderSize = 1;
         
         var stopwatch = Stopwatch.StartNew();
         float deltaTime;

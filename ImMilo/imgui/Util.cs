@@ -51,5 +51,9 @@ public class Util
             return ImGui.InputScalar(label, ImGuiDataType.U8, (IntPtr)ptr);
         }
     }
-    
+
+    public static void SceneTreeItem(string label)
+    {
+        
+    }
 }
