@@ -2,7 +2,7 @@
 using System.Numerics;
 using System.Text;
 using ImGuiNET;
-using ImMilo.imgui;
+using ImMilo.ImGuiUtils;
 using MiloLib;
 using MiloLib.Assets;
 using MiloLib.Assets.Rnd;
@@ -101,7 +101,7 @@ class Program
         ImGui.ShowDemoWindow();
     }
 
-    static void OpenErrorModal(Exception e, string message)
+    public static void OpenErrorModal(Exception e, string message)
     {
         errorModalException = e;
         errorModalOpen = true;

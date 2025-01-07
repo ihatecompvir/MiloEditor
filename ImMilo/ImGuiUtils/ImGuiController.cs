@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 using ImGuiNET;
 using Veldrid;
 
-namespace ImMilo.imgui;
+namespace ImMilo.ImGuiUtils;
 
 /// <summary>
 /// A modified version of Veldrid.ImGui's ImGuiRenderer.

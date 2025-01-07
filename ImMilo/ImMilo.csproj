@@ -22,14 +22,14 @@
     </ItemGroup>
 
     <ItemGroup>
-        <EmbeddedResource Include="imgui/Shaders/GLSL/imgui-vertex.glsl" LogicalName="imgui-vertex.glsl" />
-        <EmbeddedResource Include="imgui/Shaders/GLSL/imgui-frag.glsl" LogicalName="imgui-frag.glsl" />
-        <EmbeddedResource Include="imgui/Shaders/HLSL/imgui-vertex.hlsl.bytes" LogicalName="imgui-vertex.hlsl.bytes" />
-        <EmbeddedResource Include="imgui/Shaders/HLSL/imgui-frag.hlsl.bytes" LogicalName="imgui-frag.hlsl.bytes" />
-        <EmbeddedResource Include="imgui/Shaders/SPIR-V/imgui-vertex.spv" LogicalName="imgui-vertex.spv" />
-        <EmbeddedResource Include="imgui/Shaders/SPIR-V/imgui-frag.spv" LogicalName="imgui-frag.spv" />
-        <EmbeddedResource Include="imgui/Shaders/Metal/imgui-vertex.metallib" LogicalName="imgui-vertex.metallib" />
-        <EmbeddedResource Include="imgui/Shaders/Metal/imgui-frag.metallib" LogicalName="imgui-frag.metallib" />
+        <EmbeddedResource Include="ImGuiUtils\Shaders\GLSL\imgui-vertex.glsl" LogicalName="imgui-vertex.glsl" />
+        <EmbeddedResource Include="ImGuiUtils\Shaders\GLSL\imgui-frag.glsl" LogicalName="imgui-frag.glsl" />
+        <EmbeddedResource Include="ImGuiUtils\Shaders\HLSL\imgui-vertex.hlsl.bytes" LogicalName="imgui-vertex.hlsl.bytes" />
+        <EmbeddedResource Include="ImGuiUtils\Shaders\HLSL\imgui-frag.hlsl.bytes" LogicalName="imgui-frag.hlsl.bytes" />
+        <EmbeddedResource Include="ImGuiUtils\Shaders\SPIR-V\imgui-vertex.spv" LogicalName="imgui-vertex.spv" />
+        <EmbeddedResource Include="ImGuiUtils\Shaders\SPIR-V\imgui-frag.spv" LogicalName="imgui-frag.spv" />
+        <EmbeddedResource Include="ImGuiUtils\Shaders\Metal\imgui-vertex.metallib" LogicalName="imgui-vertex.metallib" />
+        <EmbeddedResource Include="ImGuiUtils\Shaders\Metal\imgui-frag.metallib" LogicalName="imgui-frag.metallib" />
     </ItemGroup>
 
 </Project>

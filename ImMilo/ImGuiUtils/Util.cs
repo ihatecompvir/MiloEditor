@@ -1,6 +1,6 @@
 using ImGuiNET;
 
-namespace ImMilo.imgui;
+namespace ImMilo.ImGuiUtils;
 
 public class Util
 {
