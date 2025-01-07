@@ -135,11 +135,11 @@ class Program
 
     static void MenuBar()
     {
-        if (ImGui.BeginMainMenuBar())
+        if (ImGui.BeginMainMenuBar()) // TODO: keyboard shortcuts
         {
             if (ImGui.BeginMenu("File"))
             {
-                if (ImGui.MenuItem("Open"))
+                if (ImGui.MenuItem("Open" , "Ctrl+O"))
                 {
                     var filter = new FileFilter("Milo Scenes",
                     [
@@ -164,14 +164,14 @@ class Program
                     }
                 }
 
-                if (ImGui.MenuItem("Close", null, false, viewingObject != null))
+                if (ImGui.MenuItem("Close", "Ctrl+W", false, viewingObject != null))
                 {
                     viewingObject = null;
                     currentScene = null;
                     BitmapEditor.Dispose();
                 }
 
-                if (ImGui.MenuItem("Save", null, false, viewingObject != null))
+                if (ImGui.MenuItem("Save", "Ctrl+S", false, viewingObject != null))
                 {
                     try
                     {
@@ -183,7 +183,7 @@ class Program
                     }
                 }
 
-                if (ImGui.MenuItem("Save As...", null, false, viewingObject != null))
+                if (ImGui.MenuItem("Save As...", "Ctrl+Shift+S", false, viewingObject != null))
                 {
                     var filter = new FileFilter("Milo Scenes",
                     [
@@ -404,7 +404,6 @@ class Program
                 }
                 
             }
-
             ImGui.EndChild();
             ImGui.EndGroup();
         }
