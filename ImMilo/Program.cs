@@ -164,11 +164,45 @@ class Program
                     }
                 }
 
-                if (ImGui.MenuItem("Close"))
+                if (ImGui.MenuItem("Close", null, false, viewingObject != null))
                 {
                     viewingObject = null;
                     currentScene = null;
                     BitmapEditor.Dispose();
+                }
+
+                if (ImGui.MenuItem("Save", null, false, viewingObject != null))
+                {
+                    try
+                    {
+                        currentScene.Save(null, null);
+                    }
+                    catch (Exception e)
+                    {
+                        OpenErrorModal(e, "Error occurred while saving file:");
+                    }
+                }
+
+                if (ImGui.MenuItem("Save As...", null, false, viewingObject != null))
+                {
+                    var filter = new FileFilter("Milo Scenes",
+                    [
+                        "*.milo_ps2", "*.milo_xbox", "*.milo_ps3", "*.milo_wii", "*.milo_pc", "*.rnd", "*.rnd_ps2",
+                        "*.rnd_xbox", "*.rnd_gc", "*.kr"
+                    ]);
+                    var (canceled, path) = TinyDialogs.SaveFileDialog("Save Milo Scene", currentScene.filePath, filter);
+
+                    if (!canceled)
+                    {
+                        try
+                        {
+                            currentScene.Save(path, null);
+                        }
+                        catch (Exception e)
+                        {
+                            OpenErrorModal(e, "Error occurred while saving file:");
+                        }
+                    }
                 }
                 ImGui.EndMenu();
             }

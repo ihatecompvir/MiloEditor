@@ -48,7 +48,10 @@ namespace MiloLib
         /// <summary>
         /// The path to the Milo file.
         /// </summary>
-        private string? filePath;
+        public string? filePath
+        {
+            get;
+        }
 
         /// <summary>
         /// The Milo's compression type.
