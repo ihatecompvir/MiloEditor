@@ -66,100 +66,27 @@ namespace MiloLib.Assets.Rnd
         [Name("Force Trilinear Filtering (PS3)"), Description("Force trilinear filtering of diffuse map (PS3 only)")]
         public bool mPS3ForceTrilinear;
 
-        public void Read(EndianReader reader)
+        public void Read(EndianReader reader, uint revision)
         {
             byte flags = reader.ReadByte();
             mRecvProjLights = (flags & 0x01) != 0;
             mPS3ForceTrilinear = (flags & 0x02) != 0;
             mRecvPointCubeTex = (flags & 0x04) != 0;
-
-            // mRecvPointCubeTex is read later based on rev
         }
-        public void Write(EndianWriter writer)
+        public void Write(EndianWriter writer, uint revision)
         {
             byte flags = 0;
             if (mRecvProjLights) flags |= 0x01;
             if (mPS3ForceTrilinear) flags |= 0x02;
-            if (mRecvPointCubeTex) flags |= 0x04;
+            if (revision > 65)
+                if (mRecvPointCubeTex) flags |= 0x04;
             writer.WriteByte(flags);
-        }
-    }
-    public struct MatShaderOptions
-    {
-        public int itop;
-        public bool mHasAOCalc;
-        public bool mHasBones;
-        public int i5;
-        public int i4;
-        public int i3;
-        public int i2;
-        public int i1;
-        public int i0;
-
-        [Name("Temporary Material"), Description("If set, is a temporary material")]
-        public bool mTempMat;
-        public uint Value
-        {
-            get
-            {
-                uint result = 0;
-                result |= (uint)(itop & 0xffffff) << 8;
-                result |= (mHasAOCalc ? 1u : 0) << 7;
-                result |= (mHasBones ? 1u : 0) << 6;
-                result |= (uint)(i5 & 0x01) << 5;
-                result |= (uint)(i4 & 0x01) << 4;
-                result |= (uint)(i3 & 0x01) << 3;
-                result |= (uint)(i2 & 0x01) << 2;
-                result |= (uint)(i1 & 0x01) << 1;
-                result |= (uint)(i0 & 0x01);
-                return result;
-            }
-            set
-            {
-                itop = (int)((value >> 8) & 0xffffff);
-                mHasAOCalc = (value & (1 << 7)) != 0;
-                mHasBones = (value & (1 << 6)) != 0;
-                i5 = (int)((value >> 5) & 0x01);
-                i4 = (int)((value >> 4) & 0x01);
-                i3 = (int)((value >> 3) & 0x01);
-                i2 = (int)((value >> 2) & 0x01);
-                i1 = (int)((value >> 1) & 0x01);
-                i0 = (int)(value & 0x01);
-            }
-        }
-
-        public void Read(EndianReader reader)
-        {
-            Value = reader.ReadUInt32();
-            mTempMat = reader.ReadBoolean();
-        }
-
-        public void Write(EndianWriter writer)
-        {
-            writer.WriteUInt32(Value);
-            writer.WriteByte((byte)(mTempMat ? 1 : 0));
-        }
-
-        public void SetLast5(int mask)
-        {
-            uint value = Value;
-            value = (value & ~0x1fu) | (uint)(mask & 0x1f);
-            Value = value;
         }
     }
 
     [Name("Mat"), Description("Material perObjs determine texturing, blending, and the effect of lighting on drawn polys.")]
     public class RndMat : Object
     {
-        public enum ColorModFlags : byte
-        {
-            kColorModNone = 0,
-            kColorModAlphaPack = 1,
-            kColorModAlphaUnpackModulate = 2,
-            kColorModModulate = 3,
-            kColorModNum = 3
-        }
-
         private ushort altRevision;
         private ushort revision; // constant for revision 68
 
@@ -184,6 +111,12 @@ namespace MiloLib.Assets.Rnd
         [Name("Emissive Map"), Description("Map for self illumination")]
         public Symbol emissiveMap;
 
+        public Symbol normalMap = new Symbol(0, "");
+
+        public Symbol specularMap = new Symbol(0, "");
+
+        public Symbol environMap = new Symbol(0, "");
+
         [Name("Refract Strength"), Description("The scale of the refraction of the screen under the material. Ranges from 0 to 100.")]
         public float refractStrength;
 
@@ -192,12 +125,6 @@ namespace MiloLib.Assets.Rnd
 
         [Name("Color Modifiers"), Description("Color modifiers for the material")]
         public List<HmxColor4> colorModifiers = new List<HmxColor4>();
-
-        [Name("Performance Settings"), Description("Performance options for this material")]
-        public MatPerfSettings performanceSettings;
-
-        [Name("Shader Options"), Description("Options pertaining to the shader capabilities")]
-        public MatShaderOptions shaderOptions;
 
         [Name("Intensify"), Description("Double the intensity of base map")]
         public bool intensify;
@@ -258,21 +185,46 @@ namespace MiloLib.Assets.Rnd
         [Name("Shader Variation"), Description("Select a variation on the shader to enable a new range of rendering features.")]
         public ShaderVariation shaderVariation;
 
-        [Name("Color Modification Flags"), Description("Flags pertaining to color modifiers")]
-        public ColorModFlags colorModFlags;
-
         [Name("Dirty Flags"), Description("Dirty flags that denote changes to the material")]
         public byte dirty;
 
-        public HmxColor4 shaderVariationColor = new HmxColor4(1f, 1f, 1f, 1f);
+        public HmxColor3 specularRGB = new HmxColor3();
 
-        public HmxColor4 locColor = new HmxColor4(1f, 1f, 1f, 1f);
+        public float specularPower;
 
         public HmxColor4 unkColor = new HmxColor4(1f, 1f, 1f, 1f);
 
         public bool unkBool1;
 
         public Symbol unkSym = new Symbol(0, "");
+
+        public Symbol fur = new Symbol(0, "");
+
+        public float deNormal;
+        public float anisotropy;
+        public float normalDetailTiling;
+
+        public float normalDetailStrength;
+        public Symbol normalDetailMap;
+
+        public HmxColor3 rimRGB = new HmxColor3();
+        public float rimPower;
+        public Symbol rimMap = new Symbol(0, "");
+        public bool rimAlwaysShow;
+
+        public HmxColor3 specular2RGB = new HmxColor3();
+
+        public float specular2Power;
+
+        public float unkFloat;
+
+        public float unkFloat2;
+        public Symbol alphaMask = new Symbol(0, "");
+
+        public ushort unkShort;
+
+
+
 
         public RndMat Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
@@ -289,8 +241,8 @@ namespace MiloLib.Assets.Rnd
 
             blend = (Blend)reader.ReadInt32();
             color = new HmxColor4().Read(reader);
-            useEnviron = reader.ReadBoolean();
             preLit = reader.ReadBoolean();
+            useEnviron = reader.ReadBoolean();
             ZMode = (ZMode)reader.ReadInt32();
             alphaCut = reader.ReadBoolean();
             if (revision > 0x25)
@@ -305,80 +257,47 @@ namespace MiloLib.Assets.Rnd
 
             cull = reader.ReadBoolean();
             emissiveMultiplier = reader.ReadFloat();
-            locColor = new HmxColor4().Read(reader);
-
+            specularRGB = new HmxColor3().Read(reader);
+            specularPower = reader.ReadFloat();
+            normalMap = Symbol.Read(reader);
             emissiveMap = Symbol.Read(reader);
+            specularMap = Symbol.Read(reader);
+            environMap = Symbol.Read(reader);
 
+            unkShort = reader.ReadUInt16();
 
+            perPixelLit = reader.ReadBoolean();
             stencilMode = (StencilMode)reader.ReadInt32();
+            fur = Symbol.Read(reader);
 
+            deNormal = reader.ReadFloat();
+            anisotropy = reader.ReadFloat();
+            normalDetailTiling = reader.ReadFloat();
+            normalDetailStrength = reader.ReadFloat();
+            normalDetailMap = Symbol.Read(reader);
 
-            Symbol sym = Symbol.Read(reader);
+            pointLights = reader.ReadBoolean();
+            fog = reader.ReadBoolean();
+            fadeout = reader.ReadBoolean();
+            colorAdjust = reader.ReadBoolean();
 
-            HmxColor4 color2 = new HmxColor4().Read(reader);
-            //texPtr = Symbol.Read(reader);
+            rimRGB = new HmxColor3().Read(reader);
+            rimPower = reader.ReadFloat();
 
-            int i = reader.ReadInt32();
-            i = reader.ReadInt32();
+            rimMap = Symbol.Read(reader);
+            rimAlwaysShow = reader.ReadBoolean();
 
-            int i2 = reader.ReadInt32();
-            i2 = reader.ReadInt32();
-            new HmxColor4().Read(reader);
-            int b2 = reader.ReadInt32();
-            //texPtr = Symbol.Read(reader);
-            //texPtr = Symbol.Read(reader);
+            screenAligned = reader.ReadBoolean();
 
-            if (revision > 0x2a)
-            {
-                if (revision > 0x2c)
-                    pointLights = reader.ReadBoolean();
+            shaderVariation = (ShaderVariation)reader.ReadInt32();
 
-                fog = reader.ReadBoolean();
-                fadeout = reader.ReadBoolean();
-                if (revision > 0x2E)
-                    colorAdjust = reader.ReadBoolean();
-            }
+            specular2RGB = new HmxColor3().Read(reader);
+            specular2Power = reader.ReadFloat();
 
+            unkFloat = reader.ReadFloat();
+            unkFloat2 = reader.ReadFloat();
 
-            if (revision > 0x2F)
-            {
-                unkColor = new HmxColor4().Read(reader);
-                unkSym = Symbol.Read(reader);
-                byte b = reader.ReadByte();
-            }
-
-            if (revision > 0x30)
-                screenAligned = reader.ReadBoolean();
-
-            if (revision == 0x32)
-                unkBool1 = reader.ReadBoolean();
-
-            if (revision > 0x32)
-            {
-                shaderVariation = (ShaderVariation)reader.ReadInt32();
-                shaderVariationColor = new HmxColor4().Read(reader);
-            }
-
-
-            colorModifiers = new List<HmxColor4>();
-            for (int x = 0; x < 3; x++)
-            {
-                colorModifiers.Add(new HmxColor4(1f, 1f, 1f, 1f));
-            }
-
-
-
-            Symbol objPtr = Symbol.Read(reader);
-
-            if (revision > 0x3E)
-                performanceSettings.Read(reader);
-
-            if (revision > 0x3F)
-            {
-                refractEnabled = reader.ReadBoolean();
-                refractStrength = reader.ReadFloat();
-                refractNormalMap = Symbol.Read(reader);
-            }
+            alphaMask = Symbol.Read(reader);
 
             if (standalone)
             {
@@ -389,78 +308,73 @@ namespace MiloLib.Assets.Rnd
         }
         public override void Write(EndianWriter writer, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry? entry)
         {
-            base.Write(writer, standalone, parent, entry);
             writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
+
+            base.Write(writer, false, parent, entry);
+
             writer.WriteInt32((int)blend);
             color.Write(writer);
-            writer.WriteByte((byte)(useEnviron ? 1 : 0));
-            writer.WriteByte((byte)(preLit ? 1 : 0));
+            writer.WriteBoolean(preLit);
+            writer.WriteBoolean(useEnviron);
             writer.WriteInt32((int)ZMode);
-            writer.WriteByte((byte)(alphaCut ? 1 : 0));
-            writer.WriteInt32(alphaThreshold);
-            writer.WriteByte((byte)(alphaWrite ? 1 : 0));
+            writer.WriteBoolean(alphaCut);
+            if (revision > 0x25)
+                writer.WriteInt32(alphaThreshold);
+            writer.WriteBoolean(alphaWrite);
             writer.WriteInt32((int)texGen);
             writer.WriteInt32((int)texWrap);
             texXfm.Write(writer);
             Symbol.Write(writer, diffuseTex);
             Symbol.Write(writer, nextPass);
-            writer.WriteByte((byte)(intensify ? 1 : 0));
-            writer.WriteByte((byte)(cull ? 1 : 0));
+            writer.WriteBoolean(intensify);
+
+            writer.WriteBoolean(cull);
             writer.WriteFloat(emissiveMultiplier);
-            new HmxColor4().Write(writer);
-            Symbol.Write(writer, null);
+            specularRGB.Write(writer);
+            writer.WriteFloat(specularPower);
+            Symbol.Write(writer, normalMap);
             Symbol.Write(writer, emissiveMap);
-            Symbol.Write(writer, null);
-            Symbol.Write(writer, null);
+            Symbol.Write(writer, specularMap);
+            Symbol.Write(writer, environMap);
+            writer.WriteUInt16(unkShort);
 
+            writer.WriteBoolean(perPixelLit);
             writer.WriteInt32((int)stencilMode);
+            Symbol.Write(writer, fur);
 
-            Symbol.Write(writer, null);
-            Symbol.Write(writer, null);
-            new HmxColor4().Write(writer);
-            Symbol.Write(writer, null);
-            writer.WriteInt32(0);
-            writer.WriteInt32(0);
-            writer.WriteInt32(0);
-            writer.WriteInt32(0);
-            new HmxColor4().Write(writer);
-            writer.WriteInt32(0);
-            Symbol.Write(writer, null);
-            Symbol.Write(writer, null);
+            writer.WriteFloat(deNormal);
+            writer.WriteFloat(anisotropy);
+            writer.WriteFloat(normalDetailTiling);
+            writer.WriteFloat(normalDetailStrength);
+            Symbol.Write(writer, normalDetailMap);
 
-            writer.WriteByte((byte)(pointLights ? 1 : 0));
-            writer.WriteByte((byte)(fog ? 1 : 0));
-            writer.WriteByte((byte)(fadeout ? 1 : 0));
-            writer.WriteByte((byte)(colorAdjust ? 1 : 0));
+            writer.WriteBoolean(pointLights);
+            writer.WriteBoolean(fog);
+            writer.WriteBoolean(fadeout);
+            writer.WriteBoolean(colorAdjust);
 
-            new HmxColor4().Write(writer);
-            Symbol.Write(writer, null);
-            writer.WriteByte(0);
-            writer.WriteByte((byte)(screenAligned ? 1 : 0));
+            rimRGB.Write(writer);
+            writer.WriteFloat(rimPower);
+
+            Symbol.Write(writer, rimMap);
+            writer.WriteBoolean(rimAlwaysShow);
+
+            writer.WriteBoolean(screenAligned);
 
             writer.WriteInt32((int)shaderVariation);
-            new HmxColor4().Write(writer);
 
+            specular2RGB.Write(writer);
+            writer.WriteFloat(specular2Power);
 
-            if (colorModifiers == null)
-            {
-                for (int i = 0; i < 3; i++)
-                {
-                    colorModifiers = new List<HmxColor4>();
-                    colorModifiers.Add(new HmxColor4(1f, 1f, 1f, 1f));
-                }
-            }
-            Symbol.Write(writer, null);
-            writer.WriteByte((byte)(performanceSettings.mPS3ForceTrilinear ? 1 : 0));
-            performanceSettings.Write(writer);
-            writer.WriteByte((byte)(performanceSettings.mRecvPointCubeTex ? 1 : 0));
-            writer.WriteByte((byte)(refractEnabled ? 1 : 0));
-            writer.WriteFloat(refractStrength);
-            Symbol.Write(writer, refractNormalMap);
+            writer.WriteFloat(unkFloat);
+            writer.WriteFloat(unkFloat2);
+
+            Symbol.Write(writer, alphaMask);
+
 
             if (standalone)
             {
-                writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
+                writer.WriteUInt32(writer.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD);
             }
         }
 

@@ -15,7 +15,7 @@ namespace MiloLib
     {
         /// <summary>
         /// The maximum size a block can be.
-        /// TODO: check if there is some "best" value for this
+        /// TODO: check if there is some "best" value for this, right now we just use the maximum possible block size
         /// </summary>
         private const int MAX_BLOCK_SIZE = 0xFFFFFF;
 
@@ -372,7 +372,10 @@ namespace MiloLib
                             compressedBlocks.Add(compressedBlock);
                             if (type == Type.CompressedZlibAlt)
                             {
+                                Endian origEndian = writer.Endianness;
+                                writer.Endianness = Endian.LittleEndian;
                                 writer.WriteUInt32(MAX_BLOCK_SIZE);
+                                writer.Endianness = origEndian;
                             }
                             writer.WriteBlock(compressedBlock);
                         }

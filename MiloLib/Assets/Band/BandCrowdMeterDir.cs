@@ -24,8 +24,8 @@ namespace MiloLib.Assets.Band
             //{ Game.MiloGame.GreenDayRockBand, 22 },
             { Game.MiloGame.RockBand3, 3 },
         };
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
 
         private uint colorCount;
 

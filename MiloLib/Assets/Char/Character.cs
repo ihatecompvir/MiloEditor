@@ -95,6 +95,11 @@ namespace MiloLib.Assets.Char
                     }
                 }
             }
+
+            public override string ToString()
+            {
+                return $"{group} {transGroup} opaque: {opaqueCount} translucent: {translucentCount}";
+            }
         }
 
         public class CharacterTesting

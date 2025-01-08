@@ -52,6 +52,11 @@ namespace MiloLib.Assets
                 Symbol.Write(writer, type);
                 writer.WriteFloat(unknown);
             }
+
+            public override string ToString()
+            {
+                return $"{anim} {blend} {delay} {wait} {enable} {scale} {start} {end} {period} {type} {unknown}";
+            }
         }
 
         public class ProxyCall
@@ -288,6 +293,119 @@ namespace MiloLib.Assets
             writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
 
             base.Write(writer, false, parent, entry);
+
+            if (revision > 0xF)
+                anim.Write(writer);
+
+            if (revision > 9)
+            {
+                writer.WriteUInt32((uint)triggerEvents.Count);
+                foreach (var triggerEvent in triggerEvents)
+                {
+                    Symbol.Write(writer, triggerEvent);
+                }
+            }
+            else if (revision > 6)
+            {
+                Symbol.Write(writer, unkSym1);
+            }
+
+            if (revision > 6)
+            {
+                writer.WriteUInt32((uint)anims.Count);
+                foreach (var anim in anims)
+                {
+                    anim.Write(writer);
+                }
+
+                writer.WriteUInt32((uint)sounds.Count);
+                foreach (var sound in sounds)
+                {
+                    Symbol.Write(writer, sound);
+                }
+
+                writer.WriteUInt32((uint)shows.Count);
+                foreach (var show in shows)
+                {
+                    Symbol.Write(writer, show);
+                }
+            }
+
+            if (revision > 0xC)
+            {
+                writer.WriteUInt32((uint)hideDelays.Count);
+                foreach (var hideDelay in hideDelays)
+                {
+                    hideDelay.Write(writer);
+                }
+            }
+
+            if (revision > 2)
+            {
+                writer.WriteUInt32((uint)enableEvents.Count);
+                foreach (var enableEvent in enableEvents)
+                {
+                    Symbol.Write(writer, enableEvent);
+                }
+
+                writer.WriteUInt32((uint)disableEvents.Count);
+                foreach (var disableEvent in disableEvents)
+                {
+                    Symbol.Write(writer, disableEvent);
+                }
+            }
+
+            if (revision > 5)
+            {
+                writer.WriteUInt32((uint)waitForEvents.Count);
+                foreach (var waitForEvent in waitForEvents)
+                {
+                    Symbol.Write(writer, waitForEvent);
+                }
+            }
+
+            if (revision > 6)
+                Symbol.Write(writer, nextLink);
+
+            if (revision > 7)
+            {
+                writer.WriteUInt32((uint)proxyCalls.Count);
+                foreach (var proxyCall in proxyCalls)
+                {
+                    proxyCall.Write(writer);
+                }
+            }
+
+            if (revision > 0xB)
+                writer.WriteUInt32(triggerOrder);
+
+            if (revision > 0xD)
+            {
+                writer.WriteUInt32((uint)resetTriggers.Count);
+                foreach (var resetTrigger in resetTriggers)
+                {
+                    Symbol.Write(writer, resetTrigger);
+                }
+
+            }
+
+            if (revision > 0xE)
+                writer.WriteBoolean(enabledAtStart);
+
+            if (revision > 0xF)
+            {
+                writer.WriteUInt32(animTrigger);
+                writer.WriteFloat(animFrame);
+            }
+
+            if (revision > 0x10)
+            {
+                writer.WriteUInt32((uint)partLaunchers.Count);
+                foreach (var partLauncher in partLaunchers)
+                {
+                    Symbol.Write(writer, partLauncher);
+                }
+            }
 
             if (standalone)
                 writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
