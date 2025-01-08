@@ -4,11 +4,11 @@ using MiloLib.Utils;
 
 namespace MiloLib.Assets
 {
-    [Name("OverdriveMeterDir"), Description("")]
+    [Name("OverdriveMeterDir"), Description("overdrive meter for band tracks")]
     public class OverdriveMeterDir : RndDir
     {
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
 
         public OverdriveMeterDir(ushort revision, ushort altRevision = 0) : base(revision, altRevision)
         {

@@ -15,6 +15,7 @@ namespace MiloLib.Assets.UI
 
         public Symbol navRight = new(0, "");
         public Symbol navDown = new(0, "");
+        [Name("Resource Name"), Description("path to resource file for this component")]
         public Symbol resourceName = new(0, "");
 
 
@@ -51,8 +52,8 @@ namespace MiloLib.Assets.UI
 
             base.Write(writer, false, parent, entry);
 
-            trans.Write(writer, false, parent, entry);
-            draw.Write(writer, false, parent, entry);
+            trans.Write(writer, false, true);
+            draw.Write(writer, false, true);
 
             if (revision > 0)
             {

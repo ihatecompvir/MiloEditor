@@ -10,9 +10,10 @@ namespace MiloLib.Assets.Char
         private ushort revision;
 
         private uint clipCount;
+        [Name("Clips"), Description("LRU list of clips belonging to this group")]
         public List<Symbol> clips = new();
 
-        public uint which;
+        public int which;
 
         public uint flags;
 
@@ -30,7 +31,7 @@ namespace MiloLib.Assets.Char
                 clips.Add(Symbol.Read(reader));
             }
 
-            which = reader.ReadUInt32();
+            which = reader.ReadInt32();
 
             if (revision > 1)
                 flags = reader.ReadUInt32();
@@ -53,7 +54,7 @@ namespace MiloLib.Assets.Char
                 Symbol.Write(writer, clip);
             }
 
-            writer.WriteUInt32(which);
+            writer.WriteInt32(which);
             if (revision > 1)
                 writer.WriteUInt32(flags);
 

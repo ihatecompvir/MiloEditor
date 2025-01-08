@@ -3,7 +3,7 @@ using MiloLib.Classes;
 using MiloLib.Assets.UI;
 using MiloLib.Assets.Rnd;
 
-namespace MiloLib.Assets
+namespace MiloLib.Assets.World
 {
     [Name("WorldDir"), Description("A WorldDir contains world perObjs.")]
     public class WorldDir : PanelDir
@@ -56,14 +56,16 @@ namespace MiloLib.Assets
         public float mTestAnimationTime;
         [Name("HUD"), Description("hud to be drawn last")]
         public Symbol hud = new(0, "");
-        public Symbol cam = new(0, "");
+        public Symbol camReference = new(0, "");
 
         public Matrix xfm = new();
+        public RndTrans camTrans = new();
 
         public uint unkInt1;
         public float unkFloat;
 
         public Symbol unkSym = new(0, "");
+
 
         public WorldDir(ushort revision, ushort altRevision = 0) : base(revision, altRevision)
         {
@@ -76,8 +78,8 @@ namespace MiloLib.Assets
         public WorldDir Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
             uint combinedRevision = reader.ReadUInt32();
-            if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
-            else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
+            if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)(combinedRevision >> 16 & 0xFFFF));
+            else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)(combinedRevision >> 16 & 0xFFFF));
 
             if (revision != 0 && revision < 5)
             {
@@ -95,7 +97,24 @@ namespace MiloLib.Assets
                 fakeHUDFilename = Symbol.Read(reader);
             }
 
+            if (revision < 9)
+            {
+                if (revision > 7)
+                {
+                    // OldLoadProxies
+                }
+                else if (revision > 2)
+                {
+                    // OldLoadChars
+                }
+            }
+
             base.Read(reader, false, parent, entry);
+
+            if (revision == 5)
+            {
+                camReference = Symbol.Read(reader);
+            }
 
             if (revision < 0x19)
             {
@@ -103,7 +122,11 @@ namespace MiloLib.Assets
                 {
                     xfm = xfm.Read(reader);
                 }
+                else if (revision > 6)
+                    camTrans = camTrans.Read(reader, false, parent, entry);
             }
+
+
 
             if (revision > 0xB)
             {
@@ -203,7 +226,7 @@ namespace MiloLib.Assets
 
         public override void Write(EndianWriter writer, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry? entry)
         {
-            writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
+            writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)(altRevision << 16 | revision) : (uint)(revision << 16 | altRevision));
 
             if (revision != 0 && revision < 5)
             {
@@ -221,7 +244,24 @@ namespace MiloLib.Assets
                 Symbol.Write(writer, fakeHUDFilename);
             }
 
+            if (revision < 9)
+            {
+                if (revision > 7)
+                {
+                    // OldLoadProxies
+                }
+                else if (revision > 2)
+                {
+                    // OldLoadChars
+                }
+            }
+
             base.Write(writer, false, parent, entry);
+
+            if (revision == 5)
+            {
+                Symbol.Write(writer, camReference);
+            }
 
             if (revision < 0x19)
             {
@@ -229,6 +269,8 @@ namespace MiloLib.Assets
                 {
                     xfm.Write(writer);
                 }
+                else if (revision > 6)
+                    camTrans.Write(writer, false, true);
             }
 
             if (revision > 0xB)

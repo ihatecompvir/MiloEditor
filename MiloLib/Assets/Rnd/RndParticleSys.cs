@@ -7,6 +7,45 @@ namespace MiloLib.Assets.Rnd
     [Name("RndParticleSys"), Description("A particle system")]
     public class RndParticleSys : Object
     {
+        public class PreservedParticle
+        {
+            public float unk1;
+            public float unk2;
+            public float unk3;
+            public float unk4;
+            public float unk5;
+            public float unk6;
+            public float unk7;
+            public float unk8;
+            public float unk9;
+
+            public PreservedParticle Read(EndianReader reader)
+            {
+                unk1 = reader.ReadFloat();
+                unk2 = reader.ReadFloat();
+                unk3 = reader.ReadFloat();
+                unk4 = reader.ReadFloat();
+                unk5 = reader.ReadFloat();
+                unk6 = reader.ReadFloat();
+                unk7 = reader.ReadFloat();
+                unk8 = reader.ReadFloat();
+                unk9 = reader.ReadFloat();
+                return this;
+            }
+
+            public void Write(EndianWriter writer)
+            {
+                writer.WriteFloat(unk1);
+                writer.WriteFloat(unk2);
+                writer.WriteFloat(unk3);
+                writer.WriteFloat(unk4);
+                writer.WriteFloat(unk5);
+                writer.WriteFloat(unk6);
+                writer.WriteFloat(unk7);
+                writer.WriteFloat(unk8);
+                writer.WriteFloat(unk9);
+            }
+        }
         private ushort altRevision;
         private ushort revision;
 
@@ -161,6 +200,9 @@ namespace MiloLib.Assets.Rnd
         [Name("Preserve Particles"), Description("Enable/disable particle perservation"), MinVersion(11)]
         public bool preserveParticles;
 
+        private uint preservedParticlesCount;
+        private List<PreservedParticle> preservedParticles = new();
+
         public RndParticleSys Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
             uint combinedRevision = reader.ReadUInt32();
@@ -306,8 +348,18 @@ namespace MiloLib.Assets.Rnd
             if (!(revision < 29))
                 fastForward = reader.ReadBoolean();
 
-            if (!(revision < 11))
+            if (10 < revision)
+            {
                 preserveParticles = reader.ReadBoolean();
+                if (preserveParticles)
+                {
+                    preservedParticlesCount = reader.ReadUInt32();
+                    for (int i = 0; i < preservedParticlesCount; i++)
+                    {
+                        preservedParticles.Add(new PreservedParticle().Read(reader));
+                    }
+                }
+            }
 
             if (standalone)
                 if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");
@@ -453,8 +505,19 @@ namespace MiloLib.Assets.Rnd
             if (!(revision < 29))
                 writer.WriteBoolean(fastForward);
 
-            if (!(revision < 11))
+            if (10 < revision)
+            {
                 writer.WriteBoolean(preserveParticles);
+                if (preserveParticles)
+                {
+                    writer.WriteUInt32(preservedParticlesCount);
+                    foreach (var particle in preservedParticles)
+                    {
+                        particle.Write(writer);
+                    }
+                }
+            }
+
 
             if (standalone)
                 writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });

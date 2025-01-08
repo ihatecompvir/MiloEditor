@@ -63,7 +63,7 @@ namespace MiloEditor
 
         private void LoadAssetClassImages()
         {
-            imageList.ImageSize = new Size(24, 24);
+            imageList.ImageSize = new Size(26, 26);
             imageList.Images.Add("default", Image.FromFile("Images/default.png"));
             imageList.Images.Add("ObjectDir", Image.FromFile("Images/ObjectDir.png"));
             imageList.Images.Add("RndDir", Image.FromFile("Images/RndDir.png"));
@@ -119,6 +119,13 @@ namespace MiloEditor
             imageList.Images.Add("PostProc", Image.FromFile("Images/PostProc.png"));
             imageList.Images.Add("WorldInstance", Image.FromFile("Images/WorldInstance.png"));
             imageList.Images.Add("CharClipGroup", Image.FromFile("Images/CharClipGroup.png"));
+            imageList.Images.Add("CheckboxDisplay", Image.FromFile("Images/CheckboxDisplay.png"));
+            imageList.Images.Add("UIListDir", Image.FromFile("Images/UIListDir.png"));
+            imageList.Images.Add("UIGuide", Image.FromFile("Images/UIGuide.png"));
+            imageList.Images.Add("InlineHelp", Image.FromFile("Images/InlineHelp.png"));
+            imageList.Images.Add("CharInterest", Image.FromFile("Images/CharInterest.png"));
+            imageList.Images.Add("RandomGroupSeq", Image.FromFile("Images/RandomGroupSeq.png"));
+            imageList.Images.Add("Set", Image.FromFile("Images/Set.png"));
             imageList.Images.Add("", Image.FromFile("Images/NoDir.png"));
 
             imageList.ColorDepth = ColorDepth.Depth32Bit;
@@ -320,7 +327,30 @@ namespace MiloEditor
             if (e.Node.Tag is DirectoryMeta.Entry entry && e.Button == MouseButtons.Left)
             {
                 if (entry.obj != null)
+                {
                     CreateEditorPanelForAsset(entry.obj);
+                }
+                else
+                {
+                    // show an unsupported asset panel so its clear the app is still actually functioning, instead of just showing nothing
+                    splitContainer1.Panel2.Controls.Clear();
+
+                    var unsupportedPanel = new Panel
+                    {
+                        Dock = DockStyle.Fill
+                    };
+
+                    var unsupportedLabel = new Label
+                    {
+                        Text = "The asset type " + entry.type.value + " is not currently supported.",
+                        Dock = DockStyle.Fill,
+                        TextAlign = ContentAlignment.MiddleCenter,
+                        ForeColor = Color.Black,
+                    };
+
+                    unsupportedPanel.Controls.Add(unsupportedLabel);
+                    splitContainer1.Panel2.Controls.Add(unsupportedPanel);
+                }
             }
 
             // context menu logic for right-click
@@ -337,6 +367,7 @@ namespace MiloEditor
                         contextMenu.Items.Add(new ToolStripMenuItem("Duplicate Directory", SystemIcons.Information.ToBitmap(), (s, ev) => DuplicateDirectory(e.Node)));
                         contextMenu.Items.Add(new ToolStripMenuItem("Rename Directory", SystemIcons.Information.ToBitmap(), (s, ev) => RenameDirectory(e.Node)));
                         contextMenu.Items.Add(new ToolStripMenuItem("Merge Directory", SystemIcons.Information.ToBitmap(), (s, ev) => MergeDirectory(e.Node)));
+                        contextMenu.Items.Add(new ToolStripMenuItem("Export Directory", SystemIcons.Information.ToBitmap(), (s, ev) => ExportDirectory(e.Node)));
                         contextMenu.Items.Add(new ToolStripSeparator());
                         contextMenu.Items.Add(new ToolStripMenuItem("Add Inlined Subdirectory", SystemIcons.Information.ToBitmap(), (s, ev) => AddInlinedSubdirectory(e.Node)));
                         contextMenu.Items.Add(new ToolStripSeparator());
@@ -398,11 +429,22 @@ namespace MiloEditor
             if (entry.typeRecognized)
             {
                 newEntry = new DirectoryMeta.Entry(entry.type, entry.name, entry.obj);
+
+                var updatedBytes = entry.objBytes.ToArray().Concat(new byte[] { 0xAD, 0xDE, 0xAD, 0xDE }).ToArray();
+
+                // hack to clone an obj without making them clonable or writing a Copy method
+                // dont like this but :shrug:
+                using (MemoryStream ms = new MemoryStream(updatedBytes))
+                {
+                    EndianReader reader = new EndianReader(ms, currentMiloScene.endian);
+                    directoryEntry.ReadEntry(reader, entry);
+                }
             }
             else
             {
                 // create a dirty entry
-                newEntry = Entry.CreateDirtyAssetFromBytes(entry.type.value, entry.name.value, entry.objBytes);
+                newEntry = Entry.CreateDirtyAssetFromBytes(entry.type, entry.name, entry.objBytes);
+
             }
 
             // bring up a dialog to get the new name
@@ -540,6 +582,52 @@ namespace MiloEditor
                 PopulateListWithEntries();
             }
         }
+
+        private void ExportDirectory(TreeNode node)
+        {
+            // get directory from node
+            DirectoryMeta dirEntry = (DirectoryMeta)node.Tag;
+
+            if (dirEntry != null)
+            {
+
+                // bring up the milo save options dialog
+                MiloSaveOptionsForm miloSaveOptionsForm = new MiloSaveOptionsForm();
+                miloSaveOptionsForm.ShowDialog();
+
+                if (miloSaveOptionsForm.DialogResult == DialogResult.OK)
+                {
+                    SaveFileDialog saveFileDialog = new SaveFileDialog
+                    {
+                        Filter = "Milo Scenes|*.milo_ps2;*.milo_xbox;*.milo_ps3;*.milo_wii;*.milo_pc;*.rnd;*.rnd_ps2;*.rnd_xbox;*.rnd_gc;*.kr",
+                        Title = "Save Milo Scene As...",
+                        FileName = dirEntry.name
+                    };
+
+                    // create a milofile to serialize
+                    MiloFile file = new MiloFile(dirEntry);
+                    file.endian = currentMiloScene.endian;
+
+                    if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                    {
+                        file.Save(saveFileDialog.FileName, miloSaveOptionsForm.compressionType, 0x810, Endian.LittleEndian, miloSaveOptionsForm.useBigEndian ? Endian.BigEndian : Endian.LittleEndian);
+                        MessageBox.Show("Milo scene saved to " + saveFileDialog.FileName + " successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    else
+                    {
+                        return;
+                    }
+                }
+                else
+                {
+                    return;
+                }
+            }
+            else
+            {
+                MessageBox.Show("No Milo scene loaded to save!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
         private void ExtractAsset(TreeNode node)
         {
             // create a file save dialog
@@ -653,6 +741,7 @@ namespace MiloEditor
 
         private void CreateEditorPanelForAsset(Object obj)
         {
+
             // anything that might already be present there
             splitContainer1.Panel2.Controls.Clear();
 

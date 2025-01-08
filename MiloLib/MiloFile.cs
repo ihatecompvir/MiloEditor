@@ -15,7 +15,7 @@ namespace MiloLib
     {
         /// <summary>
         /// The maximum size a block can be.
-        /// TODO: check if there is some "best" value for this
+        /// TODO: check if there is some "best" value for this, right now we just use the maximum possible block size
         /// </summary>
         private const int MAX_BLOCK_SIZE = 0xFFFFFF;
 
@@ -77,6 +77,11 @@ namespace MiloLib
         /// The root directory and it's metadata such as the entries and string table data.
         /// </summary>
         public DirectoryMeta dirMeta;
+
+        /// <summary>
+        /// The endianness of the body. Header is always little endian.
+        /// </summary>
+        public Endian endian = Endian.BigEndian;
 
         /// <summary>
         /// Loads a Milo file from a file path.
@@ -295,6 +300,7 @@ namespace MiloLib
         /// <param name="bodyEndian">The endianness of the body. Certain games require little endian bodies, such as GH2.</param>
         public void Save(string? path, Type? type, uint startingOffset = 0x810, Endian headerEndian = Endian.LittleEndian, Endian bodyEndian = Endian.BigEndian)
         {
+            endian = bodyEndian;
             if (path == null)
             {
                 path = filePath;
@@ -375,7 +381,10 @@ namespace MiloLib
                             compressedBlocks.Add(compressedBlock);
                             if (type == Type.CompressedZlibAlt)
                             {
+                                Endian origEndian = writer.Endianness;
+                                writer.Endianness = Endian.LittleEndian;
                                 writer.WriteUInt32(MAX_BLOCK_SIZE);
+                                writer.Endianness = origEndian;
                             }
                             writer.WriteBlock(compressedBlock);
                         }

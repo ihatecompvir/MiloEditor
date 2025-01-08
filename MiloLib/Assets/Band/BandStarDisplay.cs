@@ -10,6 +10,7 @@ namespace MiloLib.Assets.Band
         public ushort altRevision;
         public ushort revision;
 
+        [Name("Star Type"), Description("The type of star to display")]
         public Symbol starType = new(0, "");
 
         public BandStarDisplay(ushort revision, ushort altRevision = 0) : base(revision, altRevision)
@@ -25,7 +26,8 @@ namespace MiloLib.Assets.Band
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)(combinedRevision >> 16 & 0xFFFF));
             else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)(combinedRevision >> 16 & 0xFFFF));
 
-            if (entry.isEntryInRootDir)
+            // star type only read when dir is proxied
+            if (entry.isProxy)
                 starType = Symbol.Read(reader);
 
             base.Read(reader, false, parent, entry);
@@ -39,6 +41,9 @@ namespace MiloLib.Assets.Band
         public override void Write(EndianWriter writer, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry? entry)
         {
             writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)(altRevision << 16 | revision) : (uint)(revision << 16 | altRevision));
+
+            if (entry != null && entry.isProxy)
+                Symbol.Write(writer, starType);
 
             base.Write(writer, false, parent, entry);
 

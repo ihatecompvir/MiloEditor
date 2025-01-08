@@ -1,8 +1,10 @@
 ﻿using MiloLib.Assets.Rnd;
 using MiloLib.Classes;
 using MiloLib.Utils;
+using static MiloLib.Assets.Band.BandFaceDeform;
+using System.Linq;
 
-namespace MiloLib.Assets
+namespace MiloLib.Assets.World
 {
     [Name("WorldInstance"), Description("")]
     public class WorldInstance : RndDir
@@ -29,43 +31,54 @@ namespace MiloLib.Assets
             public List<DirectoryMeta.Entry> perObjs = new(); // the list of perObjs
 
 
-            public PersistentObjects Read(EndianReader reader, DirectoryMeta parent, DirectoryMeta.Entry entry)
+            public PersistentObjects Read(EndianReader reader, DirectoryMeta parent, DirectoryMeta.Entry entry, uint revision)
             {
-                empty = reader.ReadBlock(13);
-
-                anim = anim.Read(reader, parent, entry);
-                draw = draw.Read(reader, false, parent, entry);
-                trans = trans.Read(reader, false, parent, entry);
-
-                environ = Symbol.Read(reader);
-                unkSym = Symbol.Read(reader);
-
-                stringTableCount = reader.ReadUInt32();
-                stringTableSize = reader.ReadUInt32();
-
-                objectCount = reader.ReadUInt32();
-                for (int i = 0; i < objectCount; i++)
+                if (entry.isProxy)
                 {
-                    perObjs.Add(new DirectoryMeta.Entry(Symbol.Read(reader).value, Symbol.Read(reader).value, null));
-                }
+                    empty = reader.ReadBlock(13);
 
-                for (int i = 0; i < objectCount; i++)
-                {
-                    switch (perObjs[i].type.value)
+                    anim = anim.Read(reader, parent, entry);
+                    draw = draw.Read(reader, false, parent, entry);
+                    trans = trans.Read(reader, false, parent, entry);
+
+                    environ = Symbol.Read(reader);
+                    unkSym = Symbol.Read(reader);
+
+
+                    if (revision > 1)
                     {
-                        case "Mesh":
-                            perObjs[i].obj = new RndMesh().Read(reader, false, parent, perObjs[i]);
-                            break;
-                        default:
-                            throw new Exception("Unknown object type " + perObjs[i].type.value + " in WorldInstance PersistentObjects");
+                        if (revision > 2)
+                        {
+                            stringTableCount = reader.ReadUInt32();
+                            stringTableSize = reader.ReadUInt32();
+                        }
+
+                        objectCount = reader.ReadUInt32();
+                        for (int i = 0; i < objectCount; i++)
+                        {
+                            perObjs.Add(new DirectoryMeta.Entry(Symbol.Read(reader).value, Symbol.Read(reader).value, null));
+                        }
+
+                        for (int i = 0; i < objectCount; i++)
+                        {
+                            switch (perObjs[i].type.value)
+                            {
+                                case "Mesh":
+                                    perObjs[i].obj = new RndMesh().Read(reader, false, parent, perObjs[i]);
+                                    break;
+                                default:
+                                    throw new Exception("Unknown object type " + perObjs[i].type.value + " in WorldInstance PersistentObjects");
+                            }
+                        }
                     }
+
                 }
                 if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of persistent perObjs but didn't find the expected end bytes, read likely did not succeed");
 
                 return this;
             }
 
-            public void Write(EndianWriter writer, DirectoryMeta parent, DirectoryMeta.Entry? entry)
+            public void Write(EndianWriter writer, DirectoryMeta parent, DirectoryMeta.Entry? entry, uint revision)
             {
                 writer.WriteBlock(new byte[13]);
 
@@ -121,8 +134,8 @@ namespace MiloLib.Assets
         {
 
             uint combinedRevision = reader.ReadUInt32();
-            if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
-            else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
+            if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)(combinedRevision >> 16 & 0xFFFF));
+            else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)(combinedRevision >> 16 & 0xFFFF));
 
             if (revision != 0)
             {
@@ -135,7 +148,7 @@ namespace MiloLib.Assets
 
             base.Read(reader, false, parent, entry);
 
-            if (standalone && !entry.isEntryInRootDir)
+            if (standalone && !entry.isProxy)
                 if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");
 
             return this;
@@ -143,7 +156,7 @@ namespace MiloLib.Assets
 
         public override void Write(EndianWriter writer, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry? entry)
         {
-            writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
+            writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)(altRevision << 16 | revision) : (uint)(revision << 16 | altRevision));
 
             if (revision != 0)
             {
@@ -156,7 +169,7 @@ namespace MiloLib.Assets
 
             base.Write(writer, false, parent, entry);
 
-            if (standalone && !entry.isEntryInRootDir)
+            if (standalone && !entry.isProxy)
                 writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
         }
 

@@ -177,6 +177,13 @@ namespace MiloLib.Assets.Rnd
             color.Write(writer);
             writer.WriteFloat(range);
 
+            if (revision < 3)
+            {
+                writer.WriteUInt32(unkInt3);
+                writer.WriteUInt32(unkInt4);
+                writer.WriteUInt32(unkInt5);
+            }
+
             if (revision != 0)
                 writer.WriteInt32((int)type);
 
@@ -193,6 +200,11 @@ namespace MiloLib.Assets.Rnd
             {
                 writer.WriteFloat(topRadius);
                 writer.WriteFloat(bottomRadius);
+                if (revision < 0xE)
+                {
+                    writer.WriteUInt32(unkInt1);
+                    writer.WriteUInt32(unkInt2);
+                }
             }
 
             if (revision > 7)
@@ -220,6 +232,9 @@ namespace MiloLib.Assets.Rnd
 
             if (revision > 0xD)
                 Symbol.Write(writer, cubeTex);
+
+            if (altRevision != 0)
+                writer.WriteBoolean(onlyProjection);
 
             if (revision > 0xE)
             {

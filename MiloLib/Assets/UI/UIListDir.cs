@@ -13,19 +13,28 @@ namespace MiloLib.Assets.UI
             kUIListHorizontal
         }
 
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
 
+        [Name("Orientation"), Description("scroll direction of list")]
         public UIListOrientation orientation;
 
+        [Name("Fade Offset"), Description("Number of elements to fade from beginning/end of list")]
         public int fadeOffset;
+        [Name("Element Spacing"), Description("spacing between elements")]
         public float elementSpacing;
+        [Name("Scroll Highlight Change"), Description("point during scroll when highlight changes")]
         public float scrollHighlightChange;
+        [Name("Test Mode"), Description("draw widgets in preview mode?")]
         public bool testMode;
+        [Name("Test Num Data"), Description("total number of data elements")]
         public int testNumData;
+        [Name("Test Gap Size"), Description("test gaps between elements")]
         public float testGapSize;
+        [Name("Test Disable Elements"), Description("test disable every other element")]
         public bool testDisableElements;
-        public int mDirection;
+        [Name("Test Num Display"), Description("number of elements to draw")]
+        public int numDisplay;
         public float speed;
         public uint compState;
 
@@ -44,16 +53,13 @@ namespace MiloLib.Assets.UI
 
             base.Read(reader, false, parent, entry);
 
-            // this is not completely correct... TODO: fix this
-
             orientation = (UIListOrientation)reader.ReadUInt32();
-
             fadeOffset = reader.ReadInt32();
-
             testMode = reader.ReadBoolean();
+            numDisplay = reader.ReadInt32();
             elementSpacing = reader.ReadFloat();
-            testNumData = reader.ReadInt32();
             speed = reader.ReadFloat();
+            testNumData = reader.ReadInt32();
             compState = reader.ReadUInt32();
             testGapSize = reader.ReadFloat();
             testDisableElements = reader.ReadBoolean();
@@ -62,8 +68,6 @@ namespace MiloLib.Assets.UI
             {
                 scrollHighlightChange = reader.ReadFloat();
             }
-
-            reader.ReadUInt32();
 
             if (standalone)
                 if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");
@@ -78,17 +82,14 @@ namespace MiloLib.Assets.UI
             base.Write(writer, false, parent, entry);
 
             writer.WriteUInt32((uint)orientation);
-
-            writer.WriteInt32(fadeOffset);
-
+            writer.WriteUInt32((uint)fadeOffset);
             writer.WriteBoolean(testMode);
-
+            writer.WriteInt32(numDisplay);
             writer.WriteFloat(elementSpacing);
-
+            writer.WriteFloat(speed);
             writer.WriteInt32(testNumData);
-
+            writer.WriteUInt32(compState);
             writer.WriteFloat(testGapSize);
-
             writer.WriteBoolean(testDisableElements);
 
             if (revision != 0)

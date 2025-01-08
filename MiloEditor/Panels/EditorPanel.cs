@@ -280,13 +280,13 @@ public class EditorPanel : Panel
                 {
                     // color pickers for a HmxColor4 List (inside ColorPalettes, mainly, but can appear other places)
                     case List<HmxColor4> colorList:
-                        inputControl = BuildColorPicker(colorList, field);
+                        inputControl = BuildListColorPicker(colorList, field);
                         break;
                     case HmxColor4 color:
-                        inputControl = BuildColorPicker(new List<HmxColor4> { color }, field);
+                        inputControl = BuildColor4Picker(color, field);
                         break;
-                    case HmxColor3 color: // TODO: make a real Color3 picker
-                        inputControl = BuildColorPicker(new List<HmxColor4> { new HmxColor4(color.r, color.g, color.b, 1.0f) }, field);
+                    case HmxColor3 color:
+                        inputControl = BuildColor3Picker(color, field);
                         break;
                     // list of bytes
                     case List<byte> byteValue:
@@ -363,8 +363,73 @@ public class EditorPanel : Panel
         }
     }
 
+    private Control BuildColor4Picker(HmxColor4 color, FieldInfo field)
+    {
+        var colorPicker = new ColorPicker
+        {
+            Width = 100,
+            Height = 30,
+            Margin = new Padding(5),
+            BorderStyle = BorderStyle.FixedSingle,
+            Color = Color.FromArgb(255, (int)(color.r * 255), (int)(color.g * 255), (int)(color.b * 255))
+        };
 
-    private Control BuildColorPicker(List<HmxColor4> colorList, FieldInfo field)
+        colorPicker.ColorChanged += (sender, args) =>
+        {
+            var picker = (ColorPicker)sender;
+            var selectedColor = picker.Color;
+            float a = selectedColor.A / 255.0f;
+            float r = selectedColor.R / 255.0f;
+            float g = selectedColor.G / 255.0f;
+            float b = selectedColor.B / 255.0f;
+
+            object ownerObject = ResolveFieldOwner(targetObject, field);
+
+            if (ownerObject != null)
+            {
+                // Update the field value
+                HmxColor4 updatedColor = new HmxColor4 { a = a, r = r, g = g, b = b };
+                field.SetValue(ownerObject, updatedColor);
+            }
+        };
+
+        return colorPicker;
+    }
+
+    private Control BuildColor3Picker(HmxColor3 color, FieldInfo field)
+    {
+        var colorPicker = new ColorPicker
+        {
+            Width = 100,
+            Height = 30,
+            Margin = new Padding(5),
+            BorderStyle = BorderStyle.FixedSingle,
+            Color = Color.FromArgb(255, (int)(color.r * 255), (int)(color.g * 255), (int)(color.b * 255))
+        };
+
+        colorPicker.ColorChanged += (sender, args) =>
+        {
+            var picker = (ColorPicker)sender;
+            var selectedColor = picker.Color;
+            float r = selectedColor.R / 255.0f;
+            float g = selectedColor.G / 255.0f;
+            float b = selectedColor.B / 255.0f;
+
+            object ownerObject = ResolveFieldOwner(targetObject, field);
+
+            if (ownerObject != null)
+            {
+                // Update the field value
+                HmxColor3 updatedColor = new HmxColor3 { r = r, g = g, b = b };
+                field.SetValue(ownerObject, updatedColor);
+            }
+        };
+
+        return colorPicker;
+    }
+
+
+    private Control BuildListColorPicker(List<HmxColor4> colorList, FieldInfo field)
     {
         var scrollingPanel = new Panel
         {

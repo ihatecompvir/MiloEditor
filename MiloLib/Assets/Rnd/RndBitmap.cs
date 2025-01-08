@@ -42,6 +42,8 @@ namespace MiloLib.Assets.Rnd
 
         public DirectoryMeta.Platform platform;
 
+        public List<byte> colorPalette = new();
+
 
         public RndBitmap Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
@@ -69,6 +71,15 @@ namespace MiloLib.Assets.Rnd
 
             // skip empty bytes
             reader.BaseStream.Position += 17;
+
+            if (encoding == TextureEncoding.RGBA && (bpp == 4 || bpp == 8))
+            {
+                // read color palette, it's  (1 << (bpp + 2)) bytes
+                for (int i = 0; i < (1 << (bpp + 2)); i++)
+                {
+                    colorPalette.Add(reader.ReadByte());
+                }
+            }
 
             for (int i = 0; i < mipMaps + 1; i++)
             {

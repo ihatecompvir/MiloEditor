@@ -24,8 +24,8 @@ namespace MiloLib.Assets.Band
             //{ Game.MiloGame.GreenDayRockBand, 22 },
             { Game.MiloGame.RockBand3, 3 },
         };
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
 
         private uint colorCount;
 
@@ -82,7 +82,7 @@ namespace MiloLib.Assets.Band
             else
             {
                 // fields only read when dir is not proxied
-                if (!entry.isEntryInRootDir)
+                if (!entry.isProxy)
                 {
                     if (revision < 3)
                     {
@@ -136,36 +136,38 @@ namespace MiloLib.Assets.Band
                 }
                 return;
             }
-
-            if (!entry.isEntryInRootDir)
+            else
             {
-                if (revision < 3)
+                if (!entry.isProxy)
                 {
-                    writer.WriteUInt32((uint)groups.Count);
-                    foreach (var group in groups)
+                    if (revision < 3)
                     {
-                        Symbol.Write(writer, group);
+                        writer.WriteUInt32((uint)groups.Count);
+                        foreach (var group in groups)
+                        {
+                            Symbol.Write(writer, group);
+                        }
                     }
-                }
 
-                if (revision >= 2)
-                {
-                    writer.WriteUInt32((uint)colors.Count);
-                    foreach (var color in colors)
+                    if (revision >= 2)
                     {
-                        color.Write(writer);
+                        writer.WriteUInt32((uint)colors.Count);
+                        foreach (var color in colors)
+                        {
+                            color.Write(writer);
+                        }
                     }
-                }
 
+                }
                 if (revision >= 1)
                     writer.WriteFloat(peakValue);
-            }
 
-            base.Write(writer, false, parent, entry);
+                base.Write(writer, false, parent, entry);
 
-            if (standalone)
-            {
-                writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
+                if (standalone)
+                {
+                    writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
+                }
             }
         }
 

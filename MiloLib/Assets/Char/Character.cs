@@ -95,6 +95,11 @@ namespace MiloLib.Assets.Char
                     }
                 }
             }
+
+            public override string ToString()
+            {
+                return $"{group} {transGroup} opaque: {opaqueCount} translucent: {translucentCount}";
+            }
         }
 
         public class CharacterTesting
@@ -137,7 +142,7 @@ namespace MiloLib.Assets.Char
             public uint unk2;
 
             [MaxVersion(13), MinVersion(10)]
-            public uint unk3;
+            public Symbol unkSymbol2 = new(0, "");
 
             [MaxVersion(0xD)]
             public uint bpm;
@@ -151,8 +156,9 @@ namespace MiloLib.Assets.Char
 
             public CharacterTesting Read(EndianReader reader, DirectoryMeta parent, DirectoryMeta.Entry entry)
             {
-                altRevision = reader.ReadUInt16();
-                revision = reader.ReadUInt16();
+                uint combinedRevision = reader.ReadUInt32();
+                if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
+                else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
                 driver = Symbol.Read(reader);
                 clip1 = Symbol.Read(reader);
                 clip2 = Symbol.Read(reader);
@@ -160,7 +166,7 @@ namespace MiloLib.Assets.Char
                 teleportFrom = Symbol.Read(reader);
                 distMap = Symbol.Read(reader);
 
-                if (revision <= 6)
+                if (revision < 6)
                 {
                     return this;
                 }
@@ -191,6 +197,11 @@ namespace MiloLib.Assets.Char
                     bpm = reader.ReadUInt32();
                 }
 
+                if (revision == 6)
+                {
+                    return this;
+                }
+
                 if (revision < 14)
                 {
                     unk2 = reader.ReadUInt32();
@@ -200,7 +211,7 @@ namespace MiloLib.Assets.Char
                 // not really sure if this is the exact ranges but RB2 (8) doesn't have this field while TBRB (10) does, and bank5 (14) doesn't again
                 if (revision < 14 && revision > 9)
                 {
-                    unk3 = reader.ReadUInt32();
+                    unkSymbol2 = Symbol.Read(reader);
                 }
 
                 return this;
@@ -208,8 +219,7 @@ namespace MiloLib.Assets.Char
 
             public void Write(EndianWriter writer)
             {
-                writer.WriteUInt16(altRevision);
-                writer.WriteUInt16(revision);
+                writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
 
                 Symbol.Write(writer, driver);
                 Symbol.Write(writer, clip1);
@@ -218,7 +228,7 @@ namespace MiloLib.Assets.Char
                 Symbol.Write(writer, teleportFrom);
                 Symbol.Write(writer, distMap);
 
-                if (revision <= 6)
+                if (revision < 6)
                 {
                     return;
                 }
@@ -249,6 +259,11 @@ namespace MiloLib.Assets.Char
                     writer.WriteUInt32(bpm);
                 }
 
+                if (revision == 6)
+                {
+                    return;
+                }
+
                 if (revision < 14)
                 {
                     writer.WriteUInt32(unk2);
@@ -258,7 +273,7 @@ namespace MiloLib.Assets.Char
                 // not really sure if this is the exact ranges but RB2 (8) doesn't have this field while TBRB (10) does, and bank5 (14) doesn't again
                 if (revision < 14 && revision > 9)
                 {
-                    writer.WriteUInt32(unk3);
+                    Symbol.Write(writer, unkSymbol2);
                 }
 
             }
@@ -312,7 +327,7 @@ namespace MiloLib.Assets.Char
             base.Read(reader, false, parent, entry);
 
             // these fields only present if dir is not proxied
-            if (revision < 4 || !entry.isEntryInRootDir)
+            if (revision < 4 || !entry.isProxy)
             {
                 lodCount = reader.ReadUInt32();
                 for (int i = 0; i < lodCount; i++)
@@ -359,9 +374,13 @@ namespace MiloLib.Assets.Char
 
                 if (revision > 0x10)
                     translucentGroup = Symbol.Read(reader);
-            }
 
-            charTest = new CharacterTesting().Read(reader, parent, entry);
+                charTest = new CharacterTesting().Read(reader, parent, entry);
+            }
+            else if (revision > 0xF)
+            {
+                charTest = new CharacterTesting().Read(reader, parent, entry);
+            }
 
             if (standalone)
                 if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");
@@ -372,10 +391,11 @@ namespace MiloLib.Assets.Char
         public override void Write(EndianWriter writer, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry? entry)
         {
             writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
+
             base.Write(writer, false, parent, entry);
 
 
-            if (revision < 4 || !entry.isEntryInRootDir)
+            if (revision < 4 || !entry.isProxy)
             {
                 writer.WriteUInt32((uint)lods.Count);
                 foreach (var lod in lods)
@@ -416,10 +436,13 @@ namespace MiloLib.Assets.Char
 
                 if (revision > 0x10)
                     Symbol.Write(writer, translucentGroup);
+
+                charTest.Write(writer);
             }
-
-
-            charTest.Write(writer);
+            else if (revision > 0xF)
+            {
+                charTest.Write(writer);
+            }
 
 
             if (standalone)

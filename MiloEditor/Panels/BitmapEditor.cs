@@ -64,7 +64,7 @@ namespace MiloEditor.Panels
 
             bitmapBox.SizeMode = PictureBoxSizeMode.Zoom;
 
-            // convert the tex into a DDS and load it into the picturebox
+            // convert the overrideMap into a DDS and load it into the picturebox
             if (tex.bitmap.encoding == TextureEncoding.DXT1_BC1 || tex.bitmap.encoding == TextureEncoding.DXT5_BC3 || tex.bitmap.encoding == TextureEncoding.ATI2_BC5)
                 LoadDdsIntoPictureBox(tex.bitmap.ConvertToImage(), bitmapBox);
         }
@@ -159,7 +159,7 @@ namespace MiloEditor.Panels
 
             bitmapBox.SizeMode = PictureBoxSizeMode.Zoom;
 
-            // convert the tex into a DDS and load it into the picturebox
+            // convert the overrideMap into a DDS and load it into the picturebox
             if (tex.bitmap.encoding == TextureEncoding.DXT1_BC1 || tex.bitmap.encoding == TextureEncoding.DXT5_BC3 || tex.bitmap.encoding == TextureEncoding.ATI2_BC5)
                 LoadDdsIntoPictureBox(tex.bitmap.ConvertToImage(), bitmapBox);
 
@@ -185,7 +185,7 @@ namespace MiloEditor.Panels
                 // create a DDS object and read the data from the stream
                 DDS dds = new DDS().Read(reader);
 
-                // update the tex with the new DDS data
+                // update the overrideMap with the new DDS data
                 tex.bitmap.height = (ushort)dds.dwHeight;
                 tex.bitmap.width = (ushort)dds.dwWidth;
                 tex.bitmap.bpp = (byte)dds.pf.dwRGBBitCount;

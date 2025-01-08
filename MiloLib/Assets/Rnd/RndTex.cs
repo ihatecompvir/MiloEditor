@@ -5,7 +5,7 @@ namespace MiloLib.Assets.Rnd
 {
 
     // this is a misleading description from Harmonix lol, I guess I could add this though so it is no longer false
-    [Name("Tex"), Description("Tex perObjs represent bitmaps used by materials. These can be created automatically with 'import tex' on the file menu.")]
+    [Name("Tex"), Description("Tex perObjs represent bitmaps used by materials. These can be created automatically with 'import overrideMap' on the file menu.")]
     public class RndTex : Object
     {
         private ushort altRevision;
@@ -68,6 +68,16 @@ namespace MiloLib.Assets.Rnd
                 useExternalPath = reader.ReadBoolean();
             else
                 useExternalPath = reader.ReadUInt32() == 1;
+
+            if (revision == 5)
+            {
+                if (standalone)
+                {
+                    if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");
+                }
+                return this;
+            }
+
 
             if (parent.platform == DirectoryMeta.Platform.Wii && revision > 10)
                 unkShort = reader.ReadUInt16();

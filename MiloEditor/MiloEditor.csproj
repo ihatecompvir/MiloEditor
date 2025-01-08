@@ -25,12 +25,15 @@
     <None Remove="Images\Character.png" />
     <None Remove="Images\CharClip.png" />
     <None Remove="Images\CharClipGroup.png" />
+    <None Remove="Images\CharInterest.png" />
+    <None Remove="Images\CheckboxDisplay.png" />
     <None Remove="Images\ColorPalette.png" />
     <None Remove="Images\default.png" />
     <None Remove="Images\Environ.png" />
     <None Remove="Images\FileMerger.png" />
     <None Remove="Images\Font.png" />
     <None Remove="Images\Group.png" />
+    <None Remove="Images\InlineHelp.png" />
     <None Remove="Images\Line.png" />
     <None Remove="Images\Lipsync.png" />
     <None Remove="Images\MatAnim.png" />
@@ -41,6 +44,7 @@
     <None Remove="Images\ParticleSys.png" />
     <None Remove="Images\PostProc.png" />
     <None Remove="Images\PropAnim.png" />
+    <None Remove="Images\RandomGroupSeq.png" />
     <None Remove="Images\RndAnim.png" />
     <None Remove="Images\RndDir.png" />
     <None Remove="Images\RndLight.png" />
@@ -50,6 +54,7 @@
     <None Remove="Images\RndTex.png" />
     <None Remove="Images\RndTrans.png" />
     <None Remove="Images\ScreenMask.png" />
+    <None Remove="Images\Set.png" />
     <None Remove="Images\Sfx.png" />
     <None Remove="Images\TexMovie.png" />
     <None Remove="Images\Text.png" />
@@ -57,7 +62,9 @@
     <None Remove="Images\TransProxy.png" />
     <None Remove="Images\Trigger.png" />
     <None Remove="Images\UIColor.png" />
+    <None Remove="Images\UIGuide.png" />
     <None Remove="Images\UILabel.png" />
+    <None Remove="Images\UIListDir.png" />
     <None Remove="Images\WorldDir.png" />
     <None Remove="Images\WorldInstance.png" />
   </ItemGroup>
@@ -90,6 +97,9 @@
     <Content Include="Images\CharClipGroup.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Images\CharInterest.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Images\ColorPalette.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -103,6 +113,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Images\Group.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\InlineHelp.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Images\Line.png">
@@ -130,6 +143,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Images\PropAnim.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\RandomGroupSeq.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Images\RndLight.png">
@@ -162,6 +178,9 @@
     <Content Include="Images\ScreenMask.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Images\Set.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Images\Sfx.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -183,7 +202,13 @@
     <Content Include="Images\UIColor.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Images\UIGuide.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Images\UILabel.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\UIListDir.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Images\WorldDir.png">
@@ -207,6 +232,12 @@
 
   <ItemGroup>
     <Content Include="Images\FileMerger.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Images\CheckboxDisplay.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

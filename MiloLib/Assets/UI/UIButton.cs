@@ -1,30 +1,21 @@
 ﻿using MiloLib.Classes;
 using MiloLib.Utils;
 
-namespace MiloLib.Assets
+namespace MiloLib.Assets.UI
 {
-    [Name("Set"), Description("A group of objects to propagate animation and messages")]
-    public class Set : Object
+    [Name("UIButton"), Description("Simple button, basically just a label that can be selected")]
+    public class UIButton : UILabel
     {
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
 
-        private uint setObjectsCount;
-        public List<Symbol> setObjects = new();
-
-        public Set Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
+        public UIButton Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
             else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
 
-            base.objFields.Read(reader, parent, entry);
-
-            setObjectsCount = reader.ReadUInt32();
-            for (int i = 0; i < setObjectsCount; i++)
-            {
-                setObjects.Add(Symbol.Read(reader));
-            }
+            base.Read(reader, false, parent, entry);
 
             if (standalone)
                 if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");
@@ -37,12 +28,6 @@ namespace MiloLib.Assets
             writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
 
             base.Write(writer, false, parent, entry);
-
-            writer.WriteUInt32(setObjectsCount);
-            foreach (Symbol setObj in setObjects)
-            {
-                Symbol.Write(writer, setObj);
-            }
 
             if (standalone)
                 writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });

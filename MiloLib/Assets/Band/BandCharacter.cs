@@ -42,6 +42,14 @@ namespace MiloLib.Assets.Band
 
             base.Read(reader, false, parent, entry);
 
+            if (revision == 1)
+            {
+                if (standalone)
+                    if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");
+
+                return this;
+            }
+
             playFlags = reader.ReadInt32();
             tempo = Symbol.Read(reader);
 
@@ -90,6 +98,14 @@ namespace MiloLib.Assets.Band
 
             base.Write(writer, false, parent, entry);
 
+            if (revision == 1)
+            {
+                if (standalone)
+                    writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
+
+                return;
+            }
+
             writer.WriteInt32(playFlags);
             Symbol.Write(writer, tempo);
 
@@ -119,6 +135,11 @@ namespace MiloLib.Assets.Band
             if (revision == 2 || revision == 3 || revision == 4)
             {
                 writer.WriteBoolean(unknownBool);
+            }
+
+            if (revision > 7)
+            {
+                Symbol.Write(writer, mInstrumentType);
             }
 
             if (standalone)

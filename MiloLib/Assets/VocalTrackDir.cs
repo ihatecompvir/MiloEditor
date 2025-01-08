@@ -1,4 +1,5 @@
-﻿using MiloLib.Assets.Rnd;
+﻿using MiloLib.Assets.Band;
+using MiloLib.Assets.Rnd;
 using MiloLib.Classes;
 using MiloLib.Utils;
 using System.Drawing;
@@ -49,8 +50,11 @@ namespace MiloLib.Assets
             }
         }
 
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
+
+        private ushort altTrackRevision;
+        private ushort trackRevision;
 
         public bool unkBool1;
         public bool unkBool2;
@@ -235,10 +239,124 @@ namespace MiloLib.Assets
         public Symbol streakMeter1 = new(0, "");
         public Symbol streakMeter2 = new(0, "");
 
+        public bool simulatedNet;
+        public Symbol instrument = new(0, "");
+
+        public Symbol starPowerMeter = new(0, "");
+        public Symbol streakMeter = new(0, "");
+
+        public Symbol playerIntro = new(0, "");
+        public Symbol popupObject = new(0, "");
+        public Symbol playerFeedback = new(0, "");
+        public Symbol failedFeedback = new(0, "");
+        public Symbol endgameFeedback = new(0, "");
+        public Symbol retractTrig = new(0, "");
+        public Symbol resetTrig = new(0, "");
+        public Symbol deployTrig = new(0, "");
+        public Symbol stopDeployTrig = new(0, "");
+        public Symbol introTrig = new(0, "");
+
         public VocalTrackDir(ushort revision, ushort altRevision = 0) : base(revision, altRevision)
         {
             this.revision = revision;
             this.altRevision = altRevision;
+        }
+
+        public void LoadTrack(EndianReader reader, bool b1, bool b2, bool b3)
+        {
+            uint combinedRevision = reader.ReadUInt32();
+            if (BitConverter.IsLittleEndian) (trackRevision, altTrackRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
+            else (altTrackRevision, trackRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
+
+            simulatedNet = reader.ReadBoolean();
+            instrument = Symbol.Read(reader);
+
+            if (trackRevision >= 1 && !b1)
+            {
+                starPowerMeter = Symbol.Read(reader);
+                streakMeter = Symbol.Read(reader);
+            }
+            bool finalbool;
+            if (trackRevision < 3)
+            {
+                finalbool = false;
+                if (!b3 || !b1)
+                    finalbool = true;
+            }
+            else
+            {
+                finalbool = !b1;
+            }
+            if (finalbool)
+            {
+                playerIntro = Symbol.Read(reader);
+                if (trackRevision < 1)
+                {
+                    starPowerMeter = Symbol.Read(reader);
+                    streakMeter = Symbol.Read(reader);
+                }
+                popupObject = Symbol.Read(reader);
+                playerFeedback = Symbol.Read(reader);
+                failedFeedback = Symbol.Read(reader);
+                if (trackRevision >= 2)
+                    endgameFeedback = Symbol.Read(reader);
+            }
+            if (!b1)
+            {
+                retractTrig = Symbol.Read(reader);
+                resetTrig = Symbol.Read(reader);
+                deployTrig = Symbol.Read(reader);
+                stopDeployTrig = Symbol.Read(reader);
+                introTrig = Symbol.Read(reader);
+            }
+            return;
+        }
+
+        public void SaveTrack(EndianWriter writer, bool b1, bool b2, bool b3)
+        {
+            writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altTrackRevision << 16) | trackRevision) : (uint)((trackRevision << 16) | altTrackRevision));
+
+            writer.WriteBoolean(simulatedNet);
+            Symbol.Write(writer, instrument);
+
+            if (trackRevision >= 1 && !b1)
+            {
+                Symbol.Write(writer, starPowerMeter);
+                Symbol.Write(writer, streakMeter);
+            }
+            bool finalbool;
+            if (trackRevision < 3)
+            {
+                finalbool = false;
+                if (!b3 || !b1)
+                    finalbool = true;
+            }
+            else
+            {
+                finalbool = !b1;
+            }
+            if (finalbool)
+            {
+                Symbol.Write(writer, playerIntro);
+                if (trackRevision < 1)
+                {
+                    Symbol.Write(writer, starPowerMeter);
+                    Symbol.Write(writer, streakMeter);
+                }
+                Symbol.Write(writer, popupObject);
+                Symbol.Write(writer, playerFeedback);
+                Symbol.Write(writer, failedFeedback);
+                if (trackRevision >= 2)
+                    Symbol.Write(writer, endgameFeedback);
+            }
+            if (!b1)
+            {
+                Symbol.Write(writer, retractTrig);
+                Symbol.Write(writer, resetTrig);
+                Symbol.Write(writer, deployTrig);
+                Symbol.Write(writer, stopDeployTrig);
+                Symbol.Write(writer, introTrig);
+            }
         }
 
         public VocalTrackDir Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
@@ -249,252 +367,257 @@ namespace MiloLib.Assets
 
             base.Read(reader, false, parent, entry);
 
-            if (revision < 2)
+            if (!entry.isProxy)
             {
-                unkInt1 = reader.ReadUInt32();
-                unkInt2 = reader.ReadUInt32();
-                unkFloat8 = reader.ReadFloat();
-                unkInt3 = reader.ReadUInt32();
-
-                configurableObjectsCount = reader.ReadUInt32();
-                configurableObjects = new List<Symbol>();
-                for (uint i = 0; i < configurableObjectsCount; i++)
+                if (revision < 2)
                 {
-                    configurableObjects.Add(Symbol.Read(reader));
-                }
+                    unkInt1 = reader.ReadUInt32();
+                    unkInt2 = reader.ReadUInt32();
+                    unkFloat8 = reader.ReadFloat();
+                    unkInt3 = reader.ReadUInt32();
 
-
-                for (int i = 0; i < 14; i++)
-                {
-                    lyricColorsOld.Add(new HmxColor4().Read(reader));
-                }
-
-                unkSymbol2 = Symbol.Read(reader);
-                unkSymbol3 = Symbol.Read(reader);
-                unkSymbol4 = Symbol.Read(reader);
-                unkSymbol5 = Symbol.Read(reader);
-
-                unkSymbol6 = Symbol.Read(reader);
-                unkSymbol7 = Symbol.Read(reader);
-                unkSymbol8 = Symbol.Read(reader);
-                unkSymbol9 = Symbol.Read(reader);
-
-
-                unkColor = new HmxColor4().Read(reader);
-                unkColor2 = new HmxColor4().Read(reader);
-
-                unkFloat9 = reader.ReadFloat();
-                unkFloat10 = reader.ReadFloat();
-
-                if (revision >= 1)
-                {
-                    unkFloat11 = reader.ReadFloat();
-                    unkFloat12 = reader.ReadFloat();
-                }
-
-                unkFloat13 = reader.ReadFloat();
-
-                unkSymbol1 = Symbol.Read(reader);
-
-                unkBool1 = reader.ReadBoolean();
-
-                minPitchRange = reader.ReadFloat();
-                arrowSmoothing = reader.ReadFloat();
-
-                unkFloat14 = reader.ReadFloat();
-                unkFloat15 = reader.ReadFloat();
-
-                colorsCount = reader.ReadUInt32();
-                for (int i = 0; i < colorsCount; i++)
-                {
-                    colors.Add(new HmxColor4().Read(reader));
-                }
-
-                floatsCount = reader.ReadUInt32();
-                for (int i = 0; i < floatsCount; i++)
-                {
-                    floats.Add(reader.ReadFloat());
-                }
-
-                unkSymbol10 = Symbol.Read(reader);
-                unkSymbol11 = Symbol.Read(reader);
-                unkSymbol12 = Symbol.Read(reader);
-                unkSymbol13 = Symbol.Read(reader);
-
-                unkSymbol14 = Symbol.Read(reader);
-                unkSymbol15 = Symbol.Read(reader);
-                unkSymbol16 = Symbol.Read(reader);
-                unkSymbol17 = Symbol.Read(reader);
-
-
-                phraseFeedbackTrig = Symbol.Read(reader);
-                spotlightSparklesOnlyTrig = Symbol.Read(reader);
-                spotlightPhraseSuccessTrig = Symbol.Read(reader);
-
-                unkSymbol18 = Symbol.Read(reader);
-                unkSymbol19 = Symbol.Read(reader);
-                unkSymbol20 = Symbol.Read(reader);
-                unkSymbol21 = Symbol.Read(reader);
-
-                unkInt4 = reader.ReadUInt32();
-                unkBool7 = reader.ReadBoolean();
-
-                unkSymbol22 = Symbol.Read(reader);
-                unkSymbol23 = Symbol.Read(reader);
-                unkSymbol24 = Symbol.Read(reader);
-                unkSymbol25 = Symbol.Read(reader);
-
-                unkSymbol26 = Symbol.Read(reader);
-                unkSymbol27 = Symbol.Read(reader);
-                unkSymbol28 = Symbol.Read(reader);
-                unkSymbol29 = Symbol.Read(reader);
-
-
-                unkSymbol30 = Symbol.Read(reader);
-                unkSymbol31 = Symbol.Read(reader);
-                unkSymbol32 = Symbol.Read(reader);
-                unkSymbol33 = Symbol.Read(reader);
-            }
-            else
-            {
-                configurableObjectsCount = reader.ReadUInt32();
-                configurableObjects = new List<Symbol>();
-                for (uint i = 0; i < configurableObjectsCount; i++)
-                {
-                    configurableObjects.Add(Symbol.Read(reader));
-                }
-
-                voxCfg = Symbol.Read(reader);
-                unkSymbol1 = Symbol.Read(reader);
-                minPitchRange = reader.ReadFloat();
-                arrowSmoothing = reader.ReadFloat();
-
-                if (revision < 3)
-                    unkFloat1 = reader.ReadFloat();
-                if (revision < 7)
-                    unkFloat2 = reader.ReadFloat();
-
-                if (revision < 3)
-                {
-                    colorsCount = reader.ReadUInt32();
-                    for (int i = 0; i < colorsCount; i++)
+                    configurableObjectsCount = reader.ReadUInt32();
+                    configurableObjects = new List<Symbol>();
+                    for (uint i = 0; i < configurableObjectsCount; i++)
                     {
-                        colors.Add(new HmxColor4().Read(reader));
+                        configurableObjects.Add(Symbol.Read(reader));
+                    }
+
+
+                    for (int i = 0; i < 14; i++)
+                    {
+                        lyricColorsOld.Add(new HmxColor4().Read(reader));
                     }
 
                     unkSymbol2 = Symbol.Read(reader);
                     unkSymbol3 = Symbol.Read(reader);
                     unkSymbol4 = Symbol.Read(reader);
                     unkSymbol5 = Symbol.Read(reader);
-                }
-                else if (revision >= 6)
-                {
-                    tambourineSmasher = Symbol.Read(reader);
-                    tambourineNowShowTrig = Symbol.Read(reader);
-                    tambourineNowHideTrig = Symbol.Read(reader);
-                }
 
-                phraseFeedbackTrig = Symbol.Read(reader);
-                spotlightSparklesOnlyTrig = Symbol.Read(reader);
-                spotlightPhraseSuccessTrig = Symbol.Read(reader);
-
-                lyricColorsCount = reader.ReadUInt32();
-                for (int i = 0; i < lyricColorsCount; i++)
-                {
-                    LyricColor lyricColor = new LyricColor().Read(reader);
-                    lyricColors.Add(lyricColor);
-                }
-
-                lyricAlphaMapCount = reader.ReadUInt32();
-                for (int i = 0; i < lyricAlphaMapCount; i++)
-                {
-                    LyricAlphaMap lyricAlphaMap = new LyricAlphaMap().Read(reader);
-                    lyricAlphaMaps.Add(lyricAlphaMap);
-                }
-
-                if (revision < 5)
-                {
-                    streakMeter1 = Symbol.Read(reader);
-                    streakMeter2 = Symbol.Read(reader);
-                }
-
-
-
-                pitchWindow = reader.ReadBoolean();
-                pitchWindowHeight = reader.ReadFloat();
-                pitchWindowMesh = Symbol.Read(reader);
-                pitchWindowOverlay = Symbol.Read(reader);
-                leadLyrics = reader.ReadBoolean();
-                leadLyricHeight = reader.ReadFloat();
-                leadLyricMesh = Symbol.Read(reader);
-                harmLyrics = reader.ReadBoolean();
-                harmLyricHeight = reader.ReadFloat();
-                harmLyricMesh = Symbol.Read(reader);
-
-                if (revision < 3)
-                {
                     unkSymbol6 = Symbol.Read(reader);
                     unkSymbol7 = Symbol.Read(reader);
                     unkSymbol8 = Symbol.Read(reader);
                     unkSymbol9 = Symbol.Read(reader);
 
-                    unkFloat3 = reader.ReadFloat();
+
+                    unkColor = new HmxColor4().Read(reader);
+                    unkColor2 = new HmxColor4().Read(reader);
+
+                    unkFloat9 = reader.ReadFloat();
+                    unkFloat10 = reader.ReadFloat();
+
+                    if (revision >= 1)
+                    {
+                        unkFloat11 = reader.ReadFloat();
+                        unkFloat12 = reader.ReadFloat();
+                    }
+
+                    unkFloat13 = reader.ReadFloat();
+
+                    unkSymbol1 = Symbol.Read(reader);
+
                     unkBool1 = reader.ReadBoolean();
-                }
 
-                leftDecoMesh = Symbol.Read(reader);
-                rightDecoMesh = Symbol.Read(reader);
-                nowBarWidth = reader.ReadFloat();
-                if (revision < 3)
-                    unkBool2 = reader.ReadBoolean();
-                nowBarMesh = Symbol.Read(reader);
+                    minPitchRange = reader.ReadFloat();
+                    arrowSmoothing = reader.ReadFloat();
 
-                remoteVocals = reader.ReadBoolean();
-                trackLeftX = reader.ReadFloat();
-                trackRightX = reader.ReadFloat();
-                trackBottomZ = reader.ReadFloat();
-                trackTopZ = reader.ReadFloat();
-                pitchBottomZ = reader.ReadFloat();
-                pitchTopZ = reader.ReadFloat();
-                nowBarX = reader.ReadFloat();
-                pitchGuides = Symbol.Read(reader);
-                tubeStyle = Symbol.Read(reader);
-                arrowStyle = Symbol.Read(reader);
-                fontStyle = Symbol.Read(reader);
+                    unkFloat14 = reader.ReadFloat();
+                    unkFloat15 = reader.ReadFloat();
 
-                leadText = Symbol.Read(reader);
-                harmText = Symbol.Read(reader);
+                    colorsCount = reader.ReadUInt32();
+                    for (int i = 0; i < colorsCount; i++)
+                    {
+                        colors.Add(new HmxColor4().Read(reader));
+                    }
 
-                if (revision >= 4)
-                {
-                    leadPhonemeText = Symbol.Read(reader);
-                    harmPhonemeText = Symbol.Read(reader);
-                }
+                    floatsCount = reader.ReadUInt32();
+                    for (int i = 0; i < floatsCount; i++)
+                    {
+                        floats.Add(reader.ReadFloat());
+                    }
 
-                lastMin = reader.ReadFloat();
-                lastMax = reader.ReadFloat();
-                middleCZPos = reader.ReadFloat();
-                tonic = reader.ReadInt32();
-
-                if (revision < 3)
-                {
                     unkSymbol10 = Symbol.Read(reader);
                     unkSymbol11 = Symbol.Read(reader);
-                    unkBool3 = reader.ReadBoolean();
-                    unkBool4 = reader.ReadBoolean();
+                    unkSymbol12 = Symbol.Read(reader);
+                    unkSymbol13 = Symbol.Read(reader);
+
+                    unkSymbol14 = Symbol.Read(reader);
+                    unkSymbol15 = Symbol.Read(reader);
+                    unkSymbol16 = Symbol.Read(reader);
+                    unkSymbol17 = Symbol.Read(reader);
+
+
+                    phraseFeedbackTrig = Symbol.Read(reader);
+                    spotlightSparklesOnlyTrig = Symbol.Read(reader);
+                    spotlightPhraseSuccessTrig = Symbol.Read(reader);
+
+                    unkSymbol18 = Symbol.Read(reader);
+                    unkSymbol19 = Symbol.Read(reader);
+                    unkSymbol20 = Symbol.Read(reader);
+                    unkSymbol21 = Symbol.Read(reader);
+
+                    unkInt4 = reader.ReadUInt32();
+                    unkBool7 = reader.ReadBoolean();
+
+                    unkSymbol22 = Symbol.Read(reader);
+                    unkSymbol23 = Symbol.Read(reader);
+                    unkSymbol24 = Symbol.Read(reader);
+                    unkSymbol25 = Symbol.Read(reader);
+
+                    unkSymbol26 = Symbol.Read(reader);
+                    unkSymbol27 = Symbol.Read(reader);
+                    unkSymbol28 = Symbol.Read(reader);
+                    unkSymbol29 = Symbol.Read(reader);
+
+
+                    unkSymbol30 = Symbol.Read(reader);
+                    unkSymbol31 = Symbol.Read(reader);
+                    unkSymbol32 = Symbol.Read(reader);
+                    unkSymbol33 = Symbol.Read(reader);
                 }
-
-
-
-                rangeScaleAnim = Symbol.Read(reader);
-                rangeOffsetAnim = Symbol.Read(reader);
-
-                if (revision >= 4)
+                else
                 {
-                    leadDeployMat = Symbol.Read(reader);
-                    harmDeployMat = Symbol.Read(reader);
+                    configurableObjectsCount = reader.ReadUInt32();
+                    configurableObjects = new List<Symbol>();
+                    for (uint i = 0; i < configurableObjectsCount; i++)
+                    {
+                        configurableObjects.Add(Symbol.Read(reader));
+                    }
+
+                    voxCfg = Symbol.Read(reader);
+                    unkSymbol1 = Symbol.Read(reader);
+                    minPitchRange = reader.ReadFloat();
+                    arrowSmoothing = reader.ReadFloat();
+
+                    if (revision < 3)
+                        unkFloat1 = reader.ReadFloat();
+                    if (revision < 7)
+                        unkFloat2 = reader.ReadFloat();
+
+                    if (revision < 3)
+                    {
+                        colorsCount = reader.ReadUInt32();
+                        for (int i = 0; i < colorsCount; i++)
+                        {
+                            colors.Add(new HmxColor4().Read(reader));
+                        }
+
+                        unkSymbol2 = Symbol.Read(reader);
+                        unkSymbol3 = Symbol.Read(reader);
+                        unkSymbol4 = Symbol.Read(reader);
+                        unkSymbol5 = Symbol.Read(reader);
+                    }
+                    else if (revision >= 6)
+                    {
+                        tambourineSmasher = Symbol.Read(reader);
+                        tambourineNowShowTrig = Symbol.Read(reader);
+                        tambourineNowHideTrig = Symbol.Read(reader);
+                    }
+
+                    phraseFeedbackTrig = Symbol.Read(reader);
+                    spotlightSparklesOnlyTrig = Symbol.Read(reader);
+                    spotlightPhraseSuccessTrig = Symbol.Read(reader);
+
+                    lyricColorsCount = reader.ReadUInt32();
+                    for (int i = 0; i < lyricColorsCount; i++)
+                    {
+                        LyricColor lyricColor = new LyricColor().Read(reader);
+                        lyricColors.Add(lyricColor);
+                    }
+
+                    lyricAlphaMapCount = reader.ReadUInt32();
+                    for (int i = 0; i < lyricAlphaMapCount; i++)
+                    {
+                        LyricAlphaMap lyricAlphaMap = new LyricAlphaMap().Read(reader);
+                        lyricAlphaMaps.Add(lyricAlphaMap);
+                    }
+
+                    if (revision < 5)
+                    {
+                        streakMeter1 = Symbol.Read(reader);
+                        streakMeter2 = Symbol.Read(reader);
+                    }
+
+
+
+                    pitchWindow = reader.ReadBoolean();
+                    pitchWindowHeight = reader.ReadFloat();
+                    pitchWindowMesh = Symbol.Read(reader);
+                    pitchWindowOverlay = Symbol.Read(reader);
+                    leadLyrics = reader.ReadBoolean();
+                    leadLyricHeight = reader.ReadFloat();
+                    leadLyricMesh = Symbol.Read(reader);
+                    harmLyrics = reader.ReadBoolean();
+                    harmLyricHeight = reader.ReadFloat();
+                    harmLyricMesh = Symbol.Read(reader);
+
+                    if (revision < 3)
+                    {
+                        unkSymbol6 = Symbol.Read(reader);
+                        unkSymbol7 = Symbol.Read(reader);
+                        unkSymbol8 = Symbol.Read(reader);
+                        unkSymbol9 = Symbol.Read(reader);
+
+                        unkFloat3 = reader.ReadFloat();
+                        unkBool1 = reader.ReadBoolean();
+                    }
+
+                    leftDecoMesh = Symbol.Read(reader);
+                    rightDecoMesh = Symbol.Read(reader);
+                    nowBarWidth = reader.ReadFloat();
+                    if (revision < 3)
+                        unkBool2 = reader.ReadBoolean();
+                    nowBarMesh = Symbol.Read(reader);
+
+                    remoteVocals = reader.ReadBoolean();
+                    trackLeftX = reader.ReadFloat();
+                    trackRightX = reader.ReadFloat();
+                    trackBottomZ = reader.ReadFloat();
+                    trackTopZ = reader.ReadFloat();
+                    pitchBottomZ = reader.ReadFloat();
+                    pitchTopZ = reader.ReadFloat();
+                    nowBarX = reader.ReadFloat();
+                    pitchGuides = Symbol.Read(reader);
+                    tubeStyle = Symbol.Read(reader);
+                    arrowStyle = Symbol.Read(reader);
+                    fontStyle = Symbol.Read(reader);
+
+                    leadText = Symbol.Read(reader);
+                    harmText = Symbol.Read(reader);
+
+                    if (revision >= 4)
+                    {
+                        leadPhonemeText = Symbol.Read(reader);
+                        harmPhonemeText = Symbol.Read(reader);
+                    }
+
+                    lastMin = reader.ReadFloat();
+                    lastMax = reader.ReadFloat();
+                    middleCZPos = reader.ReadFloat();
+                    tonic = reader.ReadInt32();
+
+                    if (revision < 3)
+                    {
+                        unkSymbol10 = Symbol.Read(reader);
+                        unkSymbol11 = Symbol.Read(reader);
+                        unkBool3 = reader.ReadBoolean();
+                        unkBool4 = reader.ReadBoolean();
+                    }
+
+
+
+                    rangeScaleAnim = Symbol.Read(reader);
+                    rangeOffsetAnim = Symbol.Read(reader);
+
+                    if (revision >= 4)
+                    {
+                        leadDeployMat = Symbol.Read(reader);
+                        harmDeployMat = Symbol.Read(reader);
+                    }
                 }
             }
+
+            LoadTrack(reader, entry.isProxy, false, true);
 
             if (standalone)
                 if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");
@@ -504,16 +627,255 @@ namespace MiloLib.Assets
         }
 
 
-
         public override void Write(EndianWriter writer, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry? entry)
         {
             writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
 
             base.Write(writer, false, parent, entry);
 
+            if (!entry.isProxy)
+            {
+                if (revision < 2)
+                {
+                    writer.WriteUInt32(unkInt1);
+                    writer.WriteUInt32(unkInt2);
+                    writer.WriteFloat(unkFloat8);
+                    writer.WriteUInt32(unkInt3);
+
+                    writer.WriteUInt32(configurableObjectsCount);
+                    foreach (var obj in configurableObjects)
+                    {
+                        Symbol.Write(writer, obj);
+                    }
+
+                    foreach (var color in lyricColorsOld)
+                    {
+                        color.Write(writer);
+                    }
+
+                    Symbol.Write(writer, unkSymbol2);
+                    Symbol.Write(writer, unkSymbol3);
+                    Symbol.Write(writer, unkSymbol4);
+                    Symbol.Write(writer, unkSymbol5);
+
+                    Symbol.Write(writer, unkSymbol6);
+                    Symbol.Write(writer, unkSymbol7);
+                    Symbol.Write(writer, unkSymbol8);
+                    Symbol.Write(writer, unkSymbol9);
+
+                    unkColor.Write(writer);
+                    unkColor2.Write(writer);
+
+                    writer.WriteFloat(unkFloat9);
+                    writer.WriteFloat(unkFloat10);
+
+                    if (revision >= 1)
+                    {
+                        writer.WriteFloat(unkFloat11);
+                        writer.WriteFloat(unkFloat12);
+                    }
+
+                    writer.WriteFloat(unkFloat13);
+                    Symbol.Write(writer, unkSymbol1);
+                    writer.WriteBoolean(unkBool1);
+
+                    writer.WriteFloat(minPitchRange);
+                    writer.WriteFloat(arrowSmoothing);
+                    writer.WriteFloat(unkFloat14);
+                    writer.WriteFloat(unkFloat15);
+
+                    writer.WriteUInt32(colorsCount);
+                    foreach (var color in colors)
+                    {
+                        color.Write(writer);
+                    }
+
+                    writer.WriteUInt32(floatsCount);
+                    foreach (var value in floats)
+                    {
+                        writer.WriteFloat(value);
+                    }
+
+                    Symbol.Write(writer, unkSymbol10);
+                    Symbol.Write(writer, unkSymbol11);
+                    Symbol.Write(writer, unkSymbol12);
+                    Symbol.Write(writer, unkSymbol13);
+
+                    Symbol.Write(writer, unkSymbol14);
+                    Symbol.Write(writer, unkSymbol15);
+                    Symbol.Write(writer, unkSymbol16);
+                    Symbol.Write(writer, unkSymbol17);
+
+                    Symbol.Write(writer, phraseFeedbackTrig);
+                    Symbol.Write(writer, spotlightSparklesOnlyTrig);
+                    Symbol.Write(writer, spotlightPhraseSuccessTrig);
+
+                    Symbol.Write(writer, unkSymbol18);
+                    Symbol.Write(writer, unkSymbol19);
+                    Symbol.Write(writer, unkSymbol20);
+                    Symbol.Write(writer, unkSymbol21);
+
+                    writer.WriteUInt32(unkInt4);
+                    writer.WriteBoolean(unkBool7);
+
+                    Symbol.Write(writer, unkSymbol22);
+                    Symbol.Write(writer, unkSymbol23);
+                    Symbol.Write(writer, unkSymbol24);
+                    Symbol.Write(writer, unkSymbol25);
+
+                    Symbol.Write(writer, unkSymbol26);
+                    Symbol.Write(writer, unkSymbol27);
+                    Symbol.Write(writer, unkSymbol28);
+                    Symbol.Write(writer, unkSymbol29);
+
+                    Symbol.Write(writer, unkSymbol30);
+                    Symbol.Write(writer, unkSymbol31);
+                    Symbol.Write(writer, unkSymbol32);
+                    Symbol.Write(writer, unkSymbol33);
+                }
+                else
+                {
+                    writer.WriteUInt32(configurableObjectsCount);
+                    foreach (var obj in configurableObjects)
+                    {
+                        Symbol.Write(writer, obj);
+                    }
+
+                    Symbol.Write(writer, voxCfg);
+                    Symbol.Write(writer, unkSymbol1);
+                    writer.WriteFloat(minPitchRange);
+                    writer.WriteFloat(arrowSmoothing);
+
+                    if (revision < 3)
+                        writer.WriteFloat(unkFloat1);
+                    if (revision < 7)
+                        writer.WriteFloat(unkFloat2);
+
+                    if (revision < 3)
+                    {
+                        writer.WriteUInt32(colorsCount);
+                        foreach (var color in colors)
+                        {
+                            color.Write(writer);
+                        }
+
+                        Symbol.Write(writer, unkSymbol2);
+                        Symbol.Write(writer, unkSymbol3);
+                        Symbol.Write(writer, unkSymbol4);
+                        Symbol.Write(writer, unkSymbol5);
+                    }
+                    else if (revision >= 6)
+                    {
+                        Symbol.Write(writer, tambourineSmasher);
+                        Symbol.Write(writer, tambourineNowShowTrig);
+                        Symbol.Write(writer, tambourineNowHideTrig);
+                    }
+
+                    Symbol.Write(writer, phraseFeedbackTrig);
+                    Symbol.Write(writer, spotlightSparklesOnlyTrig);
+                    Symbol.Write(writer, spotlightPhraseSuccessTrig);
+
+                    writer.WriteUInt32(lyricColorsCount);
+                    foreach (var lyricColor in lyricColors)
+                    {
+                        lyricColor.Write(writer);
+                    }
+
+                    writer.WriteUInt32(lyricAlphaMapCount);
+                    foreach (var lyricAlphaMap in lyricAlphaMaps)
+                    {
+                        lyricAlphaMap.Write(writer);
+                    }
+
+                    if (revision < 5)
+                    {
+                        Symbol.Write(writer, streakMeter1);
+                        Symbol.Write(writer, streakMeter2);
+                    }
+
+                    writer.WriteBoolean(pitchWindow);
+                    writer.WriteFloat(pitchWindowHeight);
+                    Symbol.Write(writer, pitchWindowMesh);
+                    Symbol.Write(writer, pitchWindowOverlay);
+                    writer.WriteBoolean(leadLyrics);
+                    writer.WriteFloat(leadLyricHeight);
+                    Symbol.Write(writer, leadLyricMesh);
+                    writer.WriteBoolean(harmLyrics);
+                    writer.WriteFloat(harmLyricHeight);
+                    Symbol.Write(writer, harmLyricMesh);
+
+                    if (revision < 3)
+                    {
+                        Symbol.Write(writer, unkSymbol6);
+                        Symbol.Write(writer, unkSymbol7);
+                        Symbol.Write(writer, unkSymbol8);
+                        Symbol.Write(writer, unkSymbol9);
+
+                        writer.WriteFloat(unkFloat3);
+                        writer.WriteBoolean(unkBool1);
+                    }
+
+                    Symbol.Write(writer, leftDecoMesh);
+                    Symbol.Write(writer, rightDecoMesh);
+                    writer.WriteFloat(nowBarWidth);
+                    if (revision < 3)
+                        writer.WriteBoolean(unkBool2);
+                    Symbol.Write(writer, nowBarMesh);
+
+                    writer.WriteBoolean(remoteVocals);
+                    writer.WriteFloat(trackLeftX);
+                    writer.WriteFloat(trackRightX);
+                    writer.WriteFloat(trackBottomZ);
+                    writer.WriteFloat(trackTopZ);
+                    writer.WriteFloat(pitchBottomZ);
+                    writer.WriteFloat(pitchTopZ);
+                    writer.WriteFloat(nowBarX);
+                    Symbol.Write(writer, pitchGuides);
+                    Symbol.Write(writer, tubeStyle);
+                    Symbol.Write(writer, arrowStyle);
+                    Symbol.Write(writer, fontStyle);
+
+                    Symbol.Write(writer, leadText);
+                    Symbol.Write(writer, harmText);
+
+                    if (revision >= 4)
+                    {
+                        Symbol.Write(writer, leadPhonemeText);
+                        Symbol.Write(writer, harmPhonemeText);
+                    }
+
+                    writer.WriteFloat(lastMin);
+                    writer.WriteFloat(lastMax);
+                    writer.WriteFloat(middleCZPos);
+                    writer.WriteInt32(tonic);
+
+                    if (revision < 3)
+                    {
+                        Symbol.Write(writer, unkSymbol10);
+                        Symbol.Write(writer, unkSymbol11);
+                        writer.WriteBoolean(unkBool3);
+                        writer.WriteBoolean(unkBool4);
+                    }
+
+                    Symbol.Write(writer, rangeScaleAnim);
+                    Symbol.Write(writer, rangeOffsetAnim);
+
+                    if (revision >= 4)
+                    {
+                        Symbol.Write(writer, leadDeployMat);
+                        Symbol.Write(writer, harmDeployMat);
+                    }
+                }
+            }
+
+            SaveTrack(writer, entry.isProxy, false, true);
+
             if (standalone)
+            {
                 writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
+            }
         }
+
 
         public override bool IsDirectory()
         {

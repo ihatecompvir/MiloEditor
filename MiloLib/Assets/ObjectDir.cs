@@ -82,13 +82,13 @@ namespace MiloLib.Assets
         [Name("Unknown String 1"), MinVersion(3), MaxVersion(10)]
         public Symbol unknownString = new(0, "");
 
-        [Name("Unknown String 2"), MinVersion(3), MaxVersion(10)]
-        public Symbol unknownString2 = new(0, "");
+        [Name("Unknown Camera Reference"), MinVersion(3), MaxVersion(10)]
+        public Symbol unknownCamReference = new(0, "");
 
         [Name("Unknown Object Reference 1"), MinVersion(2), MaxVersion(10)]
         public Symbol unknownObjRef1 = new(0, "");
 
-        [Name("Unknown Object Reference 2"), MinVersion(4), MaxVersion(10)]
+        [Name("Current Camera"), MinVersion(4), MaxVersion(10)]
         public Symbol currentCamera = new(0, "");
 
         [Name("Unknown String 3"), MinVersion(5), MaxVersion(5)]
@@ -99,6 +99,8 @@ namespace MiloLib.Assets
 
         [Name("Unknown String 5"), MinVersion(16), MaxVersion(18)]
         public Symbol unknownString5 = new(0, "");
+
+        public List<uint> unkInts = new();
 
         public uint unk1;
         public uint unk2;
@@ -164,7 +166,7 @@ namespace MiloLib.Assets
                     viewport.Read(reader);
                     viewports.Add(viewport);
                     if (revision <= 17)
-                        reader.BaseStream.Position += 4;
+                        unkInts.Add(reader.ReadUInt32());
 
                 }
 
@@ -254,9 +256,13 @@ namespace MiloLib.Assets
                         {
                             DirectoryMeta inlinedSubDir = new DirectoryMeta();
                             inlinedSubDir.platform = parent.platform;
-                            if (referenceTypes[0] == ReferenceType.kInlineCached && referenceTypesAlt[0] == ReferenceType.kInlineCached)
+                            // check if the reference types are actually there to avoid an out of bounds exception
+                            if (referenceTypes.Count > 0 && referenceTypesAlt.Count > 0)
                             {
-                                reader.ReadBoolean();
+                                if (referenceTypes[0] == ReferenceType.kInlineCached && referenceTypesAlt[0] == ReferenceType.kInlineCached)
+                                {
+                                    reader.ReadBoolean();
+                                }
                             }
                             inlinedSubDir.Read(reader);
                             inlineSubDirs.Add(inlinedSubDir);
@@ -285,12 +291,12 @@ namespace MiloLib.Assets
             if (entry.type.value == "WorldInstance")
             {
                 hasPersistentObjects = reader.ReadBoolean();
-                if (entry.isEntryInRootDir)
+                if (entry.isProxy)
                     return this;
             }
 
             unknownString = Symbol.Read(reader);
-            unknownString2 = Symbol.Read(reader);
+            unknownCamReference = Symbol.Read(reader);
 
             if (revision < 22)
             {
@@ -351,7 +357,7 @@ namespace MiloLib.Assets
                 {
                     viewport.Write(writer);
                     if (revision <= 17)
-                        writer.WriteUInt32(0);
+                        writer.WriteUInt32(unkInts[viewports.IndexOf(viewport)]);
                 }
 
                 writer.WriteUInt32(currentViewportIdx);
@@ -412,9 +418,13 @@ namespace MiloLib.Assets
 
                     foreach (var inlineSubDir in inlineSubDirs)
                     {
-                        if (referenceTypes[0] == ReferenceType.kInlineCached && referenceTypesAlt[0] == ReferenceType.kInlineCached)
+                        // bounds check
+                        if (referenceTypes.Count > 0 && referenceTypesAlt.Count > 0)
                         {
-                            writer.WriteBoolean(false);
+                            if (referenceTypes[0] == ReferenceType.kInlineCached && referenceTypesAlt[0] == ReferenceType.kInlineCached)
+                            {
+                                writer.WriteBoolean(false);
+                            }
                         }
                         inlineSubDir.Write(writer);
                     }
@@ -439,12 +449,12 @@ namespace MiloLib.Assets
             if (entry != null && entry.type.value == "WorldInstance")
             {
                 writer.WriteBoolean(hasPersistentObjects);
-                if (entry.isEntryInRootDir)
+                if (entry.isProxy)
                     return;
             }
 
             Symbol.Write(writer, unknownString);
-            Symbol.Write(writer, unknownString2);
+            Symbol.Write(writer, unknownCamReference);
 
             if (revision < 22)
             {
