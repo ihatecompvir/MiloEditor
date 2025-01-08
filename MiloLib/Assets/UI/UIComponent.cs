@@ -15,6 +15,7 @@ namespace MiloLib.Assets.UI
 
         public Symbol navRight = new(0, "");
         public Symbol navDown = new(0, "");
+        [Name("Resource Name"), Description("path to resource file for this component")]
         public Symbol resourceName = new(0, "");
 
 

@@ -25,6 +25,7 @@
     <None Remove="Images\Character.png" />
     <None Remove="Images\CharClip.png" />
     <None Remove="Images\CharClipGroup.png" />
+    <None Remove="Images\CheckboxDisplay.png" />
     <None Remove="Images\ColorPalette.png" />
     <None Remove="Images\default.png" />
     <None Remove="Images\Environ.png" />
@@ -207,6 +208,12 @@
 
   <ItemGroup>
     <Content Include="Images\FileMerger.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Images\CheckboxDisplay.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

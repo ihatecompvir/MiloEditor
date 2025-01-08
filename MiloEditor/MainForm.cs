@@ -119,6 +119,7 @@ namespace MiloEditor
             imageList.Images.Add("PostProc", Image.FromFile("Images/PostProc.png"));
             imageList.Images.Add("WorldInstance", Image.FromFile("Images/WorldInstance.png"));
             imageList.Images.Add("CharClipGroup", Image.FromFile("Images/CharClipGroup.png"));
+            imageList.Images.Add("CheckboxDisplay", Image.FromFile("Images/CheckboxDisplay.png"));
             imageList.Images.Add("", Image.FromFile("Images/NoDir.png"));
 
             imageList.ColorDepth = ColorDepth.Depth32Bit;

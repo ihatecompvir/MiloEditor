@@ -751,6 +751,10 @@ namespace MiloLib.Assets
                     Debug.WriteLine("Reading entry BandConfiguration " + entry.name.value);
                     entry.obj = new BandConfiguration().Read(reader, true, this, entry);
                     break;
+                case "BandLabel":
+                    Debug.WriteLine("Reading entry BandLabel " + entry.name.value);
+                    entry.obj = new BandLabel().Read(reader, true, this, entry);
+                    break;
                 case "BandPlacer":
                     Debug.WriteLine("Reading entry BandPlacer " + entry.name.value);
                     entry.obj = new BandPlacer().Read(reader, true, this, entry);
@@ -771,6 +775,10 @@ namespace MiloLib.Assets
                     Debug.WriteLine("Reading entry CharMeshHide " + entry.name.value);
                     entry.obj = new CharMeshHide().Read(reader, true, this, entry);
                     break;
+                case "CheckboxDisplay":
+                    Debug.WriteLine("Reading entry CheckboxDisplay " + entry.name.value);
+                    entry.obj = new CheckboxDisplay().Read(reader, true, this, entry);
+                    break;
                 case "ColorPalette":
                     Debug.WriteLine("Reading entry ColorPalette " + entry.name.value);
                     entry.obj = new ColorPalette().Read(reader, true, this, entry);
@@ -787,6 +795,10 @@ namespace MiloLib.Assets
                 case "View":
                     Debug.WriteLine("Reading entry Group " + entry.name.value);
                     entry.obj = new RndGroup().Read(reader, true, this, entry);
+                    break;
+                case "InlineHelp":
+                    Debug.WriteLine("Reading entry InlineHelp " + entry.name.value);
+                    entry.obj = new InlineHelp().Read(reader, true, this, entry);
                     break;
                 case "Light":
                     Debug.WriteLine("Reading entry Light " + entry.name.value);
@@ -1086,6 +1098,9 @@ namespace MiloLib.Assets
                     break;
                 case "CharMeshHide":
                     ((CharMeshHide)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "CheckboxDisplay":
+                    ((CheckboxDisplay)entry.obj).Write(writer, true, this, entry);
                     break;
                 case "ColorPalette":
                     ((ColorPalette)entry.obj).Write(writer, true, this, entry);
