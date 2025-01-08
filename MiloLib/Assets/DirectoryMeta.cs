@@ -1084,6 +1084,9 @@ namespace MiloLib.Assets
                 case "BandConfiguration":
                     ((BandConfiguration)entry.obj).Write(writer, true, this, entry);
                     break;
+                case "BandLabel":
+                    ((BandLabel)entry.obj).Write(writer, true, this, entry);
+                    break;
                 case "BandPlacer":
                     ((BandPlacer)entry.obj).Write(writer, true, this, entry);
                     break;
@@ -1110,6 +1113,9 @@ namespace MiloLib.Assets
                     break;
                 case "Group":
                     ((RndGroup)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "InlineHelp":
+                    ((InlineHelp)entry.obj).Write(writer, true, this, entry);
                     break;
                 case "Light":
                     ((RndLight)entry.obj).Write(writer, true, this, entry);
@@ -1151,6 +1157,9 @@ namespace MiloLib.Assets
                     break;
                 case "UIColor":
                     ((UIColor)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "UIComponent":
+                    ((UIComponent)entry.obj).Write(writer, true, this, entry);
                     break;
                 // re-enable when the class is 100%
                 //case "CharClip":
