@@ -1,23 +1,25 @@
 ﻿using MiloLib.Classes;
 using MiloLib.Utils;
 
-namespace MiloLib.Assets.Char
+namespace MiloLib.Assets.UI
 {
-    [Name("CharClipGroup"), Description("A related group of animations.  Gives you the lru one.  Usually no extension.")]
-    public class CharClipGroup : Object
+    [Name("UIGuide"), Description("a guide used to line up UI elements")]
+    public class UIGuide : Object
     {
+        public enum Type
+        {
+            kGuideVertical,
+            kGuideHorizontal
+        }
         private ushort altRevision;
         private ushort revision;
 
-        private uint clipCount;
-        [Name("Clips"), Description("LRU list of clips belonging to this group")]
-        public List<Symbol> clips = new();
+        [Name("Type"), Description("Horizontal or vertical guide?")]
+        public Type type;
+        [Name("Position"), Description("position in proportion to screen width (if vertical) or height (if horizontal)")]
+        public float pos;
 
-        public int which;
-
-        public uint flags;
-
-        public CharClipGroup Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
+        public UIGuide Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
@@ -25,16 +27,8 @@ namespace MiloLib.Assets.Char
 
             base.Read(reader, false, parent, entry);
 
-            clipCount = reader.ReadUInt32();
-            for (int i = 0; i < clipCount; i++)
-            {
-                clips.Add(Symbol.Read(reader));
-            }
-
-            which = reader.ReadInt32();
-
-            if (revision > 1)
-                flags = reader.ReadUInt32();
+            type = (Type)reader.ReadInt32();
+            pos = reader.ReadFloat();
 
             if (standalone)
                 if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");
@@ -48,15 +42,8 @@ namespace MiloLib.Assets.Char
 
             base.Write(writer, false, parent, entry);
 
-            writer.WriteUInt32((uint)clips.Count);
-            foreach (var clip in clips)
-            {
-                Symbol.Write(writer, clip);
-            }
-
-            writer.WriteInt32(which);
-            if (revision > 1)
-                writer.WriteUInt32(flags);
+            writer.WriteInt32((int)type);
+            writer.WriteFloat(pos);
 
             if (standalone)
                 writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });

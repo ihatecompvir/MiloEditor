@@ -200,6 +200,14 @@ namespace MiloLib.Assets.Rnd
         public bool keepMeshData;
         public bool hasAOCalculation;
 
+        public bool excludeFromSelfShadow;
+
+        public bool unkBool1;
+        public bool unkBool2;
+        public uint unkInt1;
+
+        public Sphere sphere = new();
+
 
         public RndMesh Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
@@ -209,14 +217,33 @@ namespace MiloLib.Assets.Rnd
 
             base.Read(reader, false, parent, entry);
 
+
             trans = trans.Read(reader, false, parent, entry);
             draw = draw.Read(reader, false, parent, entry);
-            mat = Symbol.Read(reader);
-            geomOwner = Symbol.Read(reader);
-            mutable = (Mutable)reader.ReadUInt32();
-            volume = (Volume)reader.ReadUInt32();
 
-            bspNode = bspNode.Read(reader);
+            if (revision <= 10)
+            {
+                mat = Symbol.Read(reader);
+                geomOwner = Symbol.Read(reader);
+            }
+
+            if (revision < 16)
+                if (revision > 11)
+                    unkBool1 = reader.ReadBoolean();
+                else
+                    mutable = (Mutable)reader.ReadUInt32();
+
+            if (revision > 17)
+                volume = (Volume)reader.ReadUInt32();
+
+            if (revision > 18)
+                bspNode = bspNode.Read(reader);
+
+            if (revision == 7)
+                unkBool2 = reader.ReadBoolean();
+
+            if (revision < 11)
+                unkInt1 = reader.ReadUInt32();
 
             vertices = vertices.Read(reader, revision);
 
@@ -244,7 +271,10 @@ namespace MiloLib.Assets.Rnd
             if (revision > 33)
             {
                 keepMeshData = reader.ReadBoolean();
-                hasAOCalculation = reader.ReadBoolean();
+                if (revision == 37)
+                    excludeFromSelfShadow = reader.ReadBoolean();
+                else if (revision >= 38)
+                    hasAOCalculation = reader.ReadBoolean();
             }
 
 

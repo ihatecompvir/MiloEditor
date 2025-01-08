@@ -1,4 +1,5 @@
 ﻿using MiloLib.Assets.Band;
+using MiloLib.Assets.Band.UI;
 using MiloLib.Assets.Char;
 using MiloLib.Assets.Ham;
 using MiloLib.Assets.P9;
@@ -743,6 +744,10 @@ namespace MiloLib.Assets
                     Debug.WriteLine("Reading entry AnimFilter " + entry.name.value);
                     entry.obj = new RndAnimFilter().Read(reader, true, this, entry);
                     break;
+                case "BandButton":
+                    Debug.WriteLine("Reading entry BandButton " + entry.name.value);
+                    entry.obj = new BandButton().Read(reader, true, this, entry);
+                    break;
                 case "BandCharDesc":
                     Debug.WriteLine("Reading entry BandCharDesc " + entry.name.value);
                     entry.obj = new BandCharDesc().Read(reader, true, this, entry);
@@ -770,6 +775,10 @@ namespace MiloLib.Assets
                 case "CharClipGroup":
                     Debug.WriteLine("Reading entry CharClipGroup " + entry.name.value);
                     entry.obj = new CharClipGroup().Read(reader, true, this, entry);
+                    break;
+                case "CharGuitarString":
+                    Debug.WriteLine("Reading entry CharGuitarString " + entry.name.value);
+                    entry.obj = new CharGuitarString().Read(reader, true, this, entry);
                     break;
                 case "CharMeshHide":
                     Debug.WriteLine("Reading entry CharMeshHide " + entry.name.value);
@@ -867,6 +876,10 @@ namespace MiloLib.Assets
                 case "UIColor":
                     Debug.WriteLine("Reading entry UIColor" + entry.name.value);
                     entry.obj = new UIColor().Read(reader, true, this, entry);
+                    break;
+                case "UIGuide":
+                    Debug.WriteLine("Reading entry UIGuide " + entry.name.value);
+                    entry.obj = new UIGuide().Read(reader, true, this, entry);
                     break;
                 case "WorldCrowd":
                     Debug.WriteLine("Reading entry WorldCrowd " + entry.name.value);
@@ -1099,6 +1112,9 @@ namespace MiloLib.Assets
                 case "CharClipGroup":
                     ((CharClipGroup)entry.obj).Write(writer, true, this, entry);
                     break;
+                case "CharGuitarString":
+                    ((CharGuitarString)entry.obj).Write(writer, true, this, entry);
+                    break;
                 case "CharMeshHide":
                     ((CharMeshHide)entry.obj).Write(writer, true, this, entry);
                     break;
@@ -1160,6 +1176,9 @@ namespace MiloLib.Assets
                     break;
                 case "UIComponent":
                     ((UIComponent)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "UIGuide":
+                    ((UIGuide)entry.obj).Write(writer, true, this, entry);
                     break;
                 // re-enable when the class is 100%
                 //case "CharClip":

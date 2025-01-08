@@ -120,6 +120,9 @@ namespace MiloEditor
             imageList.Images.Add("WorldInstance", Image.FromFile("Images/WorldInstance.png"));
             imageList.Images.Add("CharClipGroup", Image.FromFile("Images/CharClipGroup.png"));
             imageList.Images.Add("CheckboxDisplay", Image.FromFile("Images/CheckboxDisplay.png"));
+            imageList.Images.Add("UIListDir", Image.FromFile("Images/UIListDir.png"));
+            imageList.Images.Add("UIGuide", Image.FromFile("Images/UIGuide.png"));
+            imageList.Images.Add("InlineHelp", Image.FromFile("Images/InlineHelp.png"));
             imageList.Images.Add("", Image.FromFile("Images/NoDir.png"));
 
             imageList.ColorDepth = ColorDepth.Depth32Bit;
@@ -321,7 +324,30 @@ namespace MiloEditor
             if (e.Node.Tag is DirectoryMeta.Entry entry && e.Button == MouseButtons.Left)
             {
                 if (entry.obj != null)
+                {
                     CreateEditorPanelForAsset(entry.obj);
+                }
+                else
+                {
+                    // show an unsupported asset panel so its clear the app is still actually functioning, instead of just showing nothing
+                    splitContainer1.Panel2.Controls.Clear();
+
+                    var unsupportedPanel = new Panel
+                    {
+                        Dock = DockStyle.Fill
+                    };
+
+                    var unsupportedLabel = new Label
+                    {
+                        Text = "The asset type " + entry.type.value + " is not currently supported.",
+                        Dock = DockStyle.Fill,
+                        TextAlign = ContentAlignment.MiddleCenter,
+                        ForeColor = Color.Black,
+                    };
+
+                    unsupportedPanel.Controls.Add(unsupportedLabel);
+                    splitContainer1.Panel2.Controls.Add(unsupportedPanel);
+                }
             }
 
             // context menu logic for right-click

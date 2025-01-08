@@ -3,21 +3,18 @@ using MiloLib.Utils;
 
 namespace MiloLib.Assets.Char
 {
-    [Name("CharClipGroup"), Description("A related group of animations.  Gives you the lru one.  Usually no extension.")]
-    public class CharClipGroup : Object
+    [Name("CharGuitarString"), Description("moves a bone based on the position of the hand, nut, and bridge")]
+    public class CharGuitarString : Object
     {
         private ushort altRevision;
         private ushort revision;
 
-        private uint clipCount;
-        [Name("Clips"), Description("LRU list of clips belonging to this group")]
-        public List<Symbol> clips = new();
+        public Symbol nut = new(0, "");
+        public Symbol bridge = new(0, "");
+        public Symbol bend = new(0, "");
+        public Symbol target = new(0, "");
 
-        public int which;
-
-        public uint flags;
-
-        public CharClipGroup Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
+        public CharGuitarString Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
@@ -25,16 +22,10 @@ namespace MiloLib.Assets.Char
 
             base.Read(reader, false, parent, entry);
 
-            clipCount = reader.ReadUInt32();
-            for (int i = 0; i < clipCount; i++)
-            {
-                clips.Add(Symbol.Read(reader));
-            }
-
-            which = reader.ReadInt32();
-
-            if (revision > 1)
-                flags = reader.ReadUInt32();
+            nut = Symbol.Read(reader);
+            bridge = Symbol.Read(reader);
+            bend = Symbol.Read(reader);
+            target = Symbol.Read(reader);
 
             if (standalone)
                 if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");
@@ -48,15 +39,10 @@ namespace MiloLib.Assets.Char
 
             base.Write(writer, false, parent, entry);
 
-            writer.WriteUInt32((uint)clips.Count);
-            foreach (var clip in clips)
-            {
-                Symbol.Write(writer, clip);
-            }
-
-            writer.WriteInt32(which);
-            if (revision > 1)
-                writer.WriteUInt32(flags);
+            Symbol.Write(writer, nut);
+            Symbol.Write(writer, bridge);
+            Symbol.Write(writer, bend);
+            Symbol.Write(writer, target);
 
             if (standalone)
                 writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });

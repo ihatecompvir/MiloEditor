@@ -35,8 +35,8 @@ namespace MiloLib.Assets.UI
                 return $"{joypadAction} {symbol} {symbol2}";
             }
         }
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
 
         public bool horizontal;
         public float spacing;

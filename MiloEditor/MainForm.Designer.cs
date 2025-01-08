@@ -50,6 +50,7 @@
             filterComboBox = new ComboBox();
             filterLabel = new Label();
             miloSceneItemsTree = new TreeView();
+            toolsToolStripMenuItem = new ToolStripMenuItem();
             statusStrip1.SuspendLayout();
             menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
@@ -82,7 +83,7 @@
             // 
             // menuStrip1
             // 
-            menuStrip1.Items.AddRange(new ToolStripItem[] { fileToolStripMenuItem, helpToolStripMenuItem });
+            menuStrip1.Items.AddRange(new ToolStripItem[] { fileToolStripMenuItem, toolsToolStripMenuItem, helpToolStripMenuItem });
             menuStrip1.Location = new Point(0, 0);
             menuStrip1.Name = "menuStrip1";
             menuStrip1.Size = new Size(1264, 24);
@@ -156,19 +157,19 @@
             // aboutToolStripMenuItem
             // 
             aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
-            aboutToolStripMenuItem.Size = new Size(112, 22);
+            aboutToolStripMenuItem.Size = new Size(180, 22);
             aboutToolStripMenuItem.Text = "About";
             aboutToolStripMenuItem.Click += aboutToolStripMenuItem_Click;
             // 
             // toolStripSeparator4
             // 
             toolStripSeparator4.Name = "toolStripSeparator4";
-            toolStripSeparator4.Size = new Size(109, 6);
+            toolStripSeparator4.Size = new Size(177, 6);
             // 
             // githubLinkMenuItem
             // 
             githubLinkMenuItem.Name = "githubLinkMenuItem";
-            githubLinkMenuItem.Size = new Size(112, 22);
+            githubLinkMenuItem.Size = new Size(180, 22);
             githubLinkMenuItem.Text = "GitHub";
             githubLinkMenuItem.Click += githubLinkMenuItem_Click;
             // 
@@ -221,6 +222,12 @@
             miloSceneItemsTree.Size = new Size(256, 604);
             miloSceneItemsTree.TabIndex = 2;
             // 
+            // toolsToolStripMenuItem
+            // 
+            toolsToolStripMenuItem.Name = "toolsToolStripMenuItem";
+            toolsToolStripMenuItem.Size = new Size(47, 20);
+            toolsToolStripMenuItem.Text = "Tools";
+            // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -271,5 +278,6 @@
         private Label filterLabel;
         private ComboBox filterComboBox;
         private ToolStripStatusLabel miloSceneDetailsLabel;
+        private ToolStripMenuItem toolsToolStripMenuItem;
     }
 }

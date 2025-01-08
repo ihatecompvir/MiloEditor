@@ -32,6 +32,7 @@
     <None Remove="Images\FileMerger.png" />
     <None Remove="Images\Font.png" />
     <None Remove="Images\Group.png" />
+    <None Remove="Images\InlineHelp.png" />
     <None Remove="Images\Line.png" />
     <None Remove="Images\Lipsync.png" />
     <None Remove="Images\MatAnim.png" />
@@ -58,7 +59,9 @@
     <None Remove="Images\TransProxy.png" />
     <None Remove="Images\Trigger.png" />
     <None Remove="Images\UIColor.png" />
+    <None Remove="Images\UIGuide.png" />
     <None Remove="Images\UILabel.png" />
+    <None Remove="Images\UIListDir.png" />
     <None Remove="Images\WorldDir.png" />
     <None Remove="Images\WorldInstance.png" />
   </ItemGroup>
@@ -104,6 +107,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Images\Group.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\InlineHelp.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Images\Line.png">
@@ -184,7 +190,13 @@
     <Content Include="Images\UIColor.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Images\UIGuide.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Images\UILabel.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\UIListDir.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Images\WorldDir.png">

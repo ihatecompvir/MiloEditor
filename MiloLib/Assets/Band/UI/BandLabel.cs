@@ -1,6 +1,7 @@
 ﻿using MiloLib.Assets.Rnd;
 using MiloLib.Classes;
 using MiloLib.Utils;
+using System.Reflection.PortableExecutable;
 
 namespace MiloLib.Assets.UI
 {
@@ -23,6 +24,17 @@ namespace MiloLib.Assets.UI
 
         public Symbol inAnim;
         public Symbol outAnim;
+
+        public Symbol oldLabelType = new(0, "");
+
+        public int dummy;
+
+        private uint oldLabelColorNum;
+
+        public int unkInt1;
+        public int unkInt2;
+        public int unkInt3;
+        public int unkInt4;
 
         public BandLabel Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
@@ -149,32 +161,31 @@ namespace MiloLib.Assets.UI
 
             return this;
         }
-        private void LoadOldBandTextComp(EndianReader bs)
+        public void LoadOldBandTextComp(EndianReader reader)
         {
-            int rev = bs.ReadInt32();
-            Symbol s;
-            if (rev > 2)
+            uint combinedRevision = reader.ReadUInt32();
+            if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
+            else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
+
+            if (revision > 2)
             {
-                Console.WriteLine("Can't load new BandTextComp");
                 return;
             }
             else
             {
-                if (rev < 1)
+                if (revision < 1)
                 {
-                    int a, b, c, d;
-                    a = bs.ReadInt32();
-                    b = bs.ReadInt32();
-                    c = bs.ReadInt32();
-                    d = bs.ReadInt32();
+                    unkInt1 = reader.ReadInt32();
+                    unkInt1 = reader.ReadInt32();
+                    unkInt1 = reader.ReadInt32();
+                    unkInt1 = reader.ReadInt32();
                 }
-                s = Symbol.Read(bs);
-                if (s == "custom_colors")
+                oldLabelType = Symbol.Read(reader);
+                if (oldLabelType == "custom_colors")
                 {
-                    int dummy;
-                    int num = 4;
-                    if (rev >= 2) num = bs.ReadInt32();
-                    for (int i = 0; i < num; i++) dummy = bs.ReadInt32();
+                    oldLabelColorNum = 4;
+                    if (revision >= 2) oldLabelColorNum = reader.ReadUInt32();
+                    for (int i = 0; i < oldLabelColorNum; i++) dummy = reader.ReadInt32();
                 }
             }
         }
