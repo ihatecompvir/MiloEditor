@@ -31,9 +31,10 @@ class Program
     private static bool errorModalOpen;
     private static string errorModalMessage;
 
-    private static Object viewingObject;
+    private static object viewingObject;
     private static string filter = "";
     private static bool filterActive;
+    private static List<object> breadcrumbs = [];
     
     static void Main(string[] args)
     {
@@ -217,6 +218,34 @@ class Program
         }
     }
 
+    /// <summary>
+    /// Makes the editor pane view the specified object, for editing.
+    /// </summary>
+    /// <param name="toView">The object to view.</param>
+    /// <param name="breadcrumb">Whether or not to lay "breadcrumbs", which allows for easy navigation to the parent object</param>
+    public static void NavigateObject(object toView, bool breadcrumb = false)
+    {
+        Console.WriteLine("Navigating to " + toView.GetType().Name);
+        viewingObject = toView;
+        if (breadcrumb)
+        {
+            if (!breadcrumbs.Contains(toView))
+            {
+                breadcrumbs.Add(toView);
+            }
+            else
+            {
+                var index = breadcrumbs.IndexOf(toView);
+                breadcrumbs.RemoveAll(x => breadcrumbs.IndexOf(x) > index);
+            }
+        }
+        else
+        {
+            breadcrumbs.Clear();
+            breadcrumbs.Add(toView);
+        }
+    }
+
     static void DirNode(DirectoryMeta dir, int id = 0, bool root = false)
     {
         var filterActive = filter != "";
@@ -256,7 +285,7 @@ class Program
                 }
             }
             if (ImGui.IsItemClicked() && !ImGui.IsItemToggledOpen())
-                viewingObject = dir.directory;
+                NavigateObject(dir.directory);
             var i = 0;
             //ImGui.Indent();
             if (dir.directory is ObjectDir objDir && objDir.inlineSubDirs.Count > 0)
@@ -275,7 +304,7 @@ class Program
                 i++;
                 if (matchesFilter)
                 {
-                    ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1f, 1f, 0f, 1f));
+                    ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0f, 0f, 1f, 1f));
                 }
                 if (entry.dir != null)
                 {
@@ -297,7 +326,7 @@ class Program
                     }
                     if (ImGui.Selectable(entry.name, viewingObject != null && viewingObject == entry.obj) && entry.obj != null)
                     {
-                        viewingObject = entry.obj;
+                        NavigateObject(entry.obj);
                     }
                     unsafe
                     {
@@ -331,7 +360,7 @@ class Program
         else
         {
             if (ImGui.IsItemClicked() && !ImGui.IsItemToggledOpen())
-                viewingObject = dir.directory;
+                NavigateObject(dir.directory);
         }
         ImGui.PopID();
     }
@@ -365,6 +394,27 @@ class Program
             ImGui.BeginGroup();
             ImGui.BeginChild("right pane", new Vector2(0, ImGui.GetContentRegionAvail().Y));
 
+            if (breadcrumbs.Count > 1)
+            {
+                for (int i = 0; i < breadcrumbs.Count; i++)
+                {
+                    var obj = breadcrumbs[i];
+                    if (i < breadcrumbs.Count - 1)
+                    {
+                        if (ImGui.Button(obj.ToString()))
+                        {
+                            NavigateObject(obj, true);
+                        }
+                        ImGui.SameLine();
+                        ImGui.Text(">");
+                        ImGui.SameLine();
+                    }
+                    else
+                    {
+                        ImGui.Text(obj.ToString());
+                    }
+                }
+            }
             
             if (viewingObject != null)
             {
