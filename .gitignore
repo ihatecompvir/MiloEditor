@@ -398,6 +398,8 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+.idea
+# lemme know if i shouldn't gitignore the .idea folder, seems pointless for dotnet projects
 
 # do not include test data in testing repo to avoid uploading game files
 MiloLib.Tests/TestData/
