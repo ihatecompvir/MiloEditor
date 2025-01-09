@@ -64,7 +64,7 @@ namespace MiloEditor
 
         private Image GetMiloIconImage(string assetType)
         {
-            return Image.FromStream(Icons.GetMiloIconStream(assetType));
+            return Image.FromStream(Icons.GetMiloIconStream(Icons.MapTypeName(assetType)));
         }
 
         private void LoadAssetClassImages()
