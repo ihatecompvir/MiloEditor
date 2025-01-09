@@ -43,6 +43,14 @@ public class Settings
     [Name("Hide Nested Hmx::Object Fields"), Description("Hides the \"Object Fields\" area if an object is nested in another. Typically these fields are redundant and only matter for the parent object.")]
     public bool HideNestedHMXObjectFields = true;
     
+    /// <summary>
+    /// The instance of Settings that is edited by the user.
+    /// Use for things that can change at runtime.
+    /// </summary>
     public static Settings Current = new Settings();
+    /// <summary>
+    /// An internal copy of Settings that only contains the settings loaded from disk.
+    /// Use for things that cannot change at runtime.
+    /// </summary>
     public static Settings Startup = new Settings();
 }
