@@ -5,6 +5,7 @@ using MiloLib.Assets.Ham;
 using MiloLib.Assets.P9;
 using MiloLib.Assets.Rnd;
 using MiloLib.Assets.UI;
+using MiloLib.Assets.World;
 using MiloLib.Classes;
 using MiloLib.Utils;
 using System;
@@ -57,7 +58,7 @@ namespace MiloLib.Assets
             public bool isEntryInRootDir;
 
             /// <summary>
-            /// Set when the object has been added or otherwise created through a non-serialized fashion (i.e. as raw bytes)
+            /// RndSet when the object has been added or otherwise created through a non-serialized fashion (i.e. as raw bytes)
             /// </summary>
             public bool dirty = false;
 
@@ -756,6 +757,10 @@ namespace MiloLib.Assets
                     Debug.WriteLine("Reading entry BandConfiguration " + entry.name.value);
                     entry.obj = new BandConfiguration().Read(reader, true, this, entry);
                     break;
+                case "BandDirector":
+                    Debug.WriteLine("Reading entry BandDirector " + entry.name.value);
+                    entry.obj = new BandDirector().Read(reader, true, this, entry);
+                    break;
                 case "BandLabel":
                     Debug.WriteLine("Reading entry BandLabel " + entry.name.value);
                     entry.obj = new BandLabel().Read(reader, true, this, entry);
@@ -841,13 +846,17 @@ namespace MiloLib.Assets
                     Debug.WriteLine("Reading entry ParticleSys " + entry.name.value);
                     entry.obj = new RndParticleSys().Read(reader, true, this, entry);
                     break;
+                case "PollAnim":
+                    Debug.WriteLine("Reading entry PollAnim " + entry.name.value);
+                    entry.obj = new RndPollAnim().Read(reader, true, this, entry);
+                    break;
                 case "ScreenMask":
                     Debug.WriteLine("Reading entry ScreenMask " + entry.name.value);
                     entry.obj = new RndScreenMask().Read(reader, true, this, entry);
                     break;
-                case "Set":
-                    Debug.WriteLine("Reading entry Set " + entry.name.value);
-                    entry.obj = new Set().Read(reader, true, this, entry);
+                case "RndSet":
+                    Debug.WriteLine("Reading entry RndSet " + entry.name.value);
+                    entry.obj = new RndSet().Read(reader, true, this, entry);
                     break;
                 case "Sfx":
                     Debug.WriteLine("Reading entry Sfx " + entry.name.value);
@@ -881,9 +890,17 @@ namespace MiloLib.Assets
                     Debug.WriteLine("Reading entry UIGuide " + entry.name.value);
                     entry.obj = new UIGuide().Read(reader, true, this, entry);
                     break;
+                case "Wind":
+                    Debug.WriteLine("Reading entry Wind " + entry.name.value);
+                    entry.obj = new RndWind().Read(reader, true, this, entry);
+                    break;
                 case "WorldCrowd":
                     Debug.WriteLine("Reading entry WorldCrowd " + entry.name.value);
                     entry.obj = new WorldCrowd().Read(reader, true, this, entry);
+                    break;
+                case "WorldReflection":
+                    Debug.WriteLine("Reading entry WorldReflection " + entry.name.value);
+                    entry.obj = new WorldReflection().Read(reader, true, this, entry);
                     break;
                 // re-enable when the class is 100%
                 //case "CharClip":
@@ -1097,6 +1114,9 @@ namespace MiloLib.Assets
                 case "BandConfiguration":
                     ((BandConfiguration)entry.obj).Write(writer, true, this, entry);
                     break;
+                case "BandDirector":
+                    ((BandDirector)entry.obj).Write(writer, true, this, entry);
+                    break;
                 case "BandLabel":
                     ((BandLabel)entry.obj).Write(writer, true, this, entry);
                     break;
@@ -1147,11 +1167,14 @@ namespace MiloLib.Assets
                 case "ParticleSys":
                     ((RndParticleSys)entry.obj).Write(writer, true, this, entry);
                     break;
+                case "PollAnim":
+                    ((RndPollAnim)entry.obj).Write(writer, true, this, entry);
+                    break;
                 case "ScreenMask":
                     ((RndScreenMask)entry.obj).Write(writer, true, this, entry);
                     break;
-                case "Set":
-                    ((Set)entry.obj).Write(writer, true, this, entry);
+                case "RndSet":
+                    ((RndSet)entry.obj).Write(writer, true, this, entry);
                     break;
                 case "Sfx":
                     ((Sfx)entry.obj).Write(writer, true, this, entry);
@@ -1179,6 +1202,12 @@ namespace MiloLib.Assets
                     break;
                 case "UIGuide":
                     ((UIGuide)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "Wind":
+                    ((RndWind)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "WorldReflection":
+                    ((WorldReflection)entry.obj).Write(writer, true, this, entry);
                     break;
                 // re-enable when the class is 100%
                 //case "CharClip":

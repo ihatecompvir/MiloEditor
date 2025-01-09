@@ -1,29 +1,36 @@
 ﻿using MiloLib.Classes;
 using MiloLib.Utils;
 
-namespace MiloLib.Assets
+namespace MiloLib.Assets.Rnd
 {
-    [Name("Set"), Description("A group of objects to propagate animation and messages")]
-    public class Set : Object
+    [Name("RndPollAnim"), Description("Class that drives Anims with time based on their rate.")]
+    public class RndPollAnim : Object
     {
         public ushort altRevision;
         public ushort revision;
 
-        private uint setObjectsCount;
-        public List<Symbol> setObjects = new();
+        public RndAnimatable anim = new();
+        public Object poll = new();
 
-        public Set Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
+        private uint animsCount;
+        [Name("Anims"), Description("List of anims that will have SetFrame called on them according to their rate and the TheTaskMgr.Seconds or Beat")]
+        public List<Symbol> anims = new();
+
+        public RndPollAnim Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
             else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
 
-            base.objFields.Read(reader, parent, entry);
+            base.Read(reader, false, parent, entry);
 
-            setObjectsCount = reader.ReadUInt32();
-            for (int i = 0; i < setObjectsCount; i++)
+            anim = anim.Read(reader, parent, entry);
+            poll = poll.Read(reader, false, parent, entry);
+
+            animsCount = reader.ReadUInt32();
+            for (int i = 0; i < animsCount; i++)
             {
-                setObjects.Add(Symbol.Read(reader));
+                anims.Add(Symbol.Read(reader));
             }
 
             if (standalone)
@@ -38,10 +45,13 @@ namespace MiloLib.Assets
 
             base.Write(writer, false, parent, entry);
 
-            writer.WriteUInt32(setObjectsCount);
-            foreach (Symbol setObj in setObjects)
+            anim.Write(writer);
+            poll.Write(writer, false, parent, entry);
+
+            writer.WriteUInt32((uint)anims.Count);
+            foreach (Symbol anim in anims)
             {
-                Symbol.Write(writer, setObj);
+                Symbol.Write(writer, anim);
             }
 
             if (standalone)

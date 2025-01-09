@@ -144,7 +144,7 @@ namespace MiloLib.Assets.Rnd
         public class BSPNode
         {
             public bool hasValue;
-            public MiloLib.Classes.Vector4 vec;
+            public MiloLib.Classes.Vector4 vec = new();
             public BSPNode? left;
             public BSPNode? right;
 

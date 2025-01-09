@@ -3,7 +3,7 @@ using MiloLib.Classes;
 using MiloLib.Assets.UI;
 using MiloLib.Assets.Rnd;
 
-namespace MiloLib.Assets
+namespace MiloLib.Assets.World
 {
     [Name("WorldDir"), Description("A WorldDir contains world perObjs.")]
     public class WorldDir : PanelDir
@@ -76,8 +76,8 @@ namespace MiloLib.Assets
         public WorldDir Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
             uint combinedRevision = reader.ReadUInt32();
-            if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
-            else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
+            if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)(combinedRevision >> 16 & 0xFFFF));
+            else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)(combinedRevision >> 16 & 0xFFFF));
 
             if (revision != 0 && revision < 5)
             {
@@ -203,7 +203,7 @@ namespace MiloLib.Assets
 
         public override void Write(EndianWriter writer, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry? entry)
         {
-            writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
+            writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)(altRevision << 16 | revision) : (uint)(revision << 16 | altRevision));
 
             if (revision != 0 && revision < 5)
             {
