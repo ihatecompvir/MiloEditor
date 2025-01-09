@@ -1,0 +1,56 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netcoreapp8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+    
+    <ItemGroup>
+        <EmbeddedResource Include="Images/AnimFilter.png" LogicalName="AnimFilter" />
+        <EmbeddedResource Include="Images/BandCharDesc.png" LogicalName="BandCharDesc" />
+        <EmbeddedResource Include="Images/BandCrowdMeterDir.png" LogicalName="BandCrowdMeterDir" />
+        <EmbeddedResource Include="Images/BandStarDisplay.png" LogicalName="BandStarDisplay" />
+        <EmbeddedResource Include="Images/Button.png" LogicalName="Button" />
+        <EmbeddedResource Include="Images/Camera.png" LogicalName="Camera" />
+        <EmbeddedResource Include="Images/Character.png" LogicalName="Character" />
+        <EmbeddedResource Include="Images/CharClip.png" LogicalName="CharClip" />
+        <EmbeddedResource Include="Images/CharClipGroup.png" LogicalName="CharClipGroup" />
+        <EmbeddedResource Include="Images/CheckboxDisplay.png" LogicalName="CheckboxDisplay" />
+        <EmbeddedResource Include="Images/ColorPalette.png" LogicalName="ColorPalette" />
+        <EmbeddedResource Include="Images/default.png" LogicalName="default" />
+        <EmbeddedResource Include="Images/Environ.png" LogicalName="Environ" />
+        <EmbeddedResource Include="Images/FileMerger.png" LogicalName="FileMerger" />
+        <EmbeddedResource Include="Images/Font.png" LogicalName="Font" />
+        <EmbeddedResource Include="Images/Group.png" LogicalName="Group" />
+        <EmbeddedResource Include="Images/Line.png" LogicalName="Line" />
+        <EmbeddedResource Include="Images/Lipsync.png" LogicalName="Lipsync" />
+        <EmbeddedResource Include="Images/MatAnim.png" LogicalName="MatAnim" />
+        <EmbeddedResource Include="Images/MeshAnim.png" LogicalName="MeshAnim" />
+        <EmbeddedResource Include="Images/MidiInstrument.png" LogicalName="MidiInstrument" />
+        <EmbeddedResource Include="Images/NoDir.png" LogicalName="NoDir" />
+        <EmbeddedResource Include="Images/ObjectDir.png" LogicalName="ObjectDir" />
+        <EmbeddedResource Include="Images/ParticleSys.png" LogicalName="ParticleSys" />
+        <EmbeddedResource Include="Images/PostProc.png" LogicalName="PostProc" />
+        <EmbeddedResource Include="Images/PropAnim.png" LogicalName="PropAnim" />
+        <EmbeddedResource Include="Images/RndAnim.png" LogicalName="RndAnim" />
+        <EmbeddedResource Include="Images/RndDir.png" LogicalName="RndDir" />
+        <EmbeddedResource Include="Images/RndLight.png" LogicalName="RndLight" />
+        <EmbeddedResource Include="Images/RndMat.png" LogicalName="RndMat" />
+        <EmbeddedResource Include="Images/RndMesh.png" LogicalName="RndMesh" />
+        <EmbeddedResource Include="Images/RndMultiMesh.png" LogicalName="RndMultiMesh" />
+        <EmbeddedResource Include="Images/RndTex.png" LogicalName="RndTex" />
+        <EmbeddedResource Include="Images/RndTrans.png" LogicalName="RndTrans" />
+        <EmbeddedResource Include="Images/ScreenMask.png" LogicalName="ScreenMask" />
+        <EmbeddedResource Include="Images/Sfx.png" LogicalName="Sfx" />
+        <EmbeddedResource Include="Images/TexMovie.png" LogicalName="TexMovie" />
+        <EmbeddedResource Include="Images/Text.png" LogicalName="Text" />
+        <EmbeddedResource Include="Images/TransAnim.png" LogicalName="TransAnim" />
+        <EmbeddedResource Include="Images/TransProxy.png" LogicalName="TransProxy" />
+        <EmbeddedResource Include="Images/Trigger.png" LogicalName="Trigger" />
+        <EmbeddedResource Include="Images/UIColor.png" LogicalName="UIColor" />
+        <EmbeddedResource Include="Images/UILabel.png" LogicalName="UILabel" />
+        <EmbeddedResource Include="Images/WorldDir.png" LogicalName="WorldDir" />
+        <EmbeddedResource Include="Images/WorldInstance.png" LogicalName="WorldInstance" />
+    </ItemGroup>
+</Project>

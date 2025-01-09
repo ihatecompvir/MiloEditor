@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MiloUtil", "MiloUtil\MiloUt
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImMilo", "ImMilo\ImMilo.csproj", "{C77D0F65-A9E9-45A9-BD0F-82460D62BBFF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MiloIcons", "MiloIcons\MiloIcons.csproj", "{CF9118C0-5F5E-471A-8A3D-A523AE7FFA66}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{C77D0F65-A9E9-45A9-BD0F-82460D62BBFF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C77D0F65-A9E9-45A9-BD0F-82460D62BBFF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C77D0F65-A9E9-45A9-BD0F-82460D62BBFF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CF9118C0-5F5E-471A-8A3D-A523AE7FFA66}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CF9118C0-5F5E-471A-8A3D-A523AE7FFA66}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CF9118C0-5F5E-471A-8A3D-A523AE7FFA66}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CF9118C0-5F5E-471A-8A3D-A523AE7FFA66}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
