@@ -76,6 +76,13 @@ class Program
             gd.SwapBuffers(gd.MainSwapchain);
         }
 
+        if (!System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform
+                .Windows))
+        {
+            // Linux bodge: Veldrid has some shitty bugs on Linux that cause WaitForIdle to hang. Just exit!
+            Environment.Exit(0);
+        }
+        
         // Clean up Veldrid resources
         gd.WaitForIdle();
         controller.Dispose();
