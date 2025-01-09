@@ -123,6 +123,7 @@ namespace MiloEditor
             imageList.Images.Add("UIListDir", Image.FromFile("Images/UIListDir.png"));
             imageList.Images.Add("UIGuide", Image.FromFile("Images/UIGuide.png"));
             imageList.Images.Add("InlineHelp", Image.FromFile("Images/InlineHelp.png"));
+            imageList.Images.Add("CharInterest", Image.FromFile("Images/CharInterest.png"));
             imageList.Images.Add("", Image.FromFile("Images/NoDir.png"));
 
             imageList.ColorDepth = ColorDepth.Depth32Bit;

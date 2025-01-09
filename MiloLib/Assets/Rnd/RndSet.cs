@@ -38,7 +38,7 @@ namespace MiloLib.Assets.Rnd
 
             base.Write(writer, false, parent, entry);
 
-            writer.WriteUInt32((uint)setObjects.Count));
+            writer.WriteUInt32((uint)setObjects.Count);
             foreach (Symbol setObj in setObjects)
             {
                 Symbol.Write(writer, setObj);

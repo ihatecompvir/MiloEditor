@@ -25,6 +25,7 @@
     <None Remove="Images\Character.png" />
     <None Remove="Images\CharClip.png" />
     <None Remove="Images\CharClipGroup.png" />
+    <None Remove="Images\CharInterest.png" />
     <None Remove="Images\CheckboxDisplay.png" />
     <None Remove="Images\ColorPalette.png" />
     <None Remove="Images\default.png" />
@@ -92,6 +93,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Images\CharClipGroup.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\CharInterest.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Images\ColorPalette.png">

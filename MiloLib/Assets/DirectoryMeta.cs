@@ -785,6 +785,10 @@ namespace MiloLib.Assets
                     Debug.WriteLine("Reading entry CharGuitarString " + entry.name.value);
                     entry.obj = new CharGuitarString().Read(reader, true, this, entry);
                     break;
+                case "CharInterest":
+                    Debug.WriteLine("Reading entry CharInterest " + entry.name.value);
+                    entry.obj = new CharInterest().Read(reader, true, this, entry);
+                    break;
                 case "CharMeshHide":
                     Debug.WriteLine("Reading entry CharMeshHide " + entry.name.value);
                     entry.obj = new CharMeshHide().Read(reader, true, this, entry);
@@ -881,6 +885,10 @@ namespace MiloLib.Assets
                 case "Trans":
                     Debug.WriteLine("Reading entry Trans " + entry.name.value);
                     entry.obj = new RndTrans().Read(reader, true, this, entry);
+                    break;
+                case "TransProxy":
+                    Debug.WriteLine("Reading entry TransProxy " + entry.name.value);
+                    entry.obj = new RndTransProxy().Read(reader, true, this, entry);
                     break;
                 case "UIColor":
                     Debug.WriteLine("Reading entry UIColor" + entry.name.value);
@@ -1135,6 +1143,9 @@ namespace MiloLib.Assets
                 case "CharGuitarString":
                     ((CharGuitarString)entry.obj).Write(writer, true, this, entry);
                     break;
+                case "CharInterest":
+                    ((CharInterest)entry.obj).Write(writer, true, this, entry);
+                    break;
                 case "CharMeshHide":
                     ((CharMeshHide)entry.obj).Write(writer, true, this, entry);
                     break;
@@ -1193,6 +1204,9 @@ namespace MiloLib.Assets
                     break;
                 case "Trans":
                     ((RndTrans)entry.obj).Write(writer, true, false);
+                    break;
+                case "TransProxy":
+                    ((RndTransProxy)entry.obj).Write(writer, true, this, entry);
                     break;
                 case "UIColor":
                     ((UIColor)entry.obj).Write(writer, true, this, entry);
