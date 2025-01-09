@@ -13,14 +13,16 @@ namespace ImMilo;
 
 public class EditorPanel
 {
-
     public static bool HideFieldDescriptions = false;
     public static bool HideNestedHMXObjectFields = true;
-    
+
     // Cache for Reflection info
     private static Dictionary<Type, List<FieldInfo>> _fieldCache = new Dictionary<Type, List<FieldInfo>>();
     private static Dictionary<Type, NameAttribute> _nameAttributeCache = new Dictionary<Type, NameAttribute>();
-    private static Dictionary<Type, DescriptionAttribute> _descriptionAttributeCache = new Dictionary<Type, DescriptionAttribute>();
+
+    private static Dictionary<Type, DescriptionAttribute> _descriptionAttributeCache =
+        new Dictionary<Type, DescriptionAttribute>();
+
     private static Dictionary<Type, List<string>> _enumValueCache = new Dictionary<Type, List<string>>();
 
     private static List<string> GetCachedEnumValues(Type enumType)
@@ -54,10 +56,13 @@ public class EditorPanel
             while (typeHierarchy.Count > 0)
             {
                 var current = typeHierarchy.Pop();
-                fields.AddRange(current.GetFields(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly | BindingFlags.FlattenHierarchy));
+                fields.AddRange(current.GetFields(BindingFlags.Public | BindingFlags.Instance |
+                                                  BindingFlags.DeclaredOnly | BindingFlags.FlattenHierarchy));
             }
+
             _fieldCache[type] = fields;
         }
+
         return fields;
     }
 
@@ -68,6 +73,7 @@ public class EditorPanel
             attribute = type.GetCustomAttribute<NameAttribute>();
             _nameAttributeCache[type] = attribute;
         }
+
         return attribute;
     }
 
@@ -78,9 +84,10 @@ public class EditorPanel
             attribute = type.GetCustomAttribute<DescriptionAttribute>();
             _descriptionAttributeCache[type] = attribute;
         }
+
         return attribute;
     }
-    
+
     private object ResolveFieldOwner(object currentObject, FieldInfo field)
     {
         Type declaringType = field.DeclaringType;
@@ -90,7 +97,8 @@ public class EditorPanel
             return currentObject;
         }
 
-        var fields = currentObject.GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+        var fields = currentObject.GetType()
+            .GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
         foreach (var f in fields)
         {
             var fieldValue = f.GetValue(currentObject);
@@ -99,6 +107,7 @@ public class EditorPanel
                 return ResolveFieldOwner(fieldValue, field);
             }
         }
+
         return null;
     }
 
@@ -151,8 +160,10 @@ public class EditorPanel
                 case decimal d:
                     if ((decimal)(double)d != d)
                     {
-                        Console.WriteLine("Warning: Decimal field " + field.Name + " has a value that is truncated when converted to Double.");
+                        Console.WriteLine("Warning: Decimal field " + field.Name +
+                                          " has a value that is truncated when converted to Double.");
                     }
+
                     var tempDouble = (double)d;
                     changed = ImGui.InputDouble("", ref tempDouble);
                     newVal = tempDouble; //Not sure how to implement decimal properly. Just using a double.
@@ -168,15 +179,15 @@ public class EditorPanel
                 field.SetValue(obj, newVal);
             }
         }
-        
     }
 
-    public static void Draw(object obj, int id = 0, bool drawLabels = true, ImGuiTableFlags toggleFlags = ImGuiTableFlags.None)
+    public static void Draw(object obj, int id = 0, bool drawLabels = true,
+        ImGuiTableFlags toggleFlags = ImGuiTableFlags.None)
     {
-        
         Type objType = obj.GetType();
-        
-        var revisionField = obj.GetType().GetField("revision", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+
+        var revisionField = obj.GetType()
+            .GetField("revision", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
         uint revision = 0;
 
         if (revisionField != null && revisionField.FieldType == typeof(ushort))
@@ -188,28 +199,28 @@ public class EditorPanel
         {
             var objNameAttr = GetCachedNameAttribute(objType);
             var objDescriptionAttr = GetCachedDescriptionAttribute(objType);
-        
+
             ImGui.Text(objNameAttr?.Value ?? $"Type: {objType.Name}");
             ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 0.5f);
             ImGui.TextWrapped(objDescriptionAttr?.Value ?? "No description available.");
-            
+
             ImGui.PopStyleVar();
-            ImGui.BeginChild("editor values##"+objType.Name);
+            ImGui.BeginChild("editor values##" + objType.Name);
         }
-        
-        
+
+
         ImGui.PushID(id);
         ImGui.PushID(obj.GetHashCode());
 
         ImGuiTableFlags flags = ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.SizingStretchProp;
         flags ^= toggleFlags;
-        
+
         var subID = 0;
         ImGui.PushStyleVar(ImGuiStyleVar.CellPadding, new Vector2(2, 3));
         if (ImGui.BeginTable("Object fields", 2, flags))
         {
             var fields = GetCachedFields(objType);
-            
+
             //ImGui.TableSetColumnIndex(0);
             ImGui.TableSetupColumn("Field label", ImGuiTableColumnFlags.None, 20);
             //ImGui.TableSetColumnIndex(1);
@@ -218,21 +229,22 @@ public class EditorPanel
             foreach (var field in fields)
             {
                 ImGui.PushID(subID);
+                
                 var nameAttr = field.GetCustomAttribute<NameAttribute>();
                 var descriptionAttr = field.GetCustomAttribute<DescriptionAttribute>();
 
                 string displayName = nameAttr?.Value ?? field.Name;
                 string description = descriptionAttr?.Value;
-                
+
                 ImGui.TableNextRow();
-                
+
                 ImGui.TableSetColumnIndex(0);
                 ImGui.TextWrapped(displayName);
                 if (description != null)
                 {
                     if (HideFieldDescriptions)
                     {
-                        ImGui.SameLine();   
+                        ImGui.SameLine();
                         ImGui.TextDisabled("(?)");
                         if (ImGui.BeginItemTooltip())
                         {
@@ -248,230 +260,18 @@ public class EditorPanel
                         ImGui.TextWrapped(description);
                         ImGui.PopStyleVar();
                     }
-                }
-                
+                }   
+
                 ImGui.TableSetColumnIndex(1);
-                var fieldValue = field.GetValue(obj);
-                switch (fieldValue)
-                {
-                    case object stringValue when field.FieldType == typeof(string) || field.FieldType.Name == "Symbol":
-                        var str = stringValue.ToString();
-                        if (ImGui.InputText("", ref str, 128))
-                        {
-                            // check if type is Symbol
-                            if (fieldValue != null && fieldValue.GetType().Name == "Symbol")
-                            {
-                                field.SetValue(obj, new Symbol((uint)str.Length, str));
-                            }
-                            else
-                            {
-                                // if it's not a Symbol, just set the value to the text
-                                field.SetValue(obj, new String(str));
-                            }
-                        }
-
-                        if (fieldValue.GetType().Name == "Symbol")
-                        {
-                            unsafe
-                            {
-                                if (ImGui.BeginDragDropTarget())
-                                {
-                                    ImGuiPayloadPtr payload = ImGui.AcceptDragDropPayload("TreeEntryObject"); //TODO: maybe make a wrapper for drag and drop, it will be used later.
-                                    if (payload.NativePtr != null)
-                                    {
-                                        byte* payDataPtr = (byte*)payload.NativePtr->Data;
-                                        byte[] payData = new byte[payload.DataSize];
-                                        for (int i = 0; i < payload.DataSize; i++)
-                                        {
-                                            payData[i] = payDataPtr[i];
-                                        }
-                                        var rebuildString = Encoding.UTF8.GetString(payData);
-                                        field.SetValue(obj, new Symbol((uint)rebuildString.Length, rebuildString));
-                                    }
-                                    payload = ImGui.AcceptDragDropPayload("TreeEntryDir");
-                                    if (payload.NativePtr != null)
-                                    {
-                                        byte* payDataPtr = (byte*)payload.NativePtr->Data;
-                                        byte[] payData = new byte[payload.DataSize];
-                                        for (int i = 0; i < payload.DataSize; i++)
-                                        {
-                                            payData[i] = payDataPtr[i];
-                                        }
-                                        var rebuildString = Encoding.UTF8.GetString(payData);
-                                        field.SetValue(obj, new Symbol((uint)rebuildString.Length, rebuildString));
-                                    }
-                                    ImGui.EndDragDropTarget();
-                                }
-                            }
-                        }
-                        break;
-                    case List<Symbol> symbolsValue:
-                        ImGui.BeginChild("symbols##"+field.GetHashCode(), new Vector2(0, 100f), ImGuiChildFlags.Borders | ImGuiChildFlags.ResizeY);
-                        for (int i = 0; i < symbolsValue.Count; i++)
-                        {
-                            var symbol = symbolsValue[i];
-                            var stringValue = symbol.ToString();
-                            if (ImGui.Button("-##"+i))
-                            {
-                                symbolsValue.Remove(symbol);
-                                field.SetValue(obj, symbolsValue);
-                                i--;
-                                continue;
-                            }
-                            ImGui.SameLine();
-                            if (ImGui.InputText("##" + i, ref stringValue, 128))
-                            {
-                                var symbolValue = new Symbol((uint)stringValue.Length, stringValue);
-                                symbolsValue[i] = symbolValue;
-                                field.SetValue(obj, symbolsValue);
-                            }
-                        }
-
-                        if (ImGui.Button("+"))
-                        {
-                            symbolsValue.Add(new Symbol(0, ""));
-                            field.SetValue(obj, symbolsValue);
-                        }
-                        ImGui.EndChild();
-                        unsafe
-                        {
-                            if (ImGui.BeginDragDropTarget())
-                            {
-                                ImGuiPayloadPtr payload = ImGui.AcceptDragDropPayload("TreeEntryObject"); //TODO: maybe make a wrapper for drag and drop, it will be used later.
-                                if (payload.NativePtr != null)
-                                {
-                                    byte* payDataPtr = (byte*)payload.NativePtr->Data;
-                                    byte[] payData = new byte[payload.DataSize];
-                                    for (int i = 0; i < payload.DataSize; i++)
-                                    {
-                                        payData[i] = payDataPtr[i];
-                                    }
-                                    var rebuildString = Encoding.UTF8.GetString(payData);
-                                    symbolsValue.Add(new Symbol((uint)rebuildString.Length, rebuildString));
-                                    field.SetValue(obj, symbolsValue);
-                                }
-                                payload = ImGui.AcceptDragDropPayload("TreeEntryDir");
-                                if (payload.NativePtr != null)
-                                {
-                                    byte* payDataPtr = (byte*)payload.NativePtr->Data;
-                                    byte[] payData = new byte[payload.DataSize];
-                                    for (int i = 0; i < payload.DataSize; i++)
-                                    {
-                                        payData[i] = payDataPtr[i];
-                                    }
-                                    var rebuildString = Encoding.UTF8.GetString(payData);
-                                    symbolsValue.Add(new Symbol((uint)rebuildString.Length, rebuildString));
-                                    field.SetValue(obj, symbolsValue);
-                                }
-                                ImGui.EndDragDropTarget();
-                            }
-                        }
-                        break;
-                    case IEnumerable collection:
-                    {
-                        //ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
-                        ImGui.BeginChild("values##" + field.GetHashCode(), new Vector2(0, 50),
-                            ImGuiChildFlags.Borders | ImGuiChildFlags.ResizeY);
-                        var i = 0;
-                        foreach (var value in collection)
-                        {
-                            i++;
-                            ImGui.PushID(i);
-                            if (ImGui.CollapsingHeader(value.ToString()+"##"+i))
-                            {
-                                ImGui.Indent();
-                                if (ImGui.Button("Full View"))
-                                {
-                                    Program.NavigateObject(value, true);
-                                }
-                                Draw(value, i, false);
-                                ImGui.Unindent();
-                            }
-                            ImGui.PopID();
-                        }
-                        ImGui.EndChild();
-                        //ImGui.PopStyleVar();
-                        break;
-                    }
-                    case bool boolValue:
-                        if (ImGui.Checkbox("", ref boolValue))
-                        {
-                            field.SetValue(obj, boolValue);
-                        }
-
-                        break;
-                    case Matrix matrixValue:
-                        ImGui.Text("(Matrix hidden)"); // TODO: nice gridded matrix editor
-                        break;
-                    case HmxColor3 colorValue:
-                    {
-                        var tempVec = new System.Numerics.Vector3(colorValue.r, colorValue.g, colorValue.b);
-                        if (ImGui.ColorEdit3("##color3", ref tempVec, ImGuiColorEditFlags.Float))
-                        {
-                            colorValue.r = tempVec.X;
-                            colorValue.g = tempVec.Y;
-                            colorValue.b = tempVec.Z;
-                            field.SetValue(obj, colorValue);
-                        }
-
-                        break;
-                    }
-                    case HmxColor4 colorValue:
-                    {
-                        var tempVec = new System.Numerics.Vector4(colorValue.r, colorValue.g, colorValue.b, colorValue.a);
-                        if (ImGui.ColorEdit4("##color3", ref tempVec, ImGuiColorEditFlags.Float))
-                        {
-                            colorValue.r = tempVec.X;
-                            colorValue.g = tempVec.Y;
-                            colorValue.b = tempVec.Z;
-                            colorValue.a = tempVec.W;
-                            field.SetValue(obj, colorValue);
-                        }
-                        break;
-                    }
-                    case object primitiveValue when field.FieldType.IsPrimitive:
-                        DrawPrimitiveEdit(obj, primitiveValue, field);
-                        ImGui.SameLine();
-                        ImGui.TextDisabled(field.FieldType.Name);
-                        break;
-                    case object enumValue when field.FieldType.IsEnum:
-                        var values = GetCachedEnumValues(field.FieldType);
-                        var curValue = values.IndexOf(enumValue.ToString());
-                        if (ImGui.Combo("", ref curValue, values.ToArray(), values.Count))
-                        {
-                            field.SetValue(obj, Enum.Parse(field.FieldType, values[curValue]));
-                        }
-                        break;
-                    case null when field.FieldType.FullName == "Symbol":
-                        ImGui.Text("(null symbol)");
-                        ImGui.SameLine();
-                        if (ImGui.Button("Create Symbol"))
-                        {
-                            field.SetValue(obj, new Symbol(0, ""));
-                        }
-                        break;
-                    case object nestedObject when fieldValue != null:
-
-                        if (HideNestedHMXObjectFields && !drawLabels && nestedObject.GetType() == typeof(ObjectFields))
-                        {
-                            ImGui.TextDisabled("(nested fields hidden)");
-                        }
-                        else
-                        {
-                            Draw(nestedObject, id+1, false, ImGuiTableFlags.NoPadOuterX | ImGuiTableFlags.BordersOuter);
-                        }
-                        break;
-                    default:
-                        ImGui.TextWrapped(field.FieldType.FullName);
-                        ImGui.Text("(No editor)");
-                        break;
-                }
-                ImGui.PopID();
+                
+                ValueEditor(field, obj, drawLabels, id);
                 id++;
                 subID++;
             }
+
             ImGui.EndTable();
         }
+
         ImGui.PopStyleVar();
         ImGui.PopID();
         ImGui.PopID();
@@ -479,5 +279,256 @@ public class EditorPanel
         {
             ImGui.EndChild();
         }
+    }
+
+    public static void ValueEditor(FieldInfo field, object parent, bool drawLabels = false, int id = 0)
+    {
+        var fieldValue = field.GetValue(parent);
+        switch (fieldValue)
+        {
+            case object stringValue when field.FieldType == typeof(string) || field.FieldType.Name == "Symbol":
+                var str = stringValue.ToString();
+                if (ImGui.InputText("", ref str, 128))
+                {
+                    // check if type is Symbol
+                    if (fieldValue != null && fieldValue.GetType().Name == "Symbol")
+                    {
+                        field.SetValue(parent, new Symbol((uint)str.Length, str));
+                    }
+                    else
+                    {
+                        // if it's not a Symbol, just set the value to the text
+                        field.SetValue(parent, new String(str));
+                    }
+                }
+
+                if (fieldValue.GetType().Name == "Symbol")
+                {
+                    unsafe
+                    {
+                        if (ImGui.BeginDragDropTarget())
+                        {
+                            ImGuiPayloadPtr
+                                payload = ImGui.AcceptDragDropPayload(
+                                    "TreeEntryObject"); //TODO: maybe make a wrapper for drag and drop, it will be used later.
+                            if (payload.NativePtr != null)
+                            {
+                                byte* payDataPtr = (byte*)payload.NativePtr->Data;
+                                byte[] payData = new byte[payload.DataSize];
+                                for (int i = 0; i < payload.DataSize; i++)
+                                {
+                                    payData[i] = payDataPtr[i];
+                                }
+
+                                var rebuildString = Encoding.UTF8.GetString(payData);
+                                field.SetValue(parent, new Symbol((uint)rebuildString.Length, rebuildString));
+                            }
+
+                            payload = ImGui.AcceptDragDropPayload("TreeEntryDir");
+                            if (payload.NativePtr != null)
+                            {
+                                byte* payDataPtr = (byte*)payload.NativePtr->Data;
+                                byte[] payData = new byte[payload.DataSize];
+                                for (int i = 0; i < payload.DataSize; i++)
+                                {
+                                    payData[i] = payDataPtr[i];
+                                }
+
+                                var rebuildString = Encoding.UTF8.GetString(payData);
+                                field.SetValue(parent, new Symbol((uint)rebuildString.Length, rebuildString));
+                            }
+
+                            ImGui.EndDragDropTarget();
+                        }
+                    }
+                }
+
+                break;
+            case List<Symbol> symbolsValue:
+                ImGui.BeginChild("symbols##" + field.GetHashCode(), new Vector2(0, 100f),
+                    ImGuiChildFlags.Borders | ImGuiChildFlags.ResizeY);
+                for (int i = 0; i < symbolsValue.Count; i++)
+                {
+                    var symbol = symbolsValue[i];
+                    var stringValue = symbol.ToString();
+                    if (ImGui.Button("-##" + i))
+                    {
+                        symbolsValue.Remove(symbol);
+                        field.SetValue(parent, symbolsValue);
+                        i--;
+                        continue;
+                    }
+
+                    ImGui.SameLine();
+                    if (ImGui.InputText("##" + i, ref stringValue, 128))
+                    {
+                        var symbolValue = new Symbol((uint)stringValue.Length, stringValue);
+                        symbolsValue[i] = symbolValue;
+                        field.SetValue(parent, symbolsValue);
+                    }
+                }
+
+                if (ImGui.Button("+"))
+                {
+                    symbolsValue.Add(new Symbol(0, ""));
+                    field.SetValue(parent, symbolsValue);
+                }
+
+                ImGui.EndChild();
+                unsafe
+                {
+                    if (ImGui.BeginDragDropTarget())
+                    {
+                        ImGuiPayloadPtr
+                            payload = ImGui.AcceptDragDropPayload(
+                                "TreeEntryObject"); //TODO: maybe make a wrapper for drag and drop, it will be used later.
+                        if (payload.NativePtr != null)
+                        {
+                            byte* payDataPtr = (byte*)payload.NativePtr->Data;
+                            byte[] payData = new byte[payload.DataSize];
+                            for (int i = 0; i < payload.DataSize; i++)
+                            {
+                                payData[i] = payDataPtr[i];
+                            }
+
+                            var rebuildString = Encoding.UTF8.GetString(payData);
+                            symbolsValue.Add(new Symbol((uint)rebuildString.Length, rebuildString));
+                            field.SetValue(parent, symbolsValue);
+                        }
+
+                        payload = ImGui.AcceptDragDropPayload("TreeEntryDir");
+                        if (payload.NativePtr != null)
+                        {
+                            byte* payDataPtr = (byte*)payload.NativePtr->Data;
+                            byte[] payData = new byte[payload.DataSize];
+                            for (int i = 0; i < payload.DataSize; i++)
+                            {
+                                payData[i] = payDataPtr[i];
+                            }
+
+                            var rebuildString = Encoding.UTF8.GetString(payData);
+                            symbolsValue.Add(new Symbol((uint)rebuildString.Length, rebuildString));
+                            field.SetValue(parent, symbolsValue);
+                        }
+
+                        ImGui.EndDragDropTarget();
+                    }
+                }
+
+                break;
+            case IEnumerable collection:
+            {
+                //ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
+                ImGui.BeginChild("values##" + field.GetHashCode(), new Vector2(0, 50),
+                    ImGuiChildFlags.Borders | ImGuiChildFlags.ResizeY);
+                var i = 0;
+                foreach (var value in collection)
+                {
+                    i++;
+                    ImGui.PushID(i);
+                    if (ImGui.CollapsingHeader(value.ToString() + "##" + i))
+                    {
+                        /*
+                        Editing the object in a way that changes its ToString output causes the header
+                        to change, changing the storage values for what ImGui uses to track open state.
+                        This causes the header to close when an edit is made.
+                        TODO: fix this!
+                        */
+                        ImGui.Indent();
+                        if (ImGui.Button("Full View"))
+                        {
+                            Program.NavigateObject(value, true);
+                        }
+
+                        Draw(value, i, false);
+                        ImGui.Unindent();
+                    }
+
+                    ImGui.PopID();
+                }
+
+                ImGui.EndChild();
+                //ImGui.PopStyleVar();
+                break;
+            }
+            case bool boolValue:
+                if (ImGui.Checkbox("", ref boolValue))
+                {
+                    field.SetValue(parent, boolValue);
+                }
+
+                break;
+            case Matrix matrixValue:
+                ImGui.Text("(Matrix hidden)"); // TODO: nice gridded matrix editor
+                break;
+            case HmxColor3 colorValue:
+            {
+                var tempVec = new System.Numerics.Vector3(colorValue.r, colorValue.g, colorValue.b);
+                if (ImGui.ColorEdit3("##color3", ref tempVec, ImGuiColorEditFlags.Float))
+                {
+                    colorValue.r = tempVec.X;
+                    colorValue.g = tempVec.Y;
+                    colorValue.b = tempVec.Z;
+                    field.SetValue(parent, colorValue);
+                }
+
+                break;
+            }
+            case HmxColor4 colorValue:
+            {
+                var tempVec = new System.Numerics.Vector4(colorValue.r, colorValue.g, colorValue.b, colorValue.a);
+                if (ImGui.ColorEdit4("##color3", ref tempVec, ImGuiColorEditFlags.Float))
+                {
+                    colorValue.r = tempVec.X;
+                    colorValue.g = tempVec.Y;
+                    colorValue.b = tempVec.Z;
+                    colorValue.a = tempVec.W;
+                    field.SetValue(parent, colorValue);
+                }
+
+                break;
+            }
+            case object primitiveValue when field.FieldType.IsPrimitive:
+                DrawPrimitiveEdit(parent, primitiveValue, field);
+                ImGui.SameLine();
+                ImGui.TextDisabled(field.FieldType.Name);
+                break;
+            case object enumValue when field.FieldType.IsEnum:
+                var values = GetCachedEnumValues(field.FieldType);
+                var curValue = values.IndexOf(enumValue.ToString());
+                if (ImGui.Combo("", ref curValue, values.ToArray(), values.Count))
+                {
+                    field.SetValue(parent, Enum.Parse(field.FieldType, values[curValue]));
+                }
+
+                break;
+            case null when field.FieldType.FullName == "Symbol":
+                ImGui.Text("(null symbol)");
+                ImGui.SameLine();
+                if (ImGui.Button("Create Symbol"))
+                {
+                    field.SetValue(parent, new Symbol(0, ""));
+                }
+
+                break;
+            case object nestedObject when fieldValue != null:
+
+                if (HideNestedHMXObjectFields && !drawLabels && nestedObject.GetType() == typeof(ObjectFields))
+                {
+                    ImGui.TextDisabled("(nested fields hidden)");
+                }
+                else
+                {
+                    Draw(nestedObject, id + 1, false, ImGuiTableFlags.NoPadOuterX | ImGuiTableFlags.BordersOuter);
+                }
+
+                break;
+            default:
+                ImGui.TextWrapped(field.FieldType.FullName);
+                ImGui.Text("(No editor)");
+                break;
+        }
+
+        ImGui.PopID();
     }
 }
