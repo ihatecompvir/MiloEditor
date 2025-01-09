@@ -13,9 +13,6 @@ namespace ImMilo;
 
 public class EditorPanel
 {
-    public static bool HideFieldDescriptions = false;
-    public static bool HideNestedHMXObjectFields = true;
-
     // Cache for Reflection info
     private static Dictionary<Type, List<FieldInfo>> _fieldCache = new Dictionary<Type, List<FieldInfo>>();
     private static Dictionary<Type, NameAttribute> _nameAttributeCache = new Dictionary<Type, NameAttribute>();
@@ -242,7 +239,7 @@ public class EditorPanel
                 ImGui.TextWrapped(displayName);
                 if (description != null)
                 {
-                    if (HideFieldDescriptions)
+                    if (Settings.Current.HideFieldDescriptions)
                     {
                         ImGui.SameLine();
                         ImGui.TextDisabled("(?)");
@@ -513,7 +510,7 @@ public class EditorPanel
                 break;
             case object nestedObject when fieldValue != null:
 
-                if (HideNestedHMXObjectFields && !drawLabels && nestedObject.GetType() == typeof(ObjectFields))
+                if (Settings.Current.HideNestedHMXObjectFields && !drawLabels && nestedObject.GetType() == typeof(ObjectFields))
                 {
                     ImGui.TextDisabled("(nested fields hidden)");
                 }

@@ -63,6 +63,44 @@ public class ImGuiController : IDisposable
         io.ConfigFlags |= ImGuiConfigFlags.NavEnableKeyboard;
         io.Fonts.Flags |= ImFontAtlasFlags.NoBakedLines;
 
+        var fontSize = 13;
+
+
+        unsafe
+        {
+            var assembly = typeof(ImGuiController).Assembly;
+            var fontStream = assembly.GetManifestResourceStream("UIFont");
+            var data = new byte[fontStream.Length];
+            fontStream.ReadExactly(data);
+            ImFontConfigPtr confPtr = ImGuiNative.ImFontConfig_ImFontConfig();
+            confPtr.FontBuilderFlags = (uint)(ImGuiFreeTypeBuilderFlags.LoadColor);
+            confPtr.OversampleH = 2;
+            confPtr.OversampleV = 1;
+            confPtr.RasterizerDensity = 1;
+            ImFontPtr font;
+            fixed (byte* ptr = data)
+            {
+                //font = io.Fonts.AddFontFromMemoryTTF((IntPtr)ptr, (int)fontStream.Length, 16.0f, confPtr);
+                font = io.Fonts.AddFontDefault();
+                //confPtr.SizePixels = 16;
+                confPtr.GlyphOffset = Vector2.Zero;
+                ushort[] PUA_RANGE = [0xE000, 0xF8FF, 0];
+                ImFontPtr iconFontPtr;
+                fixed (ushort* pPUA_RANGE = PUA_RANGE)
+                {
+                    iconFontPtr = io.Fonts.AddFontFromMemoryTTF((IntPtr)ptr, (int)fontStream.Length, 24.0f, confPtr, (IntPtr)pPUA_RANGE);
+                }
+                confPtr.MergeMode = true;
+                confPtr.GlyphOffset = new Vector2(0, -6);
+                //confPtr.SizePixels = 24;
+                //io.Fonts.AddFontFromMemoryTTF((IntPtr)ptr, (int)fontStream.Length, 16.0f, confPtr);
+                io.Fonts.AddFontDefault(confPtr);
+                Util.CreateIconsInFont(iconFontPtr);
+                Util.iconFont = iconFontPtr;
+            }
+            
+        }
+
         CreateDeviceResources(gd, outputDescription);
         SetPerFrameImGuiData(1f / 60f);
         ImGui.NewFrame();
