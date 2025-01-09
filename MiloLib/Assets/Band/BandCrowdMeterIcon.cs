@@ -47,7 +47,7 @@ namespace MiloLib.Assets.Band
 
             if (revision > 0)
             {
-                throw new UnsupportedAssetRevisionException("BandCrowdMeterDir", revision);
+                throw new UnsupportedAssetRevisionException("CrowdMeterDir", revision);
             }
 
             base.Read(reader, false, parent, entry);

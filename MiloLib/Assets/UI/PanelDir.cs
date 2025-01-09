@@ -26,29 +26,29 @@ namespace MiloLib.Assets.UI
         };
         private ushort altRevision;
         private ushort revision;
-        [Name("Camera"), Description("Camera to use in game, else standard UI cam")]
-        public Symbol cam = new(0, "");
+        [Name("Camera"), Description("Camera to use in game, else standard UI cam"), MinVersion(1)]
+        public Symbol cam;
 
         [Name("Use Specified Camera"), Description("Forces the usage of the 'cam' property to render in milo. This is a milo only feature.")]
         public bool useSpecifiedCam;
 
-        [Name("Back View Only Panels"), Description("Additional panels to display behind this panel.")]
-        public List<Symbol> backPanels = new List<Symbol>();
-        public List<Symbol> backFilenames = new List<Symbol>();
-        [Name("Front View Only Panels"), Description("Additional panels to display in front of this panel.")]
-        public List<Symbol> frontPanels = new List<Symbol>();
-        public List<Symbol> frontFilenames = new List<Symbol>();
-        [Name("Post Processes Before Draw"), Description("Trigger postprocs before drawing this panel. If checked, this panel will not be affected by the postprocs.")]
-
+        [Name("Back View Only Panels"), Description("Additional panels to display behind this panel."), MinVersion(5)]
+        public List<Symbol> backPanels = new();
+        [Name("Front View Only Panels"), Description("Additional panels to display in front of this panel."), MinVersion(5)]
+        public List<Symbol> frontPanels = new();
+        [Name("Post Processes Before Draw"), Description("Trigger postprocs before drawing this panel. If checked, this panel will not be affected by the postprocs."), MinVersion(8)]
         public bool postProcsBeforeDraw;
-        [Name("Show View Only Panels"), Description("Whether or no this panel displays its view only panels")]
+        [Name("Show View Only Panels"), Description("Whether or no this panel displays its view only panels"), MinVersion(6)]
         public bool showViewOnlyPanels;
 
+        [MinVersion(7)]
         public bool canEndWorld;
 
-        public Symbol testEvent = new(0, "");
+        [Name("Test Event"), MinVersion(2), MaxVersion(2)]
+        public Symbol testEvent;
 
-        public Symbol unknownSymbol = new(0, "");
+        [MinVersion(2)]
+        public Symbol unknownSymbol;
 
         public PanelDir(ushort revision, ushort altRevision = 0) : base(revision, altRevision)
         {
@@ -66,7 +66,7 @@ namespace MiloLib.Assets.UI
             base.Read(reader, false, parent, entry);
 
             // if this is not an entry inside another directory (as in, not an inlined subdir), read the camera
-            if (!entry.isEntryInRootDir)
+            if (!entry.isProxy)
             {
                 if (revision != 0)
                     cam = Symbol.Read(reader);
@@ -94,14 +94,12 @@ namespace MiloLib.Assets.UI
             if (revision > 4)
             {
                 int frontPanelCount = reader.ReadInt32();
-                frontPanels = new List<Symbol>();
                 for (int i = 0; i < frontPanelCount; i++)
                 {
                     frontPanels.Add(Symbol.Read(reader));
                 }
 
                 int backPanelCount = reader.ReadInt32();
-                backPanels = new List<Symbol>();
                 for (int i = 0; i < backPanelCount; i++)
                 {
                     backPanels.Add(Symbol.Read(reader));
@@ -128,7 +126,7 @@ namespace MiloLib.Assets.UI
 
             base.Write(writer, false, parent, entry);
 
-            if (!entry.isEntryInRootDir)
+            if (!entry.isProxy)
             {
                 if (revision != 0)
                     Symbol.Write(writer, cam);

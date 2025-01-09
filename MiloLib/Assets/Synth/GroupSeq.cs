@@ -10,11 +10,12 @@ namespace MiloLib.Assets.Synth
         public ushort altRevision;
         public ushort revision;
 
+        [Name("Sequence"), Description("The sequence to play"), MinVersion(2)]
         public Sfx.Sequence seq = new();
 
         private uint childrenCount;
 
-        [Name("Children"), Description("The children of this sequence")]
+        [Name("Children"), Description("The children of this sequence"), MinVersion(2)]
         public List<Symbol> children = new();
 
         public GroupSeq Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)

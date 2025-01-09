@@ -1,6 +1,7 @@
 ﻿using MiloLib.Assets.Rnd;
 using MiloLib.Classes;
 using MiloLib.Utils;
+using System.Reflection.PortableExecutable;
 
 namespace MiloLib.Assets.Band
 {
@@ -10,7 +11,8 @@ namespace MiloLib.Assets.Band
         public ushort altRevision;
         public ushort revision;
 
-        public Symbol sym = new(0, "");
+        [Name("Star Display"), Description("Star display proxy object.")]
+        public Symbol starDisplay = new(0, "");
 
         public BandScoreboard(ushort revision, ushort altRevision = 0) : base(revision, altRevision)
         {
@@ -25,9 +27,9 @@ namespace MiloLib.Assets.Band
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)(combinedRevision >> 16 & 0xFFFF));
             else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)(combinedRevision >> 16 & 0xFFFF));
 
-            if (!entry.isEntryInRootDir)
+            if (!entry.isProxy)
             {
-                sym = Symbol.Read(reader);
+                starDisplay = Symbol.Read(reader);
             }
 
             base.Read(reader, false, parent, entry);
@@ -41,6 +43,11 @@ namespace MiloLib.Assets.Band
         public override void Write(EndianWriter writer, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry? entry)
         {
             writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)(altRevision << 16 | revision) : (uint)(revision << 16 | altRevision));
+
+            if (!entry.isProxy)
+            {
+                Symbol.Write(writer, starDisplay);
+            }
 
             base.Write(writer, false, parent, entry);
 

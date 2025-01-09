@@ -317,7 +317,7 @@ namespace MiloLib.Assets.Char
             base.Read(reader, false, parent, entry);
 
             // these fields only present if dir is not proxied
-            if (revision < 4 || !entry.isEntryInRootDir)
+            if (revision < 4 || !entry.isProxy)
             {
                 lodCount = reader.ReadUInt32();
                 for (int i = 0; i < lodCount; i++)
@@ -380,7 +380,7 @@ namespace MiloLib.Assets.Char
             base.Write(writer, false, parent, entry);
 
 
-            if (revision < 4 || !entry.isEntryInRootDir)
+            if (revision < 4 || !entry.isProxy)
             {
                 writer.WriteUInt32((uint)lods.Count);
                 foreach (var lod in lods)

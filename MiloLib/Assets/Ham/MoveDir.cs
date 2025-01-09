@@ -29,7 +29,7 @@ namespace MiloLib.Assets.Ham
 
             base.Read(reader, false, parent, entry);
 
-            if (entry != null && !entry.isEntryInRootDir)
+            if (entry != null && !entry.isProxy)
             {
                 unkInt1 = reader.ReadUInt32();
                 unkInt2 = reader.ReadUInt32();
@@ -54,7 +54,7 @@ namespace MiloLib.Assets.Ham
 
             base.Write(writer, false, parent, entry);
 
-            if (entry != null && !entry.isEntryInRootDir)
+            if (entry != null && !entry.isProxy)
             {
                 writer.WriteUInt32(unkInt1);
                 writer.WriteUInt32(unkInt2);

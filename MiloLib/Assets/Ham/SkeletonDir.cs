@@ -44,7 +44,7 @@ namespace MiloLib.Assets.Ham
             base.Read(reader, false, parent, entry);
 
             // don't read these fields if the entry is in another directory
-            if (entry != null && !entry.isEntryInRootDir)
+            if (entry != null && !entry.isProxy)
             {
                 unknownSym = Symbol.Read(reader);
 
@@ -81,7 +81,7 @@ namespace MiloLib.Assets.Ham
 
             base.Write(writer, false, parent, entry);
 
-            if (entry != null && !entry.isEntryInRootDir)
+            if (entry != null && !entry.isProxy)
             {
 
                 Symbol.Write(writer, unknownSym);

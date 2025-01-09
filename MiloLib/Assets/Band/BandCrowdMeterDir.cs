@@ -82,7 +82,7 @@ namespace MiloLib.Assets.Band
             else
             {
                 // fields only read when dir is not proxied
-                if (!entry.isEntryInRootDir)
+                if (!entry.isProxy)
                 {
                     if (revision < 3)
                     {
@@ -137,7 +137,7 @@ namespace MiloLib.Assets.Band
                 return;
             }
 
-            if (!entry.isEntryInRootDir)
+            if (!entry.isProxy)
             {
                 if (revision < 3)
                 {
@@ -157,9 +157,9 @@ namespace MiloLib.Assets.Band
                     }
                 }
 
-                if (revision >= 1)
-                    writer.WriteFloat(peakValue);
             }
+            if (revision >= 1)
+                writer.WriteFloat(peakValue);
 
             base.Write(writer, false, parent, entry);
 

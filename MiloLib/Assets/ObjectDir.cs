@@ -82,13 +82,13 @@ namespace MiloLib.Assets
         [Name("Unknown String 1"), MinVersion(3), MaxVersion(10)]
         public Symbol unknownString = new(0, "");
 
-        [Name("Unknown String 2"), MinVersion(3), MaxVersion(10)]
-        public Symbol unknownString2 = new(0, "");
+        [Name("Unknown Camera Reference"), MinVersion(3), MaxVersion(10)]
+        public Symbol unknownCamReference = new(0, "");
 
         [Name("Unknown Object Reference 1"), MinVersion(2), MaxVersion(10)]
         public Symbol unknownObjRef1 = new(0, "");
 
-        [Name("Unknown Object Reference 2"), MinVersion(4), MaxVersion(10)]
+        [Name("Current Camera"), MinVersion(4), MaxVersion(10)]
         public Symbol currentCamera = new(0, "");
 
         [Name("Unknown String 3"), MinVersion(5), MaxVersion(5)]
@@ -285,12 +285,12 @@ namespace MiloLib.Assets
             if (entry.type.value == "WorldInstance")
             {
                 hasPersistentObjects = reader.ReadBoolean();
-                if (entry.isEntryInRootDir)
+                if (entry.isProxy)
                     return this;
             }
 
             unknownString = Symbol.Read(reader);
-            unknownString2 = Symbol.Read(reader);
+            unknownCamReference = Symbol.Read(reader);
 
             if (revision < 22)
             {
@@ -439,12 +439,12 @@ namespace MiloLib.Assets
             if (entry != null && entry.type.value == "WorldInstance")
             {
                 writer.WriteBoolean(hasPersistentObjects);
-                if (entry.isEntryInRootDir)
+                if (entry.isProxy)
                     return;
             }
 
             Symbol.Write(writer, unknownString);
-            Symbol.Write(writer, unknownString2);
+            Symbol.Write(writer, unknownCamReference);
 
             if (revision < 22)
             {

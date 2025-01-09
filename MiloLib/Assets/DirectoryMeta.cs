@@ -54,9 +54,10 @@ namespace MiloLib.Assets
             public DirectoryMeta? dir;
 
             /// <summary>
-            /// Whether or not the entry is inside of the root directory. Used to handle writing directories that are entries inside of another directory and not inlined subdirectories.
+            /// Whether or not the entry is an entry inside the root directory (aka proxied). Used to handle writing directories that are entries inside of another directory and not inlined subdirectories.
+            /// Non-directories do not have the concept of being proxied so it will always be false for objects that are not directories.
             /// </summary>
-            public bool isEntryInRootDir;
+            public bool isProxy;
 
             /// <summary>
             /// Set when the object has been added or otherwise created through a non-serialized fashion (i.e. as raw bytes)
@@ -248,8 +249,8 @@ namespace MiloLib.Assets
                     bandCrowdMeterDir.Read(reader, true, this, new Entry(type, name, bandCrowdMeterDir));
                     directory = bandCrowdMeterDir;
                     break;
-                case "BandCrowdMeterIcon":
-                    Debug.WriteLine("Reading BandCrowdMeterIcon " + name.value);
+                case "CrowdMeterIcon":
+                    Debug.WriteLine("Reading CrowdMeterIcon " + name.value);
                     BandCrowdMeterIcon crowdMeterIcon = new BandCrowdMeterIcon(0);
                     crowdMeterIcon.Read(reader, true, this, new Entry(type, name, crowdMeterIcon));
                     directory = crowdMeterIcon;
@@ -271,6 +272,12 @@ namespace MiloLib.Assets
                     WorldInstance worldInstance = new WorldInstance(0);
                     worldInstance.Read(reader, true, this, new Entry(type, name, worldInstance));
                     directory = worldInstance;
+                    break;
+                case "GemTrackDir":
+                    Debug.WriteLine("Reading GemTrackDir " + name.value);
+                    GemTrackDir gemTrackDir = new GemTrackDir(0);
+                    gemTrackDir.Read(reader, true, this, new Entry(type, name, gemTrackDir));
+                    directory = gemTrackDir;
                     break;
                 case "TrackPanelDir":
                     Debug.WriteLine("Reading TrackPanelDir " + name.value);
@@ -319,6 +326,24 @@ namespace MiloLib.Assets
                     OvershellDir overshellDir = new OvershellDir(0);
                     overshellDir.Read(reader, true, this, new Entry(type, name, overshellDir));
                     directory = overshellDir;
+                    break;
+                case "OverdriveMeterDir":
+                    Debug.WriteLine("Reading OverdriveMeterDir " + name.value);
+                    OverdriveMeterDir overdriveMeterDir = new OverdriveMeterDir(0);
+                    overdriveMeterDir.Read(reader, true, this, new Entry(type, name, overdriveMeterDir));
+                    directory = overdriveMeterDir;
+                    break;
+                case "StreakMeterDir":
+                    Debug.WriteLine("Reading StreakMeterDir " + name.value);
+                    StreakMeterDir streakMeterDir = new StreakMeterDir(0);
+                    streakMeterDir.Read(reader, true, this, new Entry(type, name, streakMeterDir));
+                    directory = streakMeterDir;
+                    break;
+                case "PitchArrowDir":
+                    Debug.WriteLine("Reading PitchArrowDir " + name.value);
+                    PitchArrowDir pitchArrowDir = new PitchArrowDir(0);
+                    pitchArrowDir.Read(reader, true, this, new Entry(type, name, pitchArrowDir));
+                    directory = pitchArrowDir;
                     break;
                 case "":
                     Debug.WriteLine("GH1-style empty directory detected, just reading children");
@@ -409,10 +434,13 @@ namespace MiloLib.Assets
                 case "UIListDir":
                     ((UIListDir)directory).Write(writer, true, this, new Entry(type, name, directory));
                     break;
+                //case "GemTrackDir":
+                //    ((GemTrackDir)directory).Write(writer, true, this, new Entry(type, name, directory));
+                //    break;
                 case "BandCrowdMeterDir":
                     ((BandCrowdMeterDir)directory).Write(writer, true, this, new Entry(type, name, directory));
                     break;
-                case "BandCrowdMeterIcon":
+                case "CrowdMeterIcon":
                     ((BandCrowdMeterIcon)directory).Write(writer, true, this, new Entry(type, name, directory));
                     break;
                 case "BandCharacter":
@@ -420,6 +448,9 @@ namespace MiloLib.Assets
                     break;
                 case "WorldInstance":
                     ((WorldInstance)directory).Write(writer, true, this, new Entry(type, name, directory));
+                    break;
+                case "TrackDir":
+                    ((TrackDir)directory).Write(writer, true, this, new Entry(type, name, directory));
                     break;
                 case "TrackPanelDir":
                     ((TrackPanelDir)directory).Write(writer, true, this, new Entry(type, name, directory));
@@ -439,14 +470,14 @@ namespace MiloLib.Assets
                 case "VocalTrackDir":
                     ((VocalTrackDir)directory).Write(writer, true, this, new Entry(type, name, directory));
                     break;
-                case "GemTrackDir":
-                    ((GemTrackDir)directory).Write(writer, true, this, new Entry(type, name, directory));
-                    break;
                 case "MoveDir":
                     ((MoveDir)directory).Write(writer, true, this, new Entry(type, name, directory));
                     break;
                 case "SkeletonDir":
                     ((SkeletonDir)directory).Write(writer, true, this, new Entry(type, name, directory));
+                    break;
+                case "PitchArrowDir":
+                    ((PitchArrowDir)directory).Write(writer, true, this, new Entry(type, name, directory));
                     break;
                 case "OvershellDir":
                     ((OvershellDir)directory).Write(writer, true, this, new Entry(type, name, directory));
@@ -454,6 +485,12 @@ namespace MiloLib.Assets
                 case "OverdriveMeterDir":
                     ((OverdriveMeterDir)directory).Write(writer, true, this, new Entry(type, name, directory));
                     break;
+                case "StreakMeterDir":
+                    ((StreakMeterDir)directory).Write(writer, true, this, new Entry(type, name, directory));
+                    break;
+                //case "VocalTrackDir":
+                //    ((VocalTrackDir)directory).Write(writer, true, this, new Entry(type, name, directory));
+                //    break;
                 default:
                     throw new Exception("Unknown directory type: " + type.value + ", cannot continue writing Milo scene");
             }
@@ -474,7 +511,7 @@ namespace MiloLib.Assets
                 //////////
                 case "BandCharacter":
                     Debug.WriteLine("Reading entry BandCharacter " + entry.name.value);
-                    entry.isEntryInRootDir = true;
+                    entry.isProxy = true;
                     entry.obj = new BandCharacter(0).Read(reader, true, this, entry);
 
                     DirectoryMeta dir = new DirectoryMeta();
@@ -484,7 +521,7 @@ namespace MiloLib.Assets
                     break;
                 case "BandCrowdMeterDir":
                     Debug.WriteLine("Reading entry BandCrowdMeterDir " + entry.name.value);
-                    entry.isEntryInRootDir = true;
+                    entry.isProxy = true;
                     entry.obj = new BandCrowdMeterDir(0).Read(reader, true, this, entry);
 
                     dir = new DirectoryMeta();
@@ -492,9 +529,9 @@ namespace MiloLib.Assets
                     dir.Read(reader);
                     entry.dir = dir;
                     break;
-                case "BandCrowdMeterIcon":
-                    Debug.WriteLine("Reading entry BandCrowdMeterIcon " + entry.name.value);
-                    entry.isEntryInRootDir = true;
+                case "CrowdMeterIcon":
+                    Debug.WriteLine("Reading entry CrowdMeterIcon " + entry.name.value);
+                    entry.isProxy = true;
                     entry.obj = new BandCrowdMeterIcon(0).Read(reader, true, this, entry);
 
                     dir = new DirectoryMeta();
@@ -504,7 +541,7 @@ namespace MiloLib.Assets
                     break;
                 case "BandScoreboard":
                     Debug.WriteLine("Reading entry BandScoreboard " + entry.name.value);
-                    entry.isEntryInRootDir = true;
+                    entry.isProxy = true;
                     entry.obj = new BandScoreboard(0).Read(reader, true, this, entry);
 
                     dir = new DirectoryMeta();
@@ -514,7 +551,7 @@ namespace MiloLib.Assets
                     break;
                 case "BandStarDisplay":
                     Debug.WriteLine("Reading entry BandStarDisplay " + entry.name.value);
-                    entry.isEntryInRootDir = true;
+                    entry.isProxy = true;
                     entry.obj = new BandStarDisplay(0).Read(reader, true, this, entry);
 
                     dir = new DirectoryMeta();
@@ -524,7 +561,7 @@ namespace MiloLib.Assets
                     break;
                 case "Character":
                     Debug.WriteLine("Reading entry Character " + entry.name.value);
-                    entry.isEntryInRootDir = true;
+                    entry.isProxy = true;
                     entry.obj = new Character(0).Read(reader, true, this, entry);
 
                     if (((Character)entry.obj).proxyPath != String.Empty)
@@ -538,7 +575,7 @@ namespace MiloLib.Assets
                     break;
                 case "CharBoneDir":
                     Debug.WriteLine("Reading entry CharBoneDir " + entry.name.value);
-                    entry.isEntryInRootDir = true;
+                    entry.isProxy = true;
                     entry.obj = new CharBoneDir(0).Read(reader, true, this, entry);
 
                     dir = new DirectoryMeta();
@@ -548,7 +585,7 @@ namespace MiloLib.Assets
                     break;
                 case "CharClipSet":
                     Debug.WriteLine("Reading entry CharClipSet " + entry.name.value);
-                    entry.isEntryInRootDir = true;
+                    entry.isProxy = true;
 
                     // this is unhinged, why'd they do it like this?
                     reader.ReadUInt32();
@@ -562,7 +599,7 @@ namespace MiloLib.Assets
                 case "EndingBonusDir":
                 case "RndDir":
                     Debug.WriteLine("Reading entry RndDir " + entry.name.value);
-                    entry.isEntryInRootDir = true;
+                    entry.isProxy = true;
                     entry.obj = new RndDir(0).Read(reader, true, this, entry);
 
                     if (((ObjectDir)entry.obj).inlineProxy)
@@ -575,7 +612,7 @@ namespace MiloLib.Assets
                     break;
                 case "GemTrackDir":
                     Debug.WriteLine("Reading entry GemTrackDir " + entry.name.value);
-                    entry.isEntryInRootDir = true;
+                    entry.isProxy = true;
                     entry.obj = new GemTrackDir(0).Read(reader, true, this, entry);
 
                     dir = new DirectoryMeta();
@@ -585,7 +622,7 @@ namespace MiloLib.Assets
                     break;
                 case "MoveDir":
                     Debug.WriteLine("Reading entry MoveDir " + entry.name.value);
-                    entry.isEntryInRootDir = true;
+                    entry.isProxy = true;
                     entry.obj = new MoveDir(0).Read(reader, true, this, entry);
 
                     dir = new DirectoryMeta();
@@ -595,7 +632,7 @@ namespace MiloLib.Assets
                     break;
                 case "ObjectDir":
                     Debug.WriteLine("Reading entry ObjectDir " + entry.name.value);
-                    entry.isEntryInRootDir = true;
+                    entry.isProxy = true;
                     entry.obj = new ObjectDir(0).Read(reader, true, this, entry);
 
                     dir = new DirectoryMeta();
@@ -605,7 +642,7 @@ namespace MiloLib.Assets
                     break;
                 case "OverdriveMeterDir":
                     Debug.WriteLine("Reading entry OverdriveMeterDir " + entry.name.value);
-                    entry.isEntryInRootDir = true;
+                    entry.isProxy = true;
                     entry.obj = new OverdriveMeterDir(0).Read(reader, true, this, entry);
 
                     dir = new DirectoryMeta();
@@ -615,7 +652,7 @@ namespace MiloLib.Assets
                     break;
                 case "OvershellDir":
                     Debug.WriteLine("Reading entry OvershellDir " + entry.name.value);
-                    entry.isEntryInRootDir = true;
+                    entry.isProxy = true;
                     entry.obj = new OvershellDir(0).Read(reader, true, this, entry);
 
                     dir = new DirectoryMeta();
@@ -625,8 +662,18 @@ namespace MiloLib.Assets
                     break;
                 case "P9Character":
                     Debug.WriteLine("Reading entry P9Character " + entry.name.value);
-                    entry.isEntryInRootDir = true;
+                    entry.isProxy = true;
                     entry.obj = new P9Character(0).Read(reader, true, this, entry);
+
+                    dir = new DirectoryMeta();
+                    dir.platform = platform;
+                    dir.Read(reader);
+                    entry.dir = dir;
+                    break;
+                case "PitchArrowDir":
+                    Debug.WriteLine("Reading entry PitchArrowDir " + entry.name.value);
+                    entry.isProxy = true;
+                    entry.obj = new PitchArrowDir(0).Read(reader, true, this, entry);
 
                     dir = new DirectoryMeta();
                     dir.platform = platform;
@@ -636,7 +683,7 @@ namespace MiloLib.Assets
                 case "PanelDir":
                 case "UIPanel":
                     Debug.WriteLine("Reading entry PanelDir " + entry.name.value);
-                    entry.isEntryInRootDir = true;
+                    entry.isProxy = true;
                     entry.obj = new PanelDir(0).Read(reader, true, this, entry);
 
                     dir = new DirectoryMeta();
@@ -646,8 +693,28 @@ namespace MiloLib.Assets
                     break;
                 case "SkeletonDir":
                     Debug.WriteLine("Reading entry SkeletonDir " + entry.name.value);
-                    entry.isEntryInRootDir = true;
+                    entry.isProxy = true;
                     entry.obj = new SkeletonDir(0).Read(reader, true, this, entry);
+
+                    dir = new DirectoryMeta();
+                    dir.platform = platform;
+                    dir.Read(reader);
+                    entry.dir = dir;
+                    break;
+                case "StreakMeterDir":
+                    Debug.WriteLine("Reading entry StreakMeterDir " + entry.name.value);
+                    entry.isProxy = true;
+                    entry.obj = new StreakMeterDir(0).Read(reader, true, this, entry);
+
+                    dir = new DirectoryMeta();
+                    dir.platform = platform;
+                    dir.Read(reader);
+                    entry.dir = dir;
+                    break;
+                case "TrackDir":
+                    Debug.WriteLine("Reading entry TrackDir " + entry.name.value);
+                    entry.isProxy = true;
+                    entry.obj = new TrackDir(0).Read(reader, true, this, entry);
 
                     dir = new DirectoryMeta();
                     dir.platform = platform;
@@ -656,7 +723,7 @@ namespace MiloLib.Assets
                     break;
                 case "TrackPanelDir":
                     Debug.WriteLine("Reading entry TrackPanelDir " + entry.name.value);
-                    entry.isEntryInRootDir = true;
+                    entry.isProxy = true;
                     entry.obj = new TrackPanelDir(0).Read(reader, true, this, entry);
 
                     dir = new DirectoryMeta();
@@ -666,7 +733,7 @@ namespace MiloLib.Assets
                     break;
                 case "UILabelDir":
                     Debug.WriteLine("Reading entry UILabelDir " + entry.name.value);
-                    entry.isEntryInRootDir = true;
+                    entry.isProxy = true;
                     entry.obj = new UILabelDir(0).Read(reader, true, this, entry);
 
                     dir = new DirectoryMeta();
@@ -676,7 +743,7 @@ namespace MiloLib.Assets
                     break;
                 case "UIListDir":
                     Debug.WriteLine("Reading entry UIListDir " + entry.name.value);
-                    entry.isEntryInRootDir = true;
+                    entry.isProxy = true;
                     entry.obj = new UIListDir(0).Read(reader, true, this, entry);
 
                     dir = new DirectoryMeta();
@@ -686,7 +753,7 @@ namespace MiloLib.Assets
                     break;
                 case "UnisonIcon":
                     Debug.WriteLine("Reading entry UnisonIcon " + entry.name.value);
-                    entry.isEntryInRootDir = true;
+                    entry.isProxy = true;
                     entry.obj = new UnisonIcon(0).Read(reader, true, this, entry);
 
                     dir = new DirectoryMeta();
@@ -696,7 +763,7 @@ namespace MiloLib.Assets
                     break;
                 case "VocalTrackDir":
                     Debug.WriteLine("Reading entry VocalTrackDir " + entry.name.value);
-                    entry.isEntryInRootDir = true;
+                    entry.isProxy = true;
                     entry.obj = new VocalTrackDir(0).Read(reader, true, this, entry);
 
                     dir = new DirectoryMeta();
@@ -706,7 +773,7 @@ namespace MiloLib.Assets
                     break;
                 case "WorldDir":
                     Debug.WriteLine("Reading entry WorldDir " + entry.name.value);
-                    entry.isEntryInRootDir = true;
+                    entry.isProxy = true;
                     entry.obj = new WorldDir(0).Read(reader, true, this, entry);
 
                     dir = new DirectoryMeta();
@@ -716,7 +783,7 @@ namespace MiloLib.Assets
                     break;
                 case "WorldInstance":
                     Debug.WriteLine("Reading entry WorldInstance " + entry.name.value);
-                    entry.isEntryInRootDir = true;
+                    entry.isProxy = true;
 
                     entry.obj = new WorldInstance(0).Read(reader, false, this, entry);
 
@@ -761,6 +828,10 @@ namespace MiloLib.Assets
                 case "BandDirector":
                     Debug.WriteLine("Reading entry BandDirector " + entry.name.value);
                     entry.obj = new BandDirector().Read(reader, true, this, entry);
+                    break;
+                case "BandFaceDeform":
+                    Debug.WriteLine("Reading entry BandFaceDeform " + entry.name.value);
+                    entry.obj = new BandFaceDeform().Read(reader, true, this, entry);
                     break;
                 case "BandLabel":
                     Debug.WriteLine("Reading entry BandLabel " + entry.name.value);
@@ -810,6 +881,10 @@ namespace MiloLib.Assets
                     Debug.WriteLine("Reading entry EventTrigger " + entry.name.value);
                     entry.obj = new EventTrigger().Read(reader, true, this, entry);
                     break;
+                case "FileMerger":
+                    Debug.WriteLine("Reading entry FileMerger " + entry.name.value);
+                    entry.obj = new FileMerger().Read(reader, true, this, entry);
+                    break;
                 case "Group":
                 case "View":
                     Debug.WriteLine("Reading entry Group " + entry.name.value);
@@ -832,6 +907,10 @@ namespace MiloLib.Assets
                 case "MatAnim":
                     Debug.WriteLine("Reading entry MatAnim " + entry.name.value);
                     entry.obj = new RndMatAnim().Read(reader, true, this, entry);
+                    break;
+                case "MotionBlur":
+                    Debug.WriteLine("Reading entry MotionBlur " + entry.name.value);
+                    entry.obj = new RndMotionBlur().Read(reader, true, this, entry);
                     break;
                 case "Object":
                     Debug.WriteLine("Reading entry Object " + entry.name.value);
@@ -977,104 +1056,133 @@ namespace MiloLib.Assets
                 //////////
                 // DIRS //
                 //////////
+
+                case "BandScoreboard":
+                    ((BandScoreboard)entry.obj).Write(writer, true, this, entry);
+                    entry.isProxy = false;
+                    entry.dir.Write(writer);
+                    break;
                 case "BandCrowdMeterDir":
                     ((BandCrowdMeterDir)entry.obj).Write(writer, true, this, entry);
-                    entry.isEntryInRootDir = false;
+                    entry.isProxy = false;
                     entry.dir.Write(writer);
                     break;
                 case "Character":
                     ((Character)entry.obj).Write(writer, true, this, entry);
                     if (((Character)entry.obj).proxyPath != String.Empty)
                     {
-                        entry.isEntryInRootDir = false;
+                        entry.isProxy = false;
                         entry.dir.Write(writer);
                     }
                     break;
                 case "CharClipSet":
                     writer.WriteUInt32(0x18);
                     ((ObjectDir)entry.obj).Write(writer, true, this, entry);
-                    entry.isEntryInRootDir = false;
+                    entry.isProxy = false;
+                    entry.dir.Write(writer);
+                    break;
+                case "CrowdMeterIcon":
+                    ((BandCrowdMeterIcon)entry.obj).Write(writer, true, this, entry);
+                    entry.isProxy = false;
                     entry.dir.Write(writer);
                     break;
                 case "EndingBonusDir":
                     ((RndDir)entry.obj).Write(writer, true, this, entry);
-                    entry.isEntryInRootDir = false;
+                    entry.isProxy = false;
                     entry.dir.Write(writer);
                     break;
-                case "GemTrackDir":
-                    ((GemTrackDir)entry.obj).Write(writer, true, this, entry);
-                    entry.isEntryInRootDir = false;
-                    entry.dir.Write(writer);
-                    break;
+                //case "GemTrackDir":
+                //    ((GemTrackDir)entry.obj).Write(writer, true, this, entry);
+                //    entry.isProxy = false;
+                //    entry.dir.Write(writer);
+                //    break;
                 case "MoveDir":
                     ((MoveDir)entry.obj).Write(writer, true, this, entry);
-                    entry.isEntryInRootDir = false;
+                    entry.isProxy = false;
                     entry.dir.Write(writer);
                     break;
                 case "ObjectDir":
                     ((ObjectDir)entry.obj).Write(writer, true, this, entry);
-                    entry.isEntryInRootDir = false;
+                    entry.isProxy = false;
                     entry.dir.Write(writer);
                     break;
                 case "OverdriveMeterDir":
                     ((OverdriveMeterDir)entry.obj).Write(writer, true, this, entry);
-                    entry.isEntryInRootDir = false;
+                    entry.isProxy = false;
                     entry.dir.Write(writer);
                     break;
                 case "OvershellDir":
                     ((OvershellDir)entry.obj).Write(writer, true, this, entry);
-                    entry.isEntryInRootDir = false;
+                    entry.isProxy = false;
                     entry.dir.Write(writer);
                     break;
                 case "P9Character":
                     ((P9Character)entry.obj).Write(writer, true, this, entry);
-                    entry.isEntryInRootDir = false;
+                    entry.isProxy = false;
                     entry.dir.Write(writer);
                     break;
                 case "PanelDir":
                     ((PanelDir)entry.obj).Write(writer, true, this, entry);
-                    entry.isEntryInRootDir = false;
+                    entry.isProxy = false;
+                    entry.dir.Write(writer);
+                    break;
+                case "PitchArrowDir":
+                    ((PitchArrowDir)entry.obj).Write(writer, true, this, entry);
+                    entry.isProxy = false;
                     entry.dir.Write(writer);
                     break;
                 case "RndDir":
                     ((RndDir)entry.obj).Write(writer, true, this, entry);
-                    entry.isEntryInRootDir = false;
-                    entry.dir.Write(writer);
+                    if (entry.dir != null)
+                    {
+                        entry.isProxy = false;
+                        entry.dir.Write(writer);
+                    }
                     break;
                 case "SkeletonDir":
                     ((SkeletonDir)entry.obj).Write(writer, true, this, entry);
-                    entry.isEntryInRootDir = false;
+                    entry.isProxy = false;
+                    entry.dir.Write(writer);
+                    break;
+                case "TrackDir":
+                    ((TrackDir)entry.obj).Write(writer, true, this, entry);
+                    entry.isProxy = false;
                     entry.dir.Write(writer);
                     break;
                 case "TrackPanelDir":
                     ((TrackPanelDir)entry.obj).Write(writer, true, this, entry);
-                    entry.isEntryInRootDir = false;
+                    entry.isProxy = false;
                     entry.dir.Write(writer);
                     break;
                 case "UILabelDir":
                     ((UILabelDir)entry.obj).Write(writer, true, this, entry);
-                    entry.isEntryInRootDir = false;
+                    entry.isProxy = false;
                     entry.dir.Write(writer);
                     break;
                 case "UIListDir":
                     ((UIListDir)entry.obj).Write(writer, true, this, entry);
-                    entry.isEntryInRootDir = false;
+                    entry.isProxy = false;
                     entry.dir.Write(writer);
                     break;
                 case "UnisonIcon":
                     ((UnisonIcon)entry.obj).Write(writer, true, this, entry);
-                    entry.isEntryInRootDir = false;
+                    entry.isProxy = false;
+                    entry.dir.Write(writer);
+                    break;
+                case "VocalTrackDir":
+                    ((VocalTrackDir)entry.obj).Write(writer, true, this, entry);
+                    entry.isProxy = false;
                     entry.dir.Write(writer);
                     break;
                 case "WorldDir":
                     ((WorldDir)entry.obj).Write(writer, true, this, entry);
-                    entry.isEntryInRootDir = false;
+                    entry.isProxy = false;
                     entry.dir.Write(writer);
                     break;
                 case "WorldInstance":
                     // Write the main object
                     ((WorldInstance)entry.obj).Write(writer, false, this, entry);
-                    entry.isEntryInRootDir = false;
+                    entry.isProxy = false;
 
                     if (!((WorldInstance)entry.obj).hasPersistentObjects)
                     {
@@ -1095,7 +1203,7 @@ namespace MiloLib.Assets
 
                     //ase "WorldInstance":
                     //   Debug.WriteLine("Reading entry WorldInstance " + entry.name.value);
-                    //   entry.isEntryInRootDir = true;
+                    //   entry.isProxy = true;
                     //
                     //   entry.obj = new WorldInstance(0).Read(reader, true, this, entry);
                     //
@@ -1138,6 +1246,9 @@ namespace MiloLib.Assets
                 case "BandDirector":
                     ((BandDirector)entry.obj).Write(writer, true, this, entry);
                     break;
+                case "BandFaceDeform":
+                    ((BandFaceDeform)entry.obj).Write(writer, true, this, entry);
+                    break;
                 case "BandLabel":
                     ((BandLabel)entry.obj).Write(writer, true, this, entry);
                     break;
@@ -1171,6 +1282,9 @@ namespace MiloLib.Assets
                 case "Environ":
                     ((RndEnviron)entry.obj).Write(writer, true, this, entry);
                     break;
+                case "FileMerger":
+                    ((FileMerger)entry.obj).Write(writer, true, this, entry);
+                    break;
                 case "Group":
                     ((RndGroup)entry.obj).Write(writer, true, this, entry);
                     break;
@@ -1187,6 +1301,9 @@ namespace MiloLib.Assets
                     break;
                 case "MatAnim":
                     ((RndMatAnim)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "MotionBlur":
+                    ((RndMotionBlur)entry.obj).Write(writer, true, this, entry);
                     break;
                 case "ParticleSys":
                     ((RndParticleSys)entry.obj).Write(writer, true, this, entry);
@@ -1301,7 +1418,7 @@ namespace MiloLib.Assets
                 case "BandCrowdMeterDir":
                     dir.directory = new BandCrowdMeterDir(rootDirRevision);
                     break;
-                case "BandCrowdMeterIcon":
+                case "CrowdMeterIcon":
                     dir.directory = new BandCrowdMeterIcon(rootDirRevision);
                     break;
                 case "BandCharacter":

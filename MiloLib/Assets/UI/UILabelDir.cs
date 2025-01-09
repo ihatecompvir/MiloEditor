@@ -5,228 +5,56 @@ using MiloLib.Utils;
 namespace MiloLib.Assets.UI
 {
 
-    [Name("UIFontImporter")]
-    public class UIFontImporter
-    {
-        public ushort altRevision;
-        public ushort revision;
-
-        public bool includeLowerCase;
-        public bool includeUpperCase;
-        public bool includeNumbers;
-        public bool includePunctuation;
-        public bool includeUpperEuro;
-        public bool includeLowerEuro;
-        public Symbol plusChars = new(0, "");
-        public Symbol minusChars = new(0, "");
-        public Symbol fontName = new(0, "");
-
-        public float fontPctSize;
-        public int fontWeight;
-
-        public bool isFontItalic;
-
-        public int pitchAndFamily;
-
-        public int fontQuality;
-
-        public int fontCharSet;
-        public int fontSupersample;
-
-        public Symbol bitmapPath = new(0, "");
-        public Symbol bitmapFilename = new(0, "");
-
-        public int texPadLeft;
-        public int texPadRight;
-        public int texPadTop;
-        public int texPadBottom;
-
-        public bool fillWithSafeWhite;
-
-        public int genedFontsCount;
-        public List<Symbol> genFonts = new();
-
-        public Symbol kerningReference = new(0, "");
-
-        public int matVariationsCount;
-        public List<Symbol> matVariations = new();
-
-        public Symbol defaultMat = new(0, "");
-
-        public Symbol handmadeFont = new(0, "");
-
-        public Symbol syncResource = new(0, "");
-
-        public bool lastGenWasNg;
-
-        public UIFontImporter Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
-        {
-            uint combinedRevision = reader.ReadUInt32();
-            if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
-            else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
-
-            if (revision != 9)
-            {
-                throw new UnsupportedAssetRevisionException("UIFontImporter", revision);
-            }
-
-            includeLowerCase = reader.ReadBoolean();
-            includeUpperCase = reader.ReadBoolean();
-            includeNumbers = reader.ReadBoolean();
-            includePunctuation = reader.ReadBoolean();
-            includeUpperEuro = reader.ReadBoolean();
-            includeLowerEuro = reader.ReadBoolean();
-
-            plusChars = Symbol.Read(reader);
-            minusChars = Symbol.Read(reader);
-            fontName = Symbol.Read(reader);
-
-            fontPctSize = reader.ReadFloat();
-            fontWeight = reader.ReadInt32();
-
-            isFontItalic = reader.ReadBoolean();
-
-            pitchAndFamily = reader.ReadInt32();
-
-            fontQuality = reader.ReadInt32();
-
-            fontCharSet = reader.ReadInt32();
-            fontSupersample = reader.ReadInt32();
-
-            bitmapPath = Symbol.Read(reader);
-            bitmapFilename = Symbol.Read(reader);
-
-            texPadLeft = reader.ReadInt32();
-            texPadRight = reader.ReadInt32();
-            texPadTop = reader.ReadInt32();
-            texPadBottom = reader.ReadInt32();
-
-            fillWithSafeWhite = reader.ReadBoolean();
-
-            genedFontsCount = reader.ReadInt32();
-            for (int i = 0; i < genedFontsCount; i++)
-            {
-                genFonts.Add(Symbol.Read(reader));
-            }
-
-            kerningReference = Symbol.Read(reader);
-
-            matVariationsCount = reader.ReadInt32();
-            for (int i = 0; i < matVariationsCount; i++)
-            {
-                matVariations.Add(Symbol.Read(reader));
-            }
-
-            defaultMat = Symbol.Read(reader);
-
-            handmadeFont = Symbol.Read(reader);
-
-            syncResource = Symbol.Read(reader);
-
-            lastGenWasNg = reader.ReadBoolean();
-
-            if (standalone)
-            {
-                if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");
-            }
-            return this;
-        }
-
-        public void Write(EndianWriter writer, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry? entry)
-        {
-            writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
-
-            writer.WriteBoolean(includeLowerCase);
-            writer.WriteBoolean(includeUpperCase);
-            writer.WriteBoolean(includeNumbers);
-            writer.WriteBoolean(includePunctuation);
-            writer.WriteBoolean(includeUpperEuro);
-            writer.WriteBoolean(includeLowerEuro);
-
-            Symbol.Write(writer, plusChars);
-            Symbol.Write(writer, minusChars);
-            Symbol.Write(writer, fontName);
-
-            writer.WriteFloat(fontPctSize);
-            writer.WriteInt32(fontWeight);
-
-            writer.WriteBoolean(isFontItalic);
-
-            writer.WriteInt32(pitchAndFamily);
-
-            writer.WriteInt32(fontQuality);
-
-            writer.WriteInt32(fontCharSet);
-            writer.WriteInt32(fontSupersample);
-
-            Symbol.Write(writer, bitmapPath);
-            Symbol.Write(writer, bitmapFilename);
-
-            writer.WriteInt32(texPadLeft);
-            writer.WriteInt32(texPadRight);
-            writer.WriteInt32(texPadTop);
-            writer.WriteInt32(texPadBottom);
-
-            writer.WriteBoolean(fillWithSafeWhite);
-
-            writer.WriteInt32(genedFontsCount);
-            foreach (var genFont in genFonts)
-            {
-                Symbol.Write(writer, genFont);
-            }
-
-            Symbol.Write(writer, kerningReference);
-
-            writer.WriteInt32(matVariationsCount);
-            foreach (var matVariation in matVariations)
-            {
-                Symbol.Write(writer, matVariation);
-            }
-
-            Symbol.Write(writer, defaultMat);
-
-            Symbol.Write(writer, handmadeFont);
-
-            Symbol.Write(writer, syncResource);
-
-            writer.WriteBoolean(lastGenWasNg);
-
-            if (standalone)
-            {
-                writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
-            }
-        }
-
-    }
-
     [Name("UILabelDir"), Description("Top-level resource object for UILabels")]
     public class UILabelDir : RndDir
     {
         public ushort altRevision;
         public ushort revision;
 
+        [Name("Text Object")]
         public Symbol textObject = new(0, "");
 
+        [Name("Font Reference"), MinVersion(3), MaxVersion(8)]
         public Symbol fontReference = new(0, "");
 
+        [Name("Focus Anim"), MinVersion(1)]
         public Symbol focusAnim = new(0, "");
+        [Name("Pulse Anim"), MinVersion(2)]
         public Symbol pulseAnim = new(0, "");
 
+        [Name("Highlight Mesh Group"), MinVersion(4)]
         public Symbol highlightMeshGroup = new(0, "");
-
+        [Name("Top Left Highlight Bone"), MinVersion(4)]
         public Symbol topLeftHighlightBone = new(0, "");
+        [Name("Top Right Highlight Bone"), MinVersion(4)]
         public Symbol topRightHighlightBone = new(0, "");
+        [Name("Bottom Left Highlight Bone"), MinVersion(5)]
         public Symbol bottomLeftHighlightBone = new(0, "");
+        [Name("Bottom Right Highlight Bone"), MinVersion(5)]
         public Symbol bottomRightHighlightBone = new(0, "");
 
+        [Name("Focused Background Group"), MinVersion(6)]
         public Symbol focusedBackgroundGroup = new(0, "");
+        [Name("Unfocused Background Group"), MinVersion(6)]
         public Symbol unfocusedBackgroundGroup = new(0, "");
 
+        [Name("Allow Edit Text"), Description("allow non-localized text with this resource?"), MinVersion(7)]
         public bool allowEditText;
 
+        [Name("Default Color"), Description("color to use when no other color is defined for a state")]
         public Symbol defaultColor = new(0, "");
-        public List<Symbol> colors = new List<Symbol> { new Symbol(0, ""), new Symbol(0, ""), new Symbol(0, ""), new Symbol(0, ""), new Symbol(0, "") };
+        [Name("Normal Color"), Description("color when label is normal")]
+        public Symbol normalColor = new(0, "");
+        [Name("Focused Color"), Description("color when label is focused")]
+        public Symbol focusedColor = new(0, "");
+        [Name("Disabled Color"), Description("color when label is disabled")]
+        public Symbol disabledColor = new(0, "");
+        [Name("Selecting Color"), Description("color when label is selecting")]
+        public Symbol selectingColor = new(0, "");
+        [Name("Selected Color"), Description("color when label is selected")]
+        public Symbol selectedColor = new(0, "");
 
+        [Name("Font Importer"), MinVersion(8)]
         public UIFontImporter fontImporter = new UIFontImporter();
 
         public UILabelDir(ushort revision, ushort altRevision = 0) : base(revision, altRevision)
@@ -277,9 +105,11 @@ namespace MiloLib.Assets.UI
                 allowEditText = reader.ReadBoolean();
 
             defaultColor = Symbol.Read(reader);
-
-            for (int i = 0; i < 5; i++)
-                colors[i] = Symbol.Read(reader);
+            normalColor = Symbol.Read(reader);
+            focusedColor = Symbol.Read(reader);
+            disabledColor = Symbol.Read(reader);
+            selectingColor = Symbol.Read(reader);
+            selectedColor = Symbol.Read(reader);
 
             if (revision >= 8)
                 fontImporter = new UIFontImporter().Read(reader, false, parent, entry);
@@ -331,10 +161,11 @@ namespace MiloLib.Assets.UI
                 writer.WriteBoolean(allowEditText);
 
             Symbol.Write(writer, defaultColor);
-            foreach (var color in colors)
-            {
-                Symbol.Write(writer, color);
-            }
+            Symbol.Write(writer, normalColor);
+            Symbol.Write(writer, focusedColor);
+            Symbol.Write(writer, disabledColor);
+            Symbol.Write(writer, selectingColor);
+            Symbol.Write(writer, selectedColor);
 
             if (revision >= 8)
                 fontImporter.Write(writer, false, parent, entry);

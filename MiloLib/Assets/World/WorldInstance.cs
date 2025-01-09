@@ -135,7 +135,7 @@ namespace MiloLib.Assets.World
 
             base.Read(reader, false, parent, entry);
 
-            if (standalone && !entry.isEntryInRootDir)
+            if (standalone && !entry.isProxy)
                 if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");
 
             return this;
@@ -156,7 +156,7 @@ namespace MiloLib.Assets.World
 
             base.Write(writer, false, parent, entry);
 
-            if (standalone && !entry.isEntryInRootDir)
+            if (standalone && !entry.isProxy)
                 writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
         }
 

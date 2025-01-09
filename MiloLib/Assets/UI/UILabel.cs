@@ -37,66 +37,67 @@ namespace MiloLib.Assets.UI
 
         [Name("Text Token"), Description("Localization token if localize is true")]
         public Symbol textToken = new(0, "");
-        [Name("Icon"), Description("Single-character icon")]
+        [Name("Icon"), Description("Single-character icon"), MinVersion(0xF)]
         public Symbol icon = new(0, "");
 
 
-        [Name("Text Size"), Description("Text size in percentage of screen height (i.e. 50% is half the screen height for the largest glyph)")]
+        [Name("Text Size"), Description("Text size in percentage of screen height (i.e. 50% is half the screen height for the largest glyph)"), MinVersion(2)]
         public float textSize;
-        [Name("Alignment"), Description("Text alignment")]
+        [Name("Alignment"), Description("Text alignment"), MinVersion(2)]
         public TextAlignments alignment;
-        [Name("Caps Mode"), Description("Text case setting")]
+        [Name("Caps Mode"), Description("Text case setting"), MinVersion(2)]
         public CapsModes capsMode;
 
-        [Name("Supports Markup"), Description("Support markup?")]
+        [Name("Supports Markup"), Description("Support markup?"), MinVersion(8)]
         public bool supportsMarkup;
-        [Name("Leading"), Description("Space between lines")]
+        [Name("Leading"), Description("Space between lines"), MinVersion(2)]
         public float leading;
-        [Name("Kerning"), Description("Additional kerning applied to text object")]
+        [Name("Kerning"), Description("Additional kerning applied to text object"), MinVersion(2)]
         public float kerning;
-        [Name("Italics"), Description("Italics for text object")]
+        [Name("Italics"), Description("Italics for text object"), MinVersion(5)]
         public float italics;
 
-        [Name("Fit Type"), Description("How to fit text in the width/height specified")]
+        [Name("Fit Type"), Description("How to fit text in the width/height specified"), MinVersion(3)]
         public LabelFitTypes fitType;
-        [Name("Width"), Description("Width of label")]
+        [Name("Width"), Description("Width of label"), MinVersion(3)]
         public float width;
-        [Name("Height"), Description("Height of label")]
+        [Name("Height"), Description("Height of label"), MinVersion(3)]
         public float height;
 
-        [Name("Fixed Length"), Description("Preallocated size of internal text object")]
+        [Name("Fixed Length"), Description("Preallocated size of internal text object"), MinVersion(6)]
         public short fixedLength;
-        [Name("Reserved Lines"), Description("Preallocated number of lines in internal text object")]
+        [Name("Reserved Lines"), Description("Preallocated number of lines in internal text object"), MinVersion(7)]
         public short reservedLines;
 
-        [Name("Preserve Truncated Text"), Description("Optional text to append after truncation with kFitEllipsis")]
+        [Name("Preserve Truncated Text"), Description("Optional text to append after truncation with kFitEllipsis"), MinVersion(10)]
         public Symbol preserveTruncText = new(0, "");
 
 
-        [Name("Alpha"), Description("Controls transparency of label")]
+        [Name("Alpha"), Description("Controls transparency of label"), MinVersion(11)]
         public float alpha;
-        [Name("Color Override"), Description("Color override for this instance")]
+        [Name("Color Override"), Description("Color override for this instance"), MinVersion(0xD)]
         public Symbol colorOverride = new(0, "");
-        [Name("Font Material Variation"), Description("Material variation for font")]
+        [Name("Font Material Variation"), Description("Material variation for font"), MinVersion(0x15)]
         public Symbol fontMatVariation = new(0, "");
+        [Name("Alternate Material Variation"), Description("Material variation for alt font"), MinVersion(0x17)]
         public Symbol altMatVariation = new(0, "");
-        [Name("Alternate Text Size"), Description("Text size of alternate style in percentage of screen height (i.e. 50% is half the screen height for the largest glyph)")]
+        [Name("Alternate Text Size"), Description("Text size of alternate style in percentage of screen height (i.e. 50% is half the screen height for the largest glyph)"), MinVersion(0x12)]
         public float altTextSize;
-        [Name("Alternate Kerning"), Description("Additional kerning applied to alt text object")]
+        [Name("Alternate Kerning"), Description("Additional kerning applied to alt text object"), MinVersion(0x13)]
         public float altKerning;
-        [Name("Alternate Text Color"), Description("Color to use when in alt style")]
+        [Name("Alternate Text Color"), Description("Color to use when in alt style"), MinVersion(0x12)]
         public Symbol altTextColor = new(0, "");
-        [Name("Alternate Z Offset"), Description("Z-offset for alt text (to manually match up baselines)")]
+        [Name("Alternate Z Offset"), Description("Z-offset for alt text (to manually match up baselines)"), MinVersion(0x14)]
         public float altZOffset;
-        [Name("Alternate Italics"), Description("Italics for text object's alt font")]
+        [Name("Alternate Italics"), Description("Italics for text object's alt font"), MinVersion(0x18)]
         public float altItalics;
-        [Name("Alternate Alpha"), Description("Controls transparency of label's alt font")]
+        [Name("Alternate Alpha"), Description("Controls transparency of label's alt font"), MinVersion(0x18)]
         public float altAlpha;
-        [Name("Use Highlight Mesh"), Description("whether or not to use highlight mesh (if available)")]
+        [Name("Use Highlight Mesh"), Description("whether or not to use highlight mesh (if available)"), MinVersion(0x11)]
         public bool useHighlightMesh;
-        [Name("Alternate Style Enabled"), Description("Whether to parse <alt> tags for alt style")]
+        [Name("Alternate Style Enabled"), Description("Whether to parse <alt> tags for alt style"), MinVersion(0x12)]
         public bool altStyleEnabled;
-        [Name("Alternate Font Resource Name"), Description("path to alt font resource file for this component")]
+        [Name("Alternate Font Resource Name"), Description("path to alt font resource file for this component"), MinVersion(0x16)]
         public Symbol altFontResourceName = new(0, "");
 
 
