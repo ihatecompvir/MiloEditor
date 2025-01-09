@@ -1,12 +1,11 @@
 using System.Reflection.Metadata;
-using MiloLib.Assets.Rnd;
 using MiloLib.Classes;
 using MiloLib.Utils;
 
-namespace MiloLib.Assets
+namespace MiloLib.Assets.Rnd
 {
     [Name("TexMovie"), Description("Draws full screen quad with movie")]
-    public class TexMovie : Object
+    public class RndTexMovie : Object
     {
         public class Movie
         {
@@ -45,7 +44,7 @@ namespace MiloLib.Assets
                 writer.WriteUInt32((uint)bytes.Count);
                 foreach (var b in bytes)
                 {
-                    writer.WriteByte((byte)b);
+                    writer.WriteByte(b);
                 }
             }
         }
@@ -62,11 +61,11 @@ namespace MiloLib.Assets
 
         public Movie movie = new();
 
-        public TexMovie Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
+        public RndTexMovie Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
             uint combinedRevision = reader.ReadUInt32();
-            if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
-            else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
+            if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)(combinedRevision >> 16 & 0xFFFF));
+            else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)(combinedRevision >> 16 & 0xFFFF));
 
             objFields = objFields.Read(reader, parent, entry);
 
@@ -86,7 +85,7 @@ namespace MiloLib.Assets
 
         public override void Write(EndianWriter writer, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry? entry)
         {
-            writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
+            writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)(altRevision << 16 | revision) : (uint)(revision << 16 | altRevision));
             objFields.Write(writer);
 
             draw.Write(writer, false, true);

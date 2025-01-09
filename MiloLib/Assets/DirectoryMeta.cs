@@ -4,6 +4,7 @@ using MiloLib.Assets.Char;
 using MiloLib.Assets.Ham;
 using MiloLib.Assets.P9;
 using MiloLib.Assets.Rnd;
+using MiloLib.Assets.Synth;
 using MiloLib.Assets.UI;
 using MiloLib.Assets.World;
 using MiloLib.Classes;
@@ -58,7 +59,7 @@ namespace MiloLib.Assets
             public bool isEntryInRootDir;
 
             /// <summary>
-            /// RndSet when the object has been added or otherwise created through a non-serialized fashion (i.e. as raw bytes)
+            /// Set when the object has been added or otherwise created through a non-serialized fashion (i.e. as raw bytes)
             /// </summary>
             public bool dirty = false;
 
@@ -854,11 +855,15 @@ namespace MiloLib.Assets
                     Debug.WriteLine("Reading entry PollAnim " + entry.name.value);
                     entry.obj = new RndPollAnim().Read(reader, true, this, entry);
                     break;
+                case "RandomGroupSeq":
+                    Debug.WriteLine("Reading entry RandomGroupSeq " + entry.name.value);
+                    entry.obj = new RandomGroupSeq().Read(reader, true, this, entry);
+                    break;
                 case "ScreenMask":
                     Debug.WriteLine("Reading entry ScreenMask " + entry.name.value);
                     entry.obj = new RndScreenMask().Read(reader, true, this, entry);
                     break;
-                case "RndSet":
+                case "Set":
                     Debug.WriteLine("Reading entry RndSet " + entry.name.value);
                     entry.obj = new RndSet().Read(reader, true, this, entry);
                     break;
@@ -878,9 +883,17 @@ namespace MiloLib.Assets
                     Debug.WriteLine("Reading entry Tex " + entry.name.value);
                     entry.obj = new RndTex().Read(reader, true, this, entry);
                     break;
+                case "TexBlendController":
+                    Debug.WriteLine("Reading entry TexBlendController " + entry.name.value);
+                    entry.obj = new RndTexBlendController().Read(reader, true, this, entry);
+                    break;
+                case "TexBlender":
+                    Debug.WriteLine("Reading entry TexBlender " + entry.name.value);
+                    entry.obj = new RndTexBlender().Read(reader, true, this, entry);
+                    break;
                 case "TexMovie":
                     Debug.WriteLine("Reading entry TexMovie " + entry.name.value);
-                    entry.obj = new TexMovie().Read(reader, true, this, entry);
+                    entry.obj = new RndTexMovie().Read(reader, true, this, entry);
                     break;
                 case "Trans":
                     Debug.WriteLine("Reading entry Trans " + entry.name.value);
@@ -1181,10 +1194,13 @@ namespace MiloLib.Assets
                 case "PollAnim":
                     ((RndPollAnim)entry.obj).Write(writer, true, this, entry);
                     break;
+                case "RandomGroupSeq":
+                    ((RandomGroupSeq)entry.obj).Write(writer, true, this, entry);
+                    break;
                 case "ScreenMask":
                     ((RndScreenMask)entry.obj).Write(writer, true, this, entry);
                     break;
-                case "RndSet":
+                case "Set":
                     ((RndSet)entry.obj).Write(writer, true, this, entry);
                     break;
                 case "Sfx":
@@ -1199,8 +1215,14 @@ namespace MiloLib.Assets
                 case "Tex":
                     ((RndTex)entry.obj).Write(writer, true, this, entry);
                     break;
+                case "TexBlendController":
+                    ((RndTexBlendController)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "TexBlender":
+                    ((RndTexBlender)entry.obj).Write(writer, true, this, entry);
+                    break;
                 case "TexMovie":
-                    ((TexMovie)entry.obj).Write(writer, true, this, entry);
+                    ((RndTexMovie)entry.obj).Write(writer, true, this, entry);
                     break;
                 case "Trans":
                     ((RndTrans)entry.obj).Write(writer, true, false);

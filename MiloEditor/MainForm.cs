@@ -63,7 +63,7 @@ namespace MiloEditor
 
         private void LoadAssetClassImages()
         {
-            imageList.ImageSize = new Size(24, 24);
+            imageList.ImageSize = new Size(26, 26);
             imageList.Images.Add("default", Image.FromFile("Images/default.png"));
             imageList.Images.Add("ObjectDir", Image.FromFile("Images/ObjectDir.png"));
             imageList.Images.Add("RndDir", Image.FromFile("Images/RndDir.png"));
@@ -124,6 +124,8 @@ namespace MiloEditor
             imageList.Images.Add("UIGuide", Image.FromFile("Images/UIGuide.png"));
             imageList.Images.Add("InlineHelp", Image.FromFile("Images/InlineHelp.png"));
             imageList.Images.Add("CharInterest", Image.FromFile("Images/CharInterest.png"));
+            imageList.Images.Add("RandomGroupSeq", Image.FromFile("Images/RandomGroupSeq.png"));
+            imageList.Images.Add("Set", Image.FromFile("Images/Set.png"));
             imageList.Images.Add("", Image.FromFile("Images/NoDir.png"));
 
             imageList.ColorDepth = ColorDepth.Depth32Bit;

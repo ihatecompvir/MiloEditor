@@ -44,6 +44,7 @@
     <None Remove="Images\ParticleSys.png" />
     <None Remove="Images\PostProc.png" />
     <None Remove="Images\PropAnim.png" />
+    <None Remove="Images\RandomGroupSeq.png" />
     <None Remove="Images\RndAnim.png" />
     <None Remove="Images\RndDir.png" />
     <None Remove="Images\RndLight.png" />
@@ -53,6 +54,7 @@
     <None Remove="Images\RndTex.png" />
     <None Remove="Images\RndTrans.png" />
     <None Remove="Images\ScreenMask.png" />
+    <None Remove="Images\Set.png" />
     <None Remove="Images\Sfx.png" />
     <None Remove="Images\TexMovie.png" />
     <None Remove="Images\Text.png" />
@@ -143,6 +145,9 @@
     <Content Include="Images\PropAnim.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Images\RandomGroupSeq.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Images\RndLight.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -171,6 +176,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Images\ScreenMask.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\Set.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Images\Sfx.png">
