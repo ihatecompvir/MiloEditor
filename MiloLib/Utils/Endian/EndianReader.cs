@@ -85,7 +85,7 @@ namespace MiloLib.Utils
         public ushort ReadUInt16()
         {
             int bytesRead = _stream.Read(_buffer, 0, 2);
-             if (bytesRead < 2)
+            if (bytesRead < 2)
             {
                 throw new EndOfStreamException("Attempted to read past the end of the stream.");
             }
@@ -143,7 +143,7 @@ namespace MiloLib.Utils
         /// <returns>
         ///     The 64-bit unsigned integer that was read.
         /// </returns>
-         /// <exception cref="EndOfStreamException">Thrown if the end of the stream is reached.</exception>
+        /// <exception cref="EndOfStreamException">Thrown if the end of the stream is reached.</exception>
         public ulong ReadUInt64()
         {
             ulong one = ReadUInt32();
@@ -165,6 +165,18 @@ namespace MiloLib.Utils
             return (long)ReadUInt64();
         }
 
+        public float ReadHalfFloat()
+        {
+            // Read the raw 16 bits
+            ushort raw = ReadUInt16();
+
+            // If endianness doesn't match the machine, swap the bytes
+            if (_bigEndian == BitConverter.IsLittleEndian)
+                raw = (ushort)(((raw & 0xFF) << 8) | (raw >> 8));
+
+            return HalfToFloat(raw);
+        }
+
         /// <summary>
         ///     Reads a 32-bit floating-point value from the stream.
         /// </summary>
@@ -179,7 +191,7 @@ namespace MiloLib.Utils
             {
                 throw new EndOfStreamException("Attempted to read past the end of the stream.");
             }
-             if (BitConverter.IsLittleEndian == _bigEndian)
+            if (BitConverter.IsLittleEndian == _bigEndian)
             {
                 // Flip the bytes
                 // Is there a faster way to do this?
@@ -224,7 +236,7 @@ namespace MiloLib.Utils
         ///     The ASCII string that was read.
         /// </returns>
         /// <exception cref="EndOfStreamException">Thrown if the end of the stream is reached.</exception>
-         public string ReadAscii()
+        public string ReadAscii()
         {
             _currentString.Clear();
             int ch;
@@ -253,15 +265,15 @@ namespace MiloLib.Utils
         /// <exception cref="EndOfStreamException">Thrown if the end of the stream is reached.</exception>
         public string ReadAscii(int size)
         {
-           _currentString.Clear();
+            _currentString.Clear();
             int ch;
             for (var i = 0; i < size; i++)
             {
                 ch = _stream.ReadByte();
                 if (ch == -1)
-                 {
+                {
                     throw new EndOfStreamException("Attempted to read past the end of the stream.");
-                 }
+                }
                 if (ch == 0)
                     break;
                 _currentString.Append((char)ch);
@@ -300,19 +312,20 @@ namespace MiloLib.Utils
         /// </returns>
         /// <exception cref="EndOfStreamException">Thrown if the end of the stream is reached.</exception>
         public string ReadUTF8()
-         {
+        {
             var chars = new List<byte>();
             byte ch;
             while (true)
             {
-                try{
+                try
+                {
                     ch = ReadByte();
                 }
-                 catch(EndOfStreamException)
-                 {
+                catch (EndOfStreamException)
+                {
                     throw new EndOfStreamException("Attempted to read past the end of the stream.");
-                 }
-                
+                }
+
                 if (ch == 0) break;
                 chars.Add(ch);
             }
@@ -330,26 +343,27 @@ namespace MiloLib.Utils
         ///  <exception cref="EndOfStreamException">Thrown if the end of the stream is reached.</exception>
         public string ReadUTF8(int size)
         {
-             var chars = new List<byte>();
+            var chars = new List<byte>();
             byte ch;
             for (int i = 0; i < size; i++)
             {
-               try{
+                try
+                {
                     ch = ReadByte();
                 }
-                 catch(EndOfStreamException)
-                 {
+                catch (EndOfStreamException)
+                {
                     throw new EndOfStreamException("Attempted to read past the end of the stream.");
-                 }
-               
-                 if (ch == 0) break;
+                }
+
+                if (ch == 0) break;
                 chars.Add(ch);
             }
             return Encoding.UTF8.GetString(chars.ToArray());
         }
 
 
-         /// <summary>
+        /// <summary>
         ///     Reads a null-terminated UTF-16 string from the stream.
         /// </summary>
         /// <returns>
@@ -362,13 +376,14 @@ namespace MiloLib.Utils
             int ch;
             while (true)
             {
-                try{
+                try
+                {
                     ch = ReadInt16();
                 }
-                catch(EndOfStreamException)
-                 {
+                catch (EndOfStreamException)
+                {
                     throw new EndOfStreamException("Attempted to read past the end of the stream.");
-                 }
+                }
                 if (ch == 0)
                     break;
                 _currentString.Append((char)ch);
@@ -383,20 +398,21 @@ namespace MiloLib.Utils
         /// <returns>
         ///     The UTF-16 string that was read, with any padding bytes stripped.
         /// </returns>
-         /// <exception cref="EndOfStreamException">Thrown if the end of the stream is reached.</exception>
+        /// <exception cref="EndOfStreamException">Thrown if the end of the stream is reached.</exception>
         public string ReadUTF16(int size)
         {
             _currentString.Clear();
-             int ch;
+            int ch;
             while (_currentString.Length * 2 < size)
             {
-                try{
-                   ch = ReadInt16();
+                try
+                {
+                    ch = ReadInt16();
                 }
-                 catch(EndOfStreamException)
-                 {
+                catch (EndOfStreamException)
+                {
                     throw new EndOfStreamException("Attempted to read past the end of the stream.");
-                 }
+                }
                 if (ch == 0)
                     break;
                 _currentString.Append((char)ch);
@@ -417,7 +433,7 @@ namespace MiloLib.Utils
         public byte[] ReadBlock(int size)
         {
             var result = new byte[size];
-             int bytesRead = _stream.Read(result, 0, size);
+            int bytesRead = _stream.Read(result, 0, size);
             if (bytesRead < size)
             {
                 throw new EndOfStreamException($"Attempted to read {size} bytes but only read {bytesRead}.");
@@ -426,7 +442,7 @@ namespace MiloLib.Utils
             return result;
         }
 
-         /// <summary>
+        /// <summary>
         ///     Reads an array of bytes from the stream.
         /// </summary>
         /// <param name="output">The array to store the read bytes to.</param>
@@ -438,11 +454,11 @@ namespace MiloLib.Utils
         /// <exception cref="IOException">Thrown if there is an issue reading the stream.</exception>
         public int ReadBlock(byte[] output, int offset, int size)
         {
-             int bytesRead = _stream.Read(output, offset, size);
-             if(bytesRead < size)
-             {
+            int bytesRead = _stream.Read(output, offset, size);
+            if (bytesRead < size)
+            {
                 throw new IOException($"Attempted to read {size} bytes but only read {bytesRead}.");
-             }
+            }
             return bytesRead;
         }
 
@@ -457,6 +473,43 @@ namespace MiloLib.Utils
         {
             byte value = ReadByte();
             return value != 0;
+        }
+
+        private static float HalfToFloat(ushort half)
+        {
+            int sign = (half >> 15) & 0x0001;
+            int exp = (half >> 10) & 0x001F;
+            int mant = half & 0x03FF;
+
+            if (exp == 0)
+            {
+                // Zero or subnormal
+                if (mant == 0)
+                    return BitConverter.ToSingle(BitConverter.GetBytes(sign << 31), 0);
+
+                // Normalize the subnormal value
+                while ((mant & 0x0400) == 0)
+                {
+                    mant <<= 1;
+                    exp--;
+                }
+                exp++;
+                mant &= ~0x0400;
+            }
+            else if (exp == 31)
+            {
+                // Infinite or NaN
+                if (mant == 0)
+                    return BitConverter.ToSingle(BitConverter.GetBytes((sign << 31) | 0x7F800000), 0);
+                else
+                    return BitConverter.ToSingle(BitConverter.GetBytes((sign << 31) | 0x7F800000 | (mant << 13)), 0);
+            }
+
+            exp = exp + (127 - 15);
+            mant <<= 13;
+
+            int bits = (sign << 31) | (exp << 23) | mant;
+            return BitConverter.ToSingle(BitConverter.GetBytes(bits), 0);
         }
 
         /// <summary>

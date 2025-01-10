@@ -886,6 +886,10 @@ namespace MiloLib.Assets
                     Debug.WriteLine("Reading entry CharGuitarString " + entry.name.value);
                     entry.obj = new CharGuitarString().Read(reader, true, this, entry);
                     break;
+                case "CharIKMidi":
+                    Debug.WriteLine("Reading entry CharIKMidi " + entry.name.value);
+                    entry.obj = new CharIKMidi().Read(reader, true, this, entry);
+                    break;
                 case "CharInterest":
                     Debug.WriteLine("Reading entry CharInterest " + entry.name.value);
                     entry.obj = new CharInterest().Read(reader, true, this, entry);
@@ -893,6 +897,14 @@ namespace MiloLib.Assets
                 case "CharMeshHide":
                     Debug.WriteLine("Reading entry CharMeshHide " + entry.name.value);
                     entry.obj = new CharMeshHide().Read(reader, true, this, entry);
+                    break;
+                case "CharWalk":
+                    Debug.WriteLine("Reading entry CharWalk " + entry.name.value);
+                    entry.obj = new CharWalk().Read(reader, true, this, entry);
+                    break;
+                case "CharWeightSetter":
+                    Debug.WriteLine("Reading entry CharWeightSetter " + entry.name.value);
+                    entry.obj = new CharWeightSetter().Read(reader, true, this, entry);
                     break;
                 case "CheckboxDisplay":
                     Debug.WriteLine("Reading entry CheckboxDisplay " + entry.name.value);
@@ -936,6 +948,10 @@ namespace MiloLib.Assets
                 case "MatAnim":
                     Debug.WriteLine("Reading entry MatAnim " + entry.name.value);
                     entry.obj = new RndMatAnim().Read(reader, true, this, entry);
+                    break;
+                case "Mesh":
+                    Debug.WriteLine("Reading entry Mesh " + entry.name.value);
+                    entry.obj = new RndMesh().Read(reader, true, this, entry);
                     break;
                 case "MotionBlur":
                     Debug.WriteLine("Reading entry MotionBlur " + entry.name.value);
@@ -1283,11 +1299,20 @@ namespace MiloLib.Assets
                 case "CharGuitarString":
                     ((CharGuitarString)entry.obj).Write(writer, true, this, entry);
                     break;
+                case "CharIKMidi":
+                    ((CharIKMidi)entry.obj).Write(writer, true, this, entry);
+                    break;
                 case "CharInterest":
                     ((CharInterest)entry.obj).Write(writer, true, this, entry);
                     break;
                 case "CharMeshHide":
                     ((CharMeshHide)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "CharWalk":
+                    ((CharWalk)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "CharWeightSetter":
+                    ((CharWeightSetter)entry.obj).Write(writer, true, this, entry);
                     break;
                 case "CheckboxDisplay":
                     ((CheckboxDisplay)entry.obj).Write(writer, true, this, entry);

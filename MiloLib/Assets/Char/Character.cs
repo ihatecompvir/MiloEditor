@@ -156,8 +156,9 @@ namespace MiloLib.Assets.Char
 
             public CharacterTesting Read(EndianReader reader, DirectoryMeta parent, DirectoryMeta.Entry entry)
             {
-                altRevision = reader.ReadUInt16();
-                revision = reader.ReadUInt16();
+                uint combinedRevision = reader.ReadUInt32();
+                if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
+                else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
                 driver = Symbol.Read(reader);
                 clip1 = Symbol.Read(reader);
                 clip2 = Symbol.Read(reader);
@@ -165,7 +166,7 @@ namespace MiloLib.Assets.Char
                 teleportFrom = Symbol.Read(reader);
                 distMap = Symbol.Read(reader);
 
-                if (revision <= 6)
+                if (revision < 6)
                 {
                     return this;
                 }
@@ -194,6 +195,11 @@ namespace MiloLib.Assets.Char
                 {
                     clip2RealTime = reader.ReadBoolean();
                     bpm = reader.ReadUInt32();
+                }
+
+                if (revision == 6)
+                {
+                    return this;
                 }
 
                 if (revision < 14)
