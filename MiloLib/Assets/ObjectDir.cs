@@ -100,6 +100,8 @@ namespace MiloLib.Assets
         [Name("Unknown String 5"), MinVersion(16), MaxVersion(18)]
         public Symbol unknownString5 = new(0, "");
 
+        public List<uint> unkInts = new();
+
         public uint unk1;
         public uint unk2;
 
@@ -164,7 +166,7 @@ namespace MiloLib.Assets
                     viewport.Read(reader);
                     viewports.Add(viewport);
                     if (revision <= 17)
-                        reader.BaseStream.Position += 4;
+                        unkInts.Add(reader.ReadUInt32());
 
                 }
 
@@ -355,7 +357,7 @@ namespace MiloLib.Assets
                 {
                     viewport.Write(writer);
                     if (revision <= 17)
-                        writer.WriteUInt32(0);
+                        writer.WriteUInt32(unkInts[viewports.IndexOf(viewport)]);
                 }
 
                 writer.WriteUInt32(currentViewportIdx);

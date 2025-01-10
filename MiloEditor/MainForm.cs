@@ -683,6 +683,7 @@ namespace MiloEditor
 
         private void CreateEditorPanelForAsset(Object obj)
         {
+
             // anything that might already be present there
             splitContainer1.Panel2.Controls.Clear();
 

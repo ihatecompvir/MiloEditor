@@ -1343,6 +1343,9 @@ namespace MiloLib.Assets
                 case "MatAnim":
                     ((RndMatAnim)entry.obj).Write(writer, true, this, entry);
                     break;
+                case "Mesh":
+                    ((RndMesh)entry.obj).Write(writer, true, this, entry);
+                    break;
                 case "MotionBlur":
                     ((RndMotionBlur)entry.obj).Write(writer, true, this, entry);
                     break;

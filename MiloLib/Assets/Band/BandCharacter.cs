@@ -98,6 +98,14 @@ namespace MiloLib.Assets.Band
 
             base.Write(writer, false, parent, entry);
 
+            if (revision == 1)
+            {
+                if (standalone)
+                    writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
+
+                return;
+            }
+
             writer.WriteInt32(playFlags);
             Symbol.Write(writer, tempo);
 
@@ -127,6 +135,11 @@ namespace MiloLib.Assets.Band
             if (revision == 2 || revision == 3 || revision == 4)
             {
                 writer.WriteBoolean(unknownBool);
+            }
+
+            if (revision > 7)
+            {
+                Symbol.Write(writer, mInstrumentType);
             }
 
             if (standalone)

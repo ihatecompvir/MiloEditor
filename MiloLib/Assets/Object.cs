@@ -228,8 +228,7 @@ namespace MiloLib.Assets
 
         public void Write(EndianWriter writer)
         {
-            writer.WriteUInt16(altRevision);
-            writer.WriteUInt16(revision);
+            writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
             Symbol.Write(writer, type);
             writer.WriteByte(hasTree ? (byte)1 : (byte)0);
 

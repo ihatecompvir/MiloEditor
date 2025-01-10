@@ -100,9 +100,13 @@ namespace MiloLib.Assets.Rnd
                     {
                         writer.WriteUInt32(vertexSize);
                         writer.WriteUInt32(unkType);
-
-                        WriteVertices(writer, meshVersion, isNextGen);
                     }
+                    WriteVertices(writer, meshVersion, isNextGen);
+                    return;
+                }
+                else
+                {
+                    WriteVertices(writer, meshVersion, isNextGen);
                 }
             }
 
@@ -722,16 +726,37 @@ namespace MiloLib.Assets.Rnd
                 face.Write(writer);
             }
 
-            writer.WriteUInt32(groupSizesCount);
+            writer.WriteUInt32((uint)groupSizes.Count);
             foreach (byte groupSize in groupSizes)
             {
                 writer.WriteByte(groupSize);
             }
 
-            writer.WriteUInt32(boneCount);
-            foreach (BoneTransform boneTransform in boneTransforms)
+            if (boneTransforms.Count > 0)
             {
-                boneTransform.Write(writer, revision);
+                if (revision >= 34)
+                {
+                    writer.WriteUInt32(boneCount);
+                    foreach (BoneTransform boneTransform in boneTransforms)
+                    {
+                        boneTransform.Write(writer, revision);
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < 4; i++)
+                    {
+                        Symbol.Write(writer, boneTransforms[i].name);
+                    }
+                    for (int i = 0; i < 4; i++)
+                    {
+                        boneTransforms[i].transform.Write(writer);
+                    }
+                }
+            }
+            else
+            {
+                writer.WriteUInt32(0);
             }
 
             if (revision > 34)

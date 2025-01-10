@@ -219,8 +219,7 @@ namespace MiloLib.Assets.Char
 
             public void Write(EndianWriter writer)
             {
-                writer.WriteUInt16(altRevision);
-                writer.WriteUInt16(revision);
+                writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
 
                 Symbol.Write(writer, driver);
                 Symbol.Write(writer, clip1);
@@ -229,7 +228,7 @@ namespace MiloLib.Assets.Char
                 Symbol.Write(writer, teleportFrom);
                 Symbol.Write(writer, distMap);
 
-                if (revision <= 6)
+                if (revision < 6)
                 {
                     return;
                 }
@@ -258,6 +257,11 @@ namespace MiloLib.Assets.Char
                 {
                     writer.WriteBoolean(clip2RealTime);
                     writer.WriteUInt32(bpm);
+                }
+
+                if (revision == 6)
+                {
+                    return;
                 }
 
                 if (revision < 14)
@@ -387,6 +391,7 @@ namespace MiloLib.Assets.Char
         public override void Write(EndianWriter writer, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry? entry)
         {
             writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
+
             base.Write(writer, false, parent, entry);
 
 
@@ -431,10 +436,13 @@ namespace MiloLib.Assets.Char
 
                 if (revision > 0x10)
                     Symbol.Write(writer, translucentGroup);
+
+                charTest.Write(writer);
             }
-
-
-            charTest.Write(writer);
+            else if (revision > 0xF)
+            {
+                charTest.Write(writer);
+            }
 
 
             if (standalone)
