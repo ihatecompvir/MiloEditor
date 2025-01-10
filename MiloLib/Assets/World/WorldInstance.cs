@@ -1,6 +1,8 @@
 ﻿using MiloLib.Assets.Rnd;
 using MiloLib.Classes;
 using MiloLib.Utils;
+using static MiloLib.Assets.Band.BandFaceDeform;
+using System.Linq;
 
 namespace MiloLib.Assets.World
 {
@@ -29,35 +31,42 @@ namespace MiloLib.Assets.World
             public List<DirectoryMeta.Entry> perObjs = new(); // the list of perObjs
 
 
-            public PersistentObjects Read(EndianReader reader, DirectoryMeta parent, DirectoryMeta.Entry entry)
+            public PersistentObjects Read(EndianReader reader, DirectoryMeta parent, DirectoryMeta.Entry entry, uint revision)
             {
-                empty = reader.ReadBlock(13);
-
-                anim = anim.Read(reader, parent, entry);
-                draw = draw.Read(reader, false, parent, entry);
-                trans = trans.Read(reader, false, parent, entry);
-
-                environ = Symbol.Read(reader);
-                unkSym = Symbol.Read(reader);
-
-                stringTableCount = reader.ReadUInt32();
-                stringTableSize = reader.ReadUInt32();
-
-                objectCount = reader.ReadUInt32();
-                for (int i = 0; i < objectCount; i++)
+                if (entry.isProxy)
                 {
-                    perObjs.Add(new DirectoryMeta.Entry(Symbol.Read(reader).value, Symbol.Read(reader).value, null));
-                }
+                    empty = reader.ReadBlock(13);
 
-                for (int i = 0; i < objectCount; i++)
-                {
-                    switch (perObjs[i].type.value)
+                    anim = anim.Read(reader, parent, entry);
+                    draw = draw.Read(reader, false, parent, entry);
+                    trans = trans.Read(reader, false, parent, entry);
+
+                    environ = Symbol.Read(reader);
+                    unkSym = Symbol.Read(reader);
+
+
+                    if (revision > 2)
                     {
-                        case "Mesh":
-                            perObjs[i].obj = new RndMesh().Read(reader, false, parent, perObjs[i]);
-                            break;
-                        default:
-                            throw new Exception("Unknown object type " + perObjs[i].type.value + " in WorldInstance PersistentObjects");
+                        stringTableCount = reader.ReadUInt32();
+                        stringTableSize = reader.ReadUInt32();
+
+                        objectCount = reader.ReadUInt32();
+                        for (int i = 0; i < objectCount; i++)
+                        {
+                            perObjs.Add(new DirectoryMeta.Entry(Symbol.Read(reader).value, Symbol.Read(reader).value, null));
+                        }
+
+                        for (int i = 0; i < objectCount; i++)
+                        {
+                            switch (perObjs[i].type.value)
+                            {
+                                case "Mesh":
+                                    perObjs[i].obj = new RndMesh().Read(reader, false, parent, perObjs[i]);
+                                    break;
+                                default:
+                                    throw new Exception("Unknown object type " + perObjs[i].type.value + " in WorldInstance PersistentObjects");
+                            }
+                        }
                     }
                 }
                 if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of persistent perObjs but didn't find the expected end bytes, read likely did not succeed");
@@ -65,7 +74,7 @@ namespace MiloLib.Assets.World
                 return this;
             }
 
-            public void Write(EndianWriter writer, DirectoryMeta parent, DirectoryMeta.Entry? entry)
+            public void Write(EndianWriter writer, DirectoryMeta parent, DirectoryMeta.Entry? entry, uint revision)
             {
                 writer.WriteBlock(new byte[13]);
 

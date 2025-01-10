@@ -345,6 +345,12 @@ namespace MiloLib.Assets
                     pitchArrowDir.Read(reader, true, this, new Entry(type, name, pitchArrowDir));
                     directory = pitchArrowDir;
                     break;
+                case "SynthDir":
+                    Debug.WriteLine("Reading SynthDir " + name.value);
+                    SynthDir synthDir = new SynthDir(0);
+                    synthDir.Read(reader, true, this, new Entry(type, name, synthDir));
+                    directory = synthDir;
+                    break;
                 case "":
                     Debug.WriteLine("GH1-style empty directory detected, just reading children");
                     break;
@@ -488,6 +494,9 @@ namespace MiloLib.Assets
                 case "StreakMeterDir":
                     ((StreakMeterDir)directory).Write(writer, true, this, new Entry(type, name, directory));
                     break;
+                case "SynthDir":
+                    ((SynthDir)directory).Write(writer, true, this, new Entry(type, name, directory));
+                    break;
                 //case "VocalTrackDir":
                 //    ((VocalTrackDir)directory).Write(writer, true, this, new Entry(type, name, directory));
                 //    break;
@@ -602,7 +611,7 @@ namespace MiloLib.Assets
                     entry.isProxy = true;
                     entry.obj = new RndDir(0).Read(reader, true, this, entry);
 
-                    if (((ObjectDir)entry.obj).inlineProxy)
+                    if (((ObjectDir)entry.obj).inlineProxy && ((ObjectDir)entry.obj).proxyPath.value != "")
                     {
                         dir = new DirectoryMeta();
                         dir.platform = platform;
@@ -711,6 +720,16 @@ namespace MiloLib.Assets
                     dir.Read(reader);
                     entry.dir = dir;
                     break;
+                case "SynthDir":
+                    Debug.WriteLine("Reading entry SynthDir " + entry.name.value);
+                    entry.isProxy = true;
+                    entry.obj = new SynthDir(0).Read(reader, true, this, entry);
+
+                    dir = new DirectoryMeta();
+                    dir.platform = platform;
+                    dir.Read(reader);
+                    entry.dir = dir;
+                    break;
                 case "TrackDir":
                     Debug.WriteLine("Reading entry TrackDir " + entry.name.value);
                     entry.isProxy = true;
@@ -795,14 +814,24 @@ namespace MiloLib.Assets
                         dir.Read(reader);
                         entry.dir = dir;
 
-                        if (((WorldInstance)dir.directory).hasPersistentObjects)
+                        // these can be followed by a Character or other dirs...wtf
+                        // if it is another dir it seems to allows be followed by persistentobjects
+                        if (entry.dir != null && entry.dir.type.value == "WorldInstance")
                         {
-                            ((WorldInstance)dir.directory).persistentObjects = new WorldInstance.PersistentObjects().Read(reader, this, entry);
+                            if (((WorldInstance)dir.directory).hasPersistentObjects)
+                            {
+                                ((WorldInstance)dir.directory).persistentObjects = new WorldInstance.PersistentObjects().Read(reader, this, entry, ((WorldInstance)entry.obj).revision);
+                            }
+                        }
+                        else
+                        {
+                            // hack
+                            ((WorldInstance)entry.obj).persistentObjects = new WorldInstance.PersistentObjects().Read(reader, this, entry, ((WorldInstance)entry.obj).revision);
                         }
                     }
                     else
                     {
-                        ((WorldInstance)entry.obj).persistentObjects = new WorldInstance.PersistentObjects().Read(reader, this, entry);
+                        ((WorldInstance)entry.obj).persistentObjects = new WorldInstance.PersistentObjects().Read(reader, this, entry, ((WorldInstance)entry.obj).revision);
                     }
                     break;
 
@@ -1144,6 +1173,11 @@ namespace MiloLib.Assets
                     entry.isProxy = false;
                     entry.dir.Write(writer);
                     break;
+                case "SynthDir":
+                    ((SynthDir)entry.obj).Write(writer, true, this, entry);
+                    entry.isProxy = false;
+                    entry.dir.Write(writer);
+                    break;
                 case "TrackDir":
                     ((TrackDir)entry.obj).Write(writer, true, this, entry);
                     entry.isProxy = false;
@@ -1189,44 +1223,26 @@ namespace MiloLib.Assets
                         // Write the directory
                         entry.dir.Write(writer);
 
-                        if (((WorldInstance)entry.dir.directory).hasPersistentObjects)
+                        if (entry.dir.type.value == "WorldInstance")
                         {
-                            // Write the persistent perObjs
-                            ((WorldInstance)entry.dir.directory).persistentObjects.Write(writer, this, entry);
+                            if (((WorldInstance)entry.dir.directory).hasPersistentObjects)
+                            {
+                                // Write the persistent perObjs
+                                ((WorldInstance)entry.dir.directory).persistentObjects.Write(writer, this, entry, ((WorldInstance)entry.obj).revision);
+                            }
+                        }
+                        else
+                        {
+                            // write the persistent objects we stored in the obj
+                            // this is a dumb hack but prevents need to adapt the API to allow mixes like that
+                            ((WorldInstance)entry.obj).persistentObjects.Write(writer, this, entry, ((WorldInstance)entry.obj).revision);
                         }
                     }
                     else
                     {
                         // Write the persistent perObjs
-                        ((WorldInstance)entry.obj).persistentObjects.Write(writer, this, entry);
+                        ((WorldInstance)entry.obj).persistentObjects.Write(writer, this, entry, ((WorldInstance)entry.obj).revision);
                     }
-
-                    //ase "WorldInstance":
-                    //   Debug.WriteLine("Reading entry WorldInstance " + entry.name.value);
-                    //   entry.isProxy = true;
-                    //
-                    //   entry.obj = new WorldInstance(0).Read(reader, true, this, entry);
-                    //
-                    //   // if the world instance has no persistent perObjs, it will have a dir as expected, otherwise it won't
-                    //   if (!((WorldInstance)entry.obj).hasPersistentObjects)
-                    //   {
-                    //       dir = new DirectoryMeta();
-                    //       dir.platform = platform;
-                    //       dir.Read(reader);
-                    //       entry.dir = dir;
-                    //
-                    //       if (((WorldInstance)dir.directory).hasPersistentObjects)
-                    //       {
-                    //           ((WorldInstance)dir.directory).perObjs = new WorldInstance.PersistentObjects().Read(reader, this, entry);
-                    //       }
-                    //   }
-                    //   else
-                    //   {
-                    //       ((WorldInstance)entry.obj).perObjs = new WorldInstance.PersistentObjects().Read(reader, this, entry);
-                    //   }
-                    //
-                    //
-                    //   break;
 
 
                     break;

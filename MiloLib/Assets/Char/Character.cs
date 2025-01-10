@@ -364,9 +364,13 @@ namespace MiloLib.Assets.Char
 
                 if (revision > 0x10)
                     translucentGroup = Symbol.Read(reader);
-            }
 
-            charTest = new CharacterTesting().Read(reader, parent, entry);
+                charTest = new CharacterTesting().Read(reader, parent, entry);
+            }
+            else if (revision > 0xF)
+            {
+                charTest = new CharacterTesting().Read(reader, parent, entry);
+            }
 
             if (standalone)
                 if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");

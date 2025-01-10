@@ -7,6 +7,25 @@ namespace MiloLib.Assets.World
     [Name("WorldCrowd"), Description("A quickly-rendered bunch of instanced characters within an area")]
     public class WorldCrowd : RndDrawable
     {
+        // TODO: this needs to be moved into RndMultiMesh when we have that, according to the decomp
+        public class OldMultiMeshInstance
+        {
+            public Matrix oldXfm = new();
+            public HmxColor4 oldColor = new HmxColor4();
+
+            public OldMultiMeshInstance Read(EndianReader reader)
+            {
+                oldXfm = oldXfm.Read(reader);
+                oldColor = oldColor.Read(reader);
+                return this;
+            }
+
+            public void Write(EndianWriter writer)
+            {
+                oldXfm.Write(writer);
+                oldColor.Write(writer);
+            }
+        }
         public class CharDef
         {
 
@@ -20,18 +39,20 @@ namespace MiloLib.Assets.World
             public float radius;
             public bool useRandomColor;
 
-            public CharDef Read(EndianReader reader)
+            public CharDef Read(EndianReader reader, uint revision)
             {
                 character = Symbol.Read(reader);
                 height = reader.ReadFloat();
                 density = reader.ReadFloat();
-                radius = reader.ReadFloat();
-                useRandomColor = reader.ReadBoolean();
+                if (revision > 1)
+                    radius = reader.ReadFloat();
+                if (revision > 8)
+                    useRandomColor = reader.ReadBoolean();
 
                 return this;
             }
 
-            public void Write(EndianWriter writer)
+            public void Write(EndianWriter writer, uint revision)
             {
                 Symbol.Write(writer, character);
                 writer.WriteFloat(height);
@@ -51,15 +72,15 @@ namespace MiloLib.Assets.World
 
             public CharDef def = new();
 
-            public CharData Read(EndianReader reader)
+            public CharData Read(EndianReader reader, uint revision)
             {
-                def.Read(reader);
+                def.Read(reader, revision);
                 return this;
             }
 
-            public void Write(EndianWriter writer)
+            public void Write(EndianWriter writer, uint revision)
             {
-                def.Write(writer);
+                def.Write(writer, revision);
             }
 
             public override string ToString()
@@ -102,7 +123,7 @@ namespace MiloLib.Assets.World
         private List<uint> transformCount = new();
         public List<List<Matrix>> transforms = new();
 
-        public RndHighlightable highlightable = new();
+        public Object highlightable = new();
 
 
         public WorldCrowd Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
@@ -128,7 +149,7 @@ namespace MiloLib.Assets.World
             {
                 for (int i = 0; i < charCount; i++)
                 {
-                    characters.Add(new CharData().Read(reader));
+                    characters.Add(new CharData().Read(reader, revision));
                 }
             }
 
@@ -141,7 +162,15 @@ namespace MiloLib.Assets.World
             {
                 if (revision < 0xE)
                 {
-                    // TODO: support older revisions
+                    for (int i = 0; i < charCount; i++)
+                    {
+                        uint oldmmCount = reader.ReadUInt32();
+                        List<OldMultiMeshInstance> oldmm = new();
+                        for (int j = 0; j < oldmmCount; j++)
+                        {
+                            oldmm.Add(new OldMultiMeshInstance().Read(reader));
+                        }
+                    }
                 }
                 else
                 {
@@ -166,11 +195,13 @@ namespace MiloLib.Assets.World
                 modifyStamp = reader.ReadUInt32();
             if (revision > 0xC)
                 force3DCrowd = reader.ReadBoolean();
-            if (revision > 0xB)
+            if (revision > 5)
                 show3DOnly = reader.ReadBoolean();
+            if (revision > 0xB)
+                focus = Symbol.Read(reader);
 
             if (revision != 0)
-                highlightable = new RndHighlightable().Read(reader, false, parent, entry);
+                highlightable = highlightable.Read(reader, false, parent, entry);
 
 
 

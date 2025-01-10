@@ -254,9 +254,13 @@ namespace MiloLib.Assets
                         {
                             DirectoryMeta inlinedSubDir = new DirectoryMeta();
                             inlinedSubDir.platform = parent.platform;
-                            if (referenceTypes[0] == ReferenceType.kInlineCached && referenceTypesAlt[0] == ReferenceType.kInlineCached)
+                            // check if the reference types are actually there to avoid an out of bounds exception
+                            if (referenceTypes.Count > 0 && referenceTypesAlt.Count > 0)
                             {
-                                reader.ReadBoolean();
+                                if (referenceTypes[0] == ReferenceType.kInlineCached && referenceTypesAlt[0] == ReferenceType.kInlineCached)
+                                {
+                                    reader.ReadBoolean();
+                                }
                             }
                             inlinedSubDir.Read(reader);
                             inlineSubDirs.Add(inlinedSubDir);
@@ -412,9 +416,13 @@ namespace MiloLib.Assets
 
                     foreach (var inlineSubDir in inlineSubDirs)
                     {
-                        if (referenceTypes[0] == ReferenceType.kInlineCached && referenceTypesAlt[0] == ReferenceType.kInlineCached)
+                        // bounds check
+                        if (referenceTypes.Count > 0 && referenceTypesAlt.Count > 0)
                         {
-                            writer.WriteBoolean(false);
+                            if (referenceTypes[0] == ReferenceType.kInlineCached && referenceTypesAlt[0] == ReferenceType.kInlineCached)
+                            {
+                                writer.WriteBoolean(false);
+                            }
                         }
                         inlineSubDir.Write(writer);
                     }

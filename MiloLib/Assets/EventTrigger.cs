@@ -154,6 +154,10 @@ namespace MiloLib.Assets
         public List<Symbol> partLaunchers = new();
 
 
+        private uint drawsCount;
+        public List<Symbol> draws = new();
+
+
         public EventTrigger Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
             uint combinedRevision = reader.ReadUInt32();
@@ -210,6 +214,25 @@ namespace MiloLib.Assets
                     HideDelay hideDelay = new();
                     hideDelay.Read(reader);
                     hideDelays.Add(hideDelay);
+                }
+            }
+            else if (revision > 8)
+            {
+                hideDelaysCount = reader.ReadUInt32();
+                for (int i = 0; i < hideDelaysCount; i++)
+                {
+                    HideDelay hideDelay = new();
+                    hideDelay.hide = Symbol.Read(reader);
+                    hideDelay.delay = reader.ReadFloat();
+                    hideDelays.Add(hideDelay);
+                }
+            }
+            else if (revision > 6)
+            {
+                drawsCount = reader.ReadUInt32();
+                for (int i = 0; i < drawsCount; i++)
+                {
+                    draws.Add(Symbol.Read(reader));
                 }
             }
 
@@ -337,6 +360,23 @@ namespace MiloLib.Assets
                 foreach (var hideDelay in hideDelays)
                 {
                     hideDelay.Write(writer);
+                }
+            }
+            else if (revision > 8)
+            {
+                writer.WriteUInt32((uint)hideDelays.Count);
+                foreach (var hideDelay in hideDelays)
+                {
+                    Symbol.Write(writer, hideDelay.hide);
+                    writer.WriteFloat(hideDelay.delay);
+                }
+            }
+            else if (revision > 6)
+            {
+                writer.WriteUInt32((uint)draws.Count);
+                foreach (var draw in draws)
+                {
+                    Symbol.Write(writer, draw);
                 }
             }
 

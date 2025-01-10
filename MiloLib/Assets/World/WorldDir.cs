@@ -56,14 +56,16 @@ namespace MiloLib.Assets.World
         public float mTestAnimationTime;
         [Name("HUD"), Description("hud to be drawn last")]
         public Symbol hud = new(0, "");
-        public Symbol cam = new(0, "");
+        public Symbol camReference = new(0, "");
 
         public Matrix xfm = new();
+        public RndTrans camTrans = new();
 
         public uint unkInt1;
         public float unkFloat;
 
         public Symbol unkSym = new(0, "");
+
 
         public WorldDir(ushort revision, ushort altRevision = 0) : base(revision, altRevision)
         {
@@ -95,7 +97,24 @@ namespace MiloLib.Assets.World
                 fakeHUDFilename = Symbol.Read(reader);
             }
 
+            if (revision < 9)
+            {
+                if (revision > 7)
+                {
+                    // OldLoadProxies
+                }
+                else if (revision > 2)
+                {
+                    // OldLoadChars
+                }
+            }
+
             base.Read(reader, false, parent, entry);
+
+            if (revision == 5)
+            {
+                camReference = Symbol.Read(reader);
+            }
 
             if (revision < 0x19)
             {
@@ -103,7 +122,11 @@ namespace MiloLib.Assets.World
                 {
                     xfm = xfm.Read(reader);
                 }
+                else if (revision > 6)
+                    camTrans = camTrans.Read(reader, false, parent, entry);
             }
+
+
 
             if (revision > 0xB)
             {
@@ -221,7 +244,24 @@ namespace MiloLib.Assets.World
                 Symbol.Write(writer, fakeHUDFilename);
             }
 
+            if (revision < 9)
+            {
+                if (revision > 7)
+                {
+                    // OldLoadProxies
+                }
+                else if (revision > 2)
+                {
+                    // OldLoadChars
+                }
+            }
+
             base.Write(writer, false, parent, entry);
+
+            if (revision == 5)
+            {
+                Symbol.Write(writer, camReference);
+            }
 
             if (revision < 0x19)
             {
@@ -229,6 +269,8 @@ namespace MiloLib.Assets.World
                 {
                     xfm.Write(writer);
                 }
+                else if (revision > 6)
+                    camTrans.Write(writer, false, parent, entry);
             }
 
             if (revision > 0xB)
