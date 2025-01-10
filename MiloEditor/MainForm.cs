@@ -428,11 +428,22 @@ namespace MiloEditor
             if (entry.typeRecognized)
             {
                 newEntry = new DirectoryMeta.Entry(entry.type, entry.name, entry.obj);
+
+                var updatedBytes = entry.objBytes.ToArray().Concat(new byte[] { 0xAD, 0xDE, 0xAD, 0xDE }).ToArray();
+
+                // hack to clone an obj without making them clonable or writing a Copy method
+                // dont like this but :shrug:
+                using (MemoryStream ms = new MemoryStream(updatedBytes))
+                {
+                    EndianReader reader = new EndianReader(ms, currentMiloScene.endian);
+                    directoryEntry.ReadEntry(reader, entry);
+                }
             }
             else
             {
                 // create a dirty entry
-                newEntry = Entry.CreateDirtyAssetFromBytes(entry.type.value, entry.name.value, entry.objBytes);
+                newEntry = Entry.CreateDirtyAssetFromBytes(entry.type, entry.name, entry.objBytes);
+
             }
 
             // bring up a dialog to get the new name

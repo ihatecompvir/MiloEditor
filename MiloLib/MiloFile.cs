@@ -76,6 +76,11 @@ namespace MiloLib
         public DirectoryMeta dirMeta;
 
         /// <summary>
+        /// The endianness of the body. Header is always little endian.
+        /// </summary>
+        public Endian endian = Endian.BigEndian;
+
+        /// <summary>
         /// Loads a Milo file from a file path.
         /// </summary>
         public MiloFile(string path)
@@ -292,6 +297,7 @@ namespace MiloLib
         /// <param name="bodyEndian">The endianness of the body. Certain games require little endian bodies, such as GH2.</param>
         public void Save(string? path, Type? type, uint startingOffset = 0x810, Endian headerEndian = Endian.LittleEndian, Endian bodyEndian = Endian.BigEndian)
         {
+            endian = bodyEndian;
             if (path == null)
             {
                 path = filePath;
