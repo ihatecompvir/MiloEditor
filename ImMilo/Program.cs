@@ -43,6 +43,7 @@ class Program
     
     static void Main(string[] args)
     {
+        Settings.Load();
         // Create window, GraphicsDevice, and all resources necessary for the demo.
         VeldridStartup.CreateWindowAndGraphicsDevice(
             new WindowCreateInfo(50, 50, 1280, 720, WindowState.Normal, "ImMilo"),
@@ -83,6 +84,8 @@ class Program
             gd.SubmitCommands(_cl);
             gd.SwapBuffers(gd.MainSwapchain);
         }
+        
+        Settings.Save();
 
         if (!System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform
                 .Windows))

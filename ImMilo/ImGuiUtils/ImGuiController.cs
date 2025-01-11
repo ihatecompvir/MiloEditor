@@ -117,11 +117,12 @@ public class ImGuiController : IDisposable
         {
             ImGui.GetStyle().ScaleAllSizes(1f/Settings.Loaded.UIScale);
             Util.ClearIconCache();
-            Settings.Loaded = Settings.Editing.Clone();
-            ImGui.GetStyle().ScaleAllSizes(Settings.Loaded.UIScale);
-            ImGui.GetStyle().FrameBorderSize = Settings.Loaded.UIScale;
-            ImGui.GetStyle().ChildBorderSize = Settings.Loaded.UIScale;
-            ImGui.GetIO().FontGlobalScale = Settings.Loaded.UIScale;
+            //Settings.Loaded = Settings.Editing.Clone();
+            ImGui.GetStyle().ScaleAllSizes(Settings.Editing.UIScale);
+            ImGui.GetStyle().FrameBorderSize = Settings.Editing.UIScale;
+            ImGui.GetStyle().ChildBorderSize = Settings.Editing.UIScale;
+            ImGui.GetIO().FontGlobalScale = Settings.Editing.UIScale;
+            Settings.Save();
         }
     }
 

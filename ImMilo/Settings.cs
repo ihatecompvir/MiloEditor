@@ -1,4 +1,5 @@
 ﻿using System.Security.Cryptography;
+using System.Text.Json;
 using MiloLib.Classes;
 
 namespace ImMilo;
@@ -158,5 +159,34 @@ public class Settings
         var clone = (Settings)MemberwiseClone();
         clone.fontSettings = fontSettings.Clone();
         return clone;
+    }
+
+    public static string GetFileLocation()
+    {
+        // TODO: Find a different settings location
+        var assemblyLocation = System.Reflection.Assembly.GetExecutingAssembly().Location;
+        return Path.Join(Path.GetDirectoryName(assemblyLocation), "settings.json");
+    }
+    
+    static JsonSerializerOptions serializerOptions = new() { IncludeFields = true, IgnoreReadOnlyProperties = true };
+
+    public static void Load()
+    {
+        var loc = GetFileLocation();
+        if (File.Exists(loc))
+        {
+            Loaded = JsonSerializer.Deserialize<Settings>(File.ReadAllText(loc), serializerOptions);
+        }
+        else
+        {
+            Loaded = new Settings();
+        }
+        Editing = Loaded.Clone();
+    }
+    
+    public static void Save()
+    {
+        var loc = GetFileLocation();
+        File.WriteAllText(loc, JsonSerializer.Serialize(Editing, serializerOptions));
     }
 }
