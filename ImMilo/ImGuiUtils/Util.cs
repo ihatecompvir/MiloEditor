@@ -70,7 +70,12 @@ public static class Util
 
     public static nint GetAssetIcon(string typeName)
     {
-        if (!assetIcons.TryGetValue(typeName, out nint icon))
+        var iconID = typeName; //TODO: Lots of icons are hard to read on a dark background
+        if (Settings.Editing.useTheme != Settings.Theme.Light)
+        {
+            iconID += "_dark";
+        }
+        if (!assetIcons.TryGetValue(iconID, out nint icon))
         {
             var iconStream = Icons.GetMiloIconStream(Icons.GetIconAssetPath(typeName));
             var png = Png.Open(iconStream);
@@ -88,10 +93,15 @@ public static class Util
             var texture = Program.gd.ResourceFactory.CreateTexture(TextureDescription.Texture2D((uint)png.Width, (uint)png.Height, 1, 1, PixelFormat.R8_G8_B8_A8_UNorm, TextureUsage.Sampled));
             Program.gd.UpdateTexture(texture, data, 0, 0, 0, (uint)png.Width, (uint)png.Height, 1, 0, 0);
             icon = Program.controller.GetOrCreateImGuiBinding(Program.gd.ResourceFactory, texture);
-            assetIcons.Add(typeName, icon);
+            assetIcons.Add(iconID, icon);
         }
 
         return icon;
+    }
+
+    public static void ClearIconCache()
+    {
+        assetIcons.Clear();
     }
 
     private static (string, string) QueryEntryOrDir(object obj)
@@ -120,7 +130,7 @@ public static class Util
         var homePos = ImGui.GetCursorScreenPos();
         var treeOpen = ImGui.TreeNodeEx(Util.GetIconCodePoint() + name, flags);
         var drawList = ImGui.GetWindowDrawList();
-        var iconSize = Settings.Startup.fontSettings.IconSize;
+        var iconSize = Settings.Loaded.ScaledIconSize;
         var imagePos = homePos + new Vector2(iconSize+5 + ImGui.GetStyle().FramePadding.X, 0);
         drawList.AddImage(GetAssetIcon(type), imagePos, imagePos+new Vector2(iconSize, iconSize));
         return treeOpen;
@@ -135,7 +145,7 @@ public static class Util
     {
         var io = ImGui.GetIO();
         const int puaStart = 0xE000;
-        var iconSize = Settings.Startup.fontSettings.IconSize;
+        var iconSize = Settings.Loaded.fontSettings.IconSize;
         io.Fonts.AddCustomRectFontGlyph(font, (ushort)puaStart, iconSize, iconSize, iconSize + 5);
     }
 }

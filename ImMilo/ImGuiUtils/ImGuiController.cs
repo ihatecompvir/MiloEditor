@@ -62,48 +62,67 @@ public class ImGuiController : IDisposable
         io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset;
         io.ConfigFlags |= ImGuiConfigFlags.NavEnableKeyboard;
         io.Fonts.Flags |= ImFontAtlasFlags.NoBakedLines;
-
         
-        unsafe
-        {
-            
-            ImFontConfigPtr confPtr = ImGuiNative.ImFontConfig_ImFontConfig();
-            confPtr.FontBuilderFlags = (uint)(ImGuiFreeTypeBuilderFlags.LoadColor);
-            confPtr.OversampleH = 2;
-            confPtr.OversampleV = 1;
-            confPtr.PixelSnapH = true;
-            confPtr.RasterizerDensity = Settings.Startup.UIScale;
-            ImFontPtr font;
-            var fontSize = Settings.Startup.fontSettings.FontSize;
-            if (Settings.Startup.fontSettings.Font == Settings.FontSettings.FontType.ImGuiDefault)
-            {
-                fontSize = 13;
-            }
-            var iconSize = Settings.Startup.fontSettings.IconSize;
-            font = CreateFontFromSettings(fontSize, confPtr);
-            confPtr.GlyphOffset = Vector2.Zero;
-            ushort[] PUA_RANGE = [0xE000, 0xF000, 0];
-            ImFontPtr iconFontPtr;
-            fixed (ushort* pPUA_RANGE = PUA_RANGE)
-            {
-                iconFontPtr = CreateFontInternal(Settings.FontSettings.FontType.TTFBuiltIn, iconSize, confPtr, (IntPtr)pPUA_RANGE);
-            }
-            confPtr.MergeMode = true;
-            if (iconSize > fontSize)
-            {
-                confPtr.GlyphOffset = new Vector2(0, (fontSize - iconSize) / 2.75f);
-            }
-            //confPtr.SizePixels = 24;
-            //io.Fonts.AddFontFromMemoryTTF((IntPtr)ptr, (int)fontStream.Length, 16.0f, confPtr);
-            CreateFontFromSettings(fontSize, confPtr);
-            Util.CreateIconGlyph(iconFontPtr);
-            Util.iconFont = iconFontPtr;
-        }
+        LoadFonts();
 
         CreateDeviceResources(gd, outputDescription);
         SetPerFrameImGuiData(1f / 60f);
         ImGui.NewFrame();
         _frameBegun = true;
+    }
+
+    public unsafe void LoadFonts()
+    {
+        var io = ImGui.GetIO();
+        ImFontConfigPtr confPtr = ImGuiNative.ImFontConfig_ImFontConfig();
+        confPtr.FontBuilderFlags = (uint)(ImGuiFreeTypeBuilderFlags.LoadColor);
+        confPtr.OversampleH = 2;
+        confPtr.OversampleV = 1;
+        confPtr.PixelSnapH = true;
+        confPtr.RasterizerDensity = Settings.Loaded.UIScale;
+        ImFontPtr font;
+        var fontSize = Settings.Loaded.fontSettings.FontSize;
+        if (Settings.Loaded.fontSettings.Font == Settings.FontSettings.FontType.ImGuiDefault)
+        {
+            fontSize = 13;
+        }
+        var iconSize = Settings.Loaded.fontSettings.IconSize;
+        font = CreateFontFromSettings(fontSize, confPtr);
+        confPtr.GlyphOffset = Vector2.Zero;
+        ushort[] PUA_RANGE = [0xE000, 0xF000, 0];
+        ImFontPtr iconFontPtr;
+        fixed (ushort* pPUA_RANGE = PUA_RANGE)
+        {
+            iconFontPtr = CreateFontInternal(Settings.FontSettings.FontType.TTFBuiltIn, iconSize, confPtr, (IntPtr)pPUA_RANGE);
+        }
+        confPtr.MergeMode = true;
+        if (iconSize > fontSize)
+        {
+            confPtr.GlyphOffset = new Vector2(0, (fontSize - iconSize) / 2.75f);
+        }
+        //confPtr.SizePixels = 24;
+        //io.Fonts.AddFontFromMemoryTTF((IntPtr)ptr, (int)fontStream.Length, 16.0f, confPtr);
+        CreateFontFromSettings(fontSize, confPtr);
+        Util.CreateIconGlyph(iconFontPtr);
+        Util.iconFont = iconFontPtr;
+
+        
+        io.Fonts.Build();
+        RecreateFontDeviceTexture(_gd);
+    }
+    
+    void PollSettings()
+    {
+        if (Settings.Editing != Settings.Loaded && !Program.NoSettingsReload)
+        {
+            ImGui.GetStyle().ScaleAllSizes(1f/Settings.Loaded.UIScale);
+            Util.ClearIconCache();
+            Settings.Loaded = Settings.Editing.Clone();
+            ImGui.GetStyle().ScaleAllSizes(Settings.Loaded.UIScale);
+            ImGui.GetStyle().FrameBorderSize = Settings.Loaded.UIScale;
+            ImGui.GetStyle().ChildBorderSize = Settings.Loaded.UIScale;
+            ImGui.GetIO().FontGlobalScale = Settings.Loaded.UIScale;
+        }
     }
 
     private ImFontPtr CreateFontFromSettings(float size, ImFontConfigPtr? config)
@@ -113,7 +132,7 @@ public class ImGuiController : IDisposable
 
     private ImFontPtr CreateFontFromSettings(float size, ImFontConfigPtr? config, IntPtr glyphRanges)
     {
-        return CreateFontInternal(Settings.Startup.fontSettings.Font, size, config, glyphRanges);
+        return CreateFontInternal(Settings.Loaded.fontSettings.Font, size, config, glyphRanges);
     }
 
     private static unsafe ImFontPtr CreateFontInternal(Settings.FontSettings.FontType fontType, float size,
@@ -139,7 +158,7 @@ public class ImGuiController : IDisposable
                     return io.Fonts.AddFontFromMemoryTTF((IntPtr)ptr, (int)fontStream.Length, size, config.Value, glyphRanges);
                 }
             case Settings.FontSettings.FontType.TTFCustom:
-                var path = Settings.Startup.fontSettings.CustomFontFilePath;
+                var path = Settings.Loaded.fontSettings.CustomFontFilePath;
                 if (!config.HasValue)
                     return io.Fonts.AddFontFromFileTTF(path, size);
                 if (glyphRanges == IntPtr.Zero)
@@ -383,6 +402,7 @@ public class ImGuiController : IDisposable
             ImGui.Render();
         }
 
+        PollSettings();
         SetPerFrameImGuiData(deltaSeconds);
         UpdateImGuiInput(snapshot);
 

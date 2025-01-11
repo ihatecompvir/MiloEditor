@@ -38,6 +38,8 @@ class Program
     private static List<object> breadcrumbs = [];
     
     private static Settings.Theme currentTheme;
+
+    public static bool NoSettingsReload => viewingObject is Settings;
     
     static void Main(string[] args)
     {
@@ -55,7 +57,10 @@ class Program
         _cl = gd.ResourceFactory.CreateCommandList();
         controller = new ImGuiController(gd, gd.MainSwapchain.Framebuffer.OutputDescription, _window.Width, _window.Height);
         //ImGui.StyleColorsLight();
-        ImGui.GetStyle().FrameBorderSize = 1;
+        ImGui.GetStyle().ScaleAllSizes(Settings.Loaded.UIScale);
+        ImGui.GetStyle().FrameBorderSize = Settings.Loaded.UIScale;
+        ImGui.GetStyle().ChildBorderSize = Settings.Loaded.UIScale;
+        ImGui.GetIO().FontGlobalScale = Settings.Loaded.UIScale;
         
         var stopwatch = Stopwatch.StartNew();
         float deltaTime;
@@ -67,7 +72,7 @@ class Program
             InputSnapshot snapshot = _window.PumpEvents();
             if (!_window.Exists) { break; }
             controller.Update(deltaTime, snapshot); // Feed the input events to our ImGui controller, which passes them through to ImGui.
-
+            
             MainUI();
 
             _cl.Begin();
@@ -95,7 +100,7 @@ class Program
 
     static void UpdateTheme()
     {
-        currentTheme = Settings.Current.useTheme;
+        currentTheme = Settings.Editing.useTheme;
         switch (currentTheme)
         {
             case Settings.Theme.Dark:
@@ -112,15 +117,12 @@ class Program
         }
     }
 
-
     static void MainUI()
     {
-        if (Settings.Current.useTheme != currentTheme)
+        if (Settings.Editing.useTheme != currentTheme)
         {
             UpdateTheme();
         }
-        var io = ImGui.GetIO();
-        io.FontGlobalScale = Settings.Current.UIScale;
         var viewport = ImGui.GetMainViewport();
         ImGui.SetNextWindowPos(viewport.WorkPos);
         ImGui.SetNextWindowSize(viewport.WorkSize);
@@ -243,15 +245,15 @@ class Program
 
                 if (ImGui.MenuItem("Settings"))
                 {
-                    NavigateObject(Settings.Current, false);
+                    NavigateObject(Settings.Editing, false);
                 }
                 ImGui.EndMenu();
             }
 
             if (ImGui.BeginMenu("View"))
             {
-                ImGui.MenuItem("Hide Field Descriptions", null, ref Settings.Current.HideFieldDescriptions);
-                ImGui.MenuItem("Hide Nested Hmx::Object Fields", null, ref Settings.Current.HideNestedHMXObjectFields);
+                ImGui.MenuItem("Hide Field Descriptions", null, ref Settings.Editing.HideFieldDescriptions);
+                ImGui.MenuItem("Hide Nested Hmx::Object Fields", null, ref Settings.Editing.HideNestedHMXObjectFields);
                 ImGui.EndMenu();
             }
             ImGui.EndMainMenuBar();
@@ -307,7 +309,7 @@ class Program
         }
 
         var cursor = ImGui.GetCursorScreenPos();
-        var iconSize = Settings.Startup.fontSettings.IconSize;
+        var iconSize = Settings.Loaded.ScaledIconSize;
         var framePadding = ImGui.GetStyle().FramePadding;
         var lineX = cursor.X+iconSize/2f+framePadding.X;
         var lineY = cursor.Y+ImGui.GetFrameHeight()-ImGui.GetStyle().ItemSpacing.Y-framePadding.Y;

@@ -239,7 +239,7 @@ public class EditorPanel
                 ImGui.TextWrapped(displayName);
                 if (description != null)
                 {
-                    if (Settings.Current.HideFieldDescriptions)
+                    if (Settings.Editing.HideFieldDescriptions)
                     {
                         ImGui.SameLine();
                         ImGui.TextDisabled("(?)");
@@ -511,7 +511,7 @@ public class EditorPanel
                 break;
             case object nestedObject when fieldValue != null:
 
-                if (Settings.Current.HideNestedHMXObjectFields && !drawLabels && nestedObject.GetType() == typeof(ObjectFields))
+                if (Settings.Editing.HideNestedHMXObjectFields && !drawLabels && nestedObject.GetType() == typeof(ObjectFields))
                 {
                     ImGui.TextDisabled("(nested fields hidden)");
                 }
