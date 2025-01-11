@@ -225,7 +225,21 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MiloIcons\MiloIcons.csproj" />
+    <Content Include="Images\BandSongPref.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Images\FileMerger.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Images\CheckboxDisplay.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>

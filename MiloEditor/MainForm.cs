@@ -4,7 +4,6 @@ using MiloLib.Assets.Band;
 using MiloLib.Assets.Rnd;
 using MiloLib.Utils;
 using MiloLib.Utils.Conversion;
-using MiloIcons;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.DirectoryServices;
@@ -60,11 +59,6 @@ namespace MiloEditor
         private void quitToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Application.Exit();
-        }
-
-        private Image GetMiloIconImage(string assetType)
-        {
-            return Image.FromStream(Icons.GetMiloIconStream(Icons.MapTypeName(assetType)));
         }
 
         private void LoadAssetClassImages()
