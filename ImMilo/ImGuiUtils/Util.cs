@@ -3,6 +3,7 @@ using BigGustave;
 using ImGuiNET;
 using MiloLib.Assets;
 using MiloIcons;
+using Veldrid;
 
 namespace ImMilo.ImGuiUtils;
 
@@ -12,13 +13,9 @@ public static class Util
     private static Dictionary<string, char> IconCodePoints = new();
     public static ImFontPtr iconFont;
 
-    public static char GetIconCodePoint(string assetType)
+    public static char GetIconCodePoint()
     {
-        if (!IconCodePoints.ContainsKey(assetType))
-        {
-            return IconCodePoints["default"];
-        }
-        return IconCodePoints[assetType];
+        return (char)0xE000;
     }
     
     public static unsafe bool InputUInt(string label, ref uint value)
@@ -68,65 +65,77 @@ public static class Util
             return ImGui.InputScalar(label, ImGuiDataType.U8, (IntPtr)ptr);
         }
     }
+    
+    private static Dictionary<string, nint> assetIcons = new();
 
-    public static void SceneTreeItem(DirectoryMeta.Entry entry)
+    public static nint GetAssetIcon(string typeName)
     {
+        if (!assetIcons.TryGetValue(typeName, out nint icon))
+        {
+            var iconStream = Icons.GetMiloIconStream(Icons.GetIconAssetPath(typeName));
+            var png = Png.Open(iconStream);
+            // TODO: find a library that can just spit out a RGBA32 stream instead of this silliness
+            int[] data = new int[png.Width * png.Height];
+            for (int y = 0; y < png.Height; y++)
+            {
+                for (int x = 0; x < png.Width; x++)
+                {
+                    var pixel = png.GetPixel(x, y);
+                    byte[] pixelArray = [pixel.R, pixel.G, pixel.B, pixel.A];
+                    data[x + y * png.Width] = BitConverter.ToInt32(pixelArray, 0);
+                }
+            }
+            var texture = Program.gd.ResourceFactory.CreateTexture(TextureDescription.Texture2D((uint)png.Width, (uint)png.Height, 1, 1, PixelFormat.R8_G8_B8_A8_UNorm, TextureUsage.Sampled));
+            Program.gd.UpdateTexture(texture, data, 0, 0, 0, (uint)png.Width, (uint)png.Height, 1, 0, 0);
+            icon = Program.controller.GetOrCreateImGuiBinding(Program.gd.ResourceFactory, texture);
+            assetIcons.Add(typeName, icon);
+        }
+
+        return icon;
+    }
+
+    private static (string, string) QueryEntryOrDir(object obj)
+    {
+        return obj switch
+        {
+            DirectoryMeta meta => (meta.name, meta.type),
+            DirectoryMeta.Entry entry => (entry.name, entry.type),
+            _ => throw new ArgumentException("Object is not a DirectoryMeta or an Entry")
+        };
+    }
+
+    public static bool SceneTreeItem(DirectoryMeta dir, ImGuiTreeNodeFlags flags)
+    {
+        return SceneTreeItem((object)dir, flags);
+    }
+    
+    public static bool SceneTreeItem(DirectoryMeta.Entry dir, ImGuiTreeNodeFlags flags)
+    {
+        return SceneTreeItem((object)dir, flags);
+    }
+
+    private static bool SceneTreeItem(object obj, ImGuiTreeNodeFlags flags)
+    {
+        var (name, type) = QueryEntryOrDir(obj);
+        var homePos = ImGui.GetCursorScreenPos();
+        var treeOpen = ImGui.TreeNodeEx(Util.GetIconCodePoint() + name, flags);
         var drawList = ImGui.GetWindowDrawList();
-        var cornerPos = ImGui.GetCursorPos();
-        //ImGui.InvisibleButton(entry.name, new Vector2(ImGui.GetContentRegionAvail().X, 24));
-        //ImGui.SetCursorPos(cornerPos);
-        //ImGui.Text(entry.name);
-        ImGui.ArrowButton("", ImGuiDir.Down);
+        var iconSize = Settings.Startup.fontSettings.IconSize;
+        var imagePos = homePos + new Vector2(iconSize+5 + ImGui.GetStyle().FramePadding.X, 0);
+        drawList.AddImage(GetAssetIcon(type), imagePos, imagePos+new Vector2(iconSize, iconSize));
+        return treeOpen;
     }
     
     /// <summary>
-    /// Creates icons for asset types in the Unicode Private Use Area, and populates <see cref="IconCodePoints"/> with
-    /// the a map from icon name -> code point.
+    /// Creates a blank character in the font with the size of an icon, with a code point of 0xE000 (start of the
+    /// Unicode Private Use Area)
     /// </summary>
-    /// <param name="font"></param>
-    public static unsafe void CreateIconsInFont(ImFontPtr font)
+    /// <param name="font">The font the glyph will exist inside of.</param>
+    public static unsafe void CreateIconGlyph(ImFontPtr font)
     {
         var io = ImGui.GetIO();
         const int puaStart = 0xE000;
-        var curPoint = puaStart;
-        var rectIdMap = new Dictionary<string, int>();
-        foreach (string typeName in Icons.typeNames)
-        {
-            var assetName = Icons.MapTypeName(typeName);
-            if (rectIdMap.ContainsKey(assetName))
-            {
-                continue;
-            }
-            rectIdMap.Add(assetName, io.Fonts.AddCustomRectFontGlyph(font, (ushort)curPoint, 24, 24, 24 + 10));
-            IconCodePoints.Add(assetName, (char)curPoint);
-            curPoint++;
-        }
-
-        io.Fonts.Build();
-        byte* texPixels;
-        int texWidth, texHeight;
-        io.Fonts.GetTexDataAsRGBA32(out texPixels, out texWidth, out texHeight);
-
-        foreach (string assetName in rectIdMap.Keys)
-        {
-            var rect = io.Fonts.GetCustomRectByIndex(rectIdMap[assetName]);
-            var png = Png.Open(Icons.GetMiloIconStream(assetName));
-            
-
-            for (int y = 0; y < rect.Height; y++)
-            {
-                uint* p = (uint*)texPixels + (rect.Y + y) * texWidth + rect.X;
-                for (int x = 0; x < rect.Width; x++)
-                {
-                    var pixel = png.GetPixel((int)(x * 32.0/24.0), (int)(y * 32.0/24.0));
-                    uint r = (uint)pixel.R;
-                    uint g = (uint)pixel.G << 8;
-                    uint b = (uint)pixel.B << 16;
-                    uint a = (uint)pixel.A << 24;
-                    *p++ = (r | g | b | a);
-                    
-                }
-            }
-        }
+        var iconSize = Settings.Startup.fontSettings.IconSize;
+        io.Fonts.AddCustomRectFontGlyph(font, (ushort)puaStart, iconSize, iconSize, iconSize + 5);
     }
 }

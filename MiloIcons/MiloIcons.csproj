@@ -5,52 +5,60 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
     </PropertyGroup>
-    
+
     <ItemGroup>
-        <EmbeddedResource Include="Images/AnimFilter.png" LogicalName="AnimFilter" />
-        <EmbeddedResource Include="Images/BandCharDesc.png" LogicalName="BandCharDesc" />
-        <EmbeddedResource Include="Images/BandCrowdMeterDir.png" LogicalName="BandCrowdMeterDir" />
-        <EmbeddedResource Include="Images/BandStarDisplay.png" LogicalName="BandStarDisplay" />
-        <EmbeddedResource Include="Images/Button.png" LogicalName="Button" />
-        <EmbeddedResource Include="Images/Camera.png" LogicalName="Camera" />
-        <EmbeddedResource Include="Images/Character.png" LogicalName="Character" />
-        <EmbeddedResource Include="Images/CharClip.png" LogicalName="CharClip" />
-        <EmbeddedResource Include="Images/CharClipGroup.png" LogicalName="CharClipGroup" />
-        <EmbeddedResource Include="Images/CheckboxDisplay.png" LogicalName="CheckboxDisplay" />
-        <EmbeddedResource Include="Images/ColorPalette.png" LogicalName="ColorPalette" />
-        <EmbeddedResource Include="Images/default.png" LogicalName="default" />
-        <EmbeddedResource Include="Images/Environ.png" LogicalName="Environ" />
-        <EmbeddedResource Include="Images/FileMerger.png" LogicalName="FileMerger" />
-        <EmbeddedResource Include="Images/Font.png" LogicalName="Font" />
-        <EmbeddedResource Include="Images/Group.png" LogicalName="Group" />
-        <EmbeddedResource Include="Images/Line.png" LogicalName="Line" />
-        <EmbeddedResource Include="Images/Lipsync.png" LogicalName="Lipsync" />
-        <EmbeddedResource Include="Images/MatAnim.png" LogicalName="MatAnim" />
-        <EmbeddedResource Include="Images/MeshAnim.png" LogicalName="MeshAnim" />
-        <EmbeddedResource Include="Images/MidiInstrument.png" LogicalName="MidiInstrument" />
-        <EmbeddedResource Include="Images/NoDir.png" LogicalName="NoDir" />
-        <EmbeddedResource Include="Images/ObjectDir.png" LogicalName="ObjectDir" />
-        <EmbeddedResource Include="Images/ParticleSys.png" LogicalName="ParticleSys" />
-        <EmbeddedResource Include="Images/PostProc.png" LogicalName="PostProc" />
-        <EmbeddedResource Include="Images/PropAnim.png" LogicalName="PropAnim" />
-        <EmbeddedResource Include="Images/RndAnim.png" LogicalName="RndAnim" />
-        <EmbeddedResource Include="Images/RndDir.png" LogicalName="RndDir" />
-        <EmbeddedResource Include="Images/RndLight.png" LogicalName="RndLight" />
-        <EmbeddedResource Include="Images/RndMat.png" LogicalName="RndMat" />
-        <EmbeddedResource Include="Images/RndMesh.png" LogicalName="RndMesh" />
-        <EmbeddedResource Include="Images/RndMultiMesh.png" LogicalName="RndMultiMesh" />
-        <EmbeddedResource Include="Images/RndTex.png" LogicalName="RndTex" />
-        <EmbeddedResource Include="Images/RndTrans.png" LogicalName="RndTrans" />
-        <EmbeddedResource Include="Images/ScreenMask.png" LogicalName="ScreenMask" />
-        <EmbeddedResource Include="Images/Sfx.png" LogicalName="Sfx" />
-        <EmbeddedResource Include="Images/TexMovie.png" LogicalName="TexMovie" />
-        <EmbeddedResource Include="Images/Text.png" LogicalName="Text" />
-        <EmbeddedResource Include="Images/TransAnim.png" LogicalName="TransAnim" />
-        <EmbeddedResource Include="Images/TransProxy.png" LogicalName="TransProxy" />
-        <EmbeddedResource Include="Images/Trigger.png" LogicalName="Trigger" />
-        <EmbeddedResource Include="Images/UIColor.png" LogicalName="UIColor" />
-        <EmbeddedResource Include="Images/UILabel.png" LogicalName="UILabel" />
-        <EmbeddedResource Include="Images/WorldDir.png" LogicalName="WorldDir" />
-        <EmbeddedResource Include="Images/WorldInstance.png" LogicalName="WorldInstance" />
+        <EmbeddedResource Include="Images\AnimFilter.png" LogicalName="Images/AnimFilter.png" />
+        <EmbeddedResource Include="Images\BandCharDesc.png" LogicalName="Images/BandCharDesc.png" />
+        <EmbeddedResource Include="Images\BandCrowdMeterDir.png" LogicalName="Images/BandCrowdMeterDir.png" />
+        <EmbeddedResource Include="Images\BandSongPref.png" LogicalName="Images/BandSongPref.png" />
+        <EmbeddedResource Include="Images\BandStarDisplay.png" LogicalName="Images/BandStarDisplay.png" />
+        <EmbeddedResource Include="Images\Button.png" LogicalName="Images/Button.png" />
+        <EmbeddedResource Include="Images\Camera.png" LogicalName="Images/Camera.png" />
+        <EmbeddedResource Include="Images\Character.png" LogicalName="Images/Character.png" />
+        <EmbeddedResource Include="Images\CharClip.png" LogicalName="Images/CharClip.png" />
+        <EmbeddedResource Include="Images\CharClipGroup.png" LogicalName="Images/CharClipGroup.png" />
+        <EmbeddedResource Include="Images\CharInterest.png" LogicalName="Images/CharInterest.png" />
+        <EmbeddedResource Include="Images\CheckboxDisplay.png" LogicalName="Images/CheckboxDisplay.png" />
+        <EmbeddedResource Include="Images\ColorPalette.png" LogicalName="Images/ColorPalette.png" />
+        <EmbeddedResource Include="Images\default.png" LogicalName="Images/default.png" />
+        <EmbeddedResource Include="Images\Environ.png" LogicalName="Images/Environ.png" />
+        <EmbeddedResource Include="Images\FileMerger.png" LogicalName="Images/FileMerger.png" />
+        <EmbeddedResource Include="Images\Font.png" LogicalName="Images/Font.png" />
+        <EmbeddedResource Include="Images\Group.png" LogicalName="Images/Group.png" />
+        <EmbeddedResource Include="Images\InlineHelp.png" LogicalName="Images/InlineHelp.png" />
+        <EmbeddedResource Include="Images\Line.png" LogicalName="Images/Line.png" />
+        <EmbeddedResource Include="Images\Lipsync.png" LogicalName="Images/Lipsync.png" />
+        <EmbeddedResource Include="Images\MatAnim.png" LogicalName="Images/MatAnim.png" />
+        <EmbeddedResource Include="Images\MeshAnim.png" LogicalName="Images/MeshAnim.png" />
+        <EmbeddedResource Include="Images\MidiInstrument.png" LogicalName="Images/MidiInstrument.png" />
+        <EmbeddedResource Include="Images\NoDir.png" LogicalName="Images/NoDir.png" />
+        <EmbeddedResource Include="Images\ObjectDir.png" LogicalName="Images/ObjectDir.png" />
+        <EmbeddedResource Include="Images\ParticleSys.png" LogicalName="Images/ParticleSys.png" />
+        <EmbeddedResource Include="Images\PostProc.png" LogicalName="Images/PostProc.png" />
+        <EmbeddedResource Include="Images\PropAnim.png" LogicalName="Images/PropAnim.png" />
+        <EmbeddedResource Include="Images\RandomGroupSeq.png" LogicalName="Images/RandomGroupSeq.png" />
+        <EmbeddedResource Include="Images\RndAnim.png" LogicalName="Images/RndAnim.png" />
+        <EmbeddedResource Include="Images\RndDir.png" LogicalName="Images/RndDir.png" />
+        <EmbeddedResource Include="Images\RndLight.png" LogicalName="Images/RndLight.png" />
+        <EmbeddedResource Include="Images\RndMat.png" LogicalName="Images/RndMat.png" />
+        <EmbeddedResource Include="Images\RndMesh.png" LogicalName="Images/RndMesh.png" />
+        <EmbeddedResource Include="Images\RndMultiMesh.png" LogicalName="Images/RndMultiMesh.png" />
+        <EmbeddedResource Include="Images\RndTex.png" LogicalName="Images/RndTex.png" />
+        <EmbeddedResource Include="Images\RndTrans.png" LogicalName="Images/RndTrans.png" />
+        <EmbeddedResource Include="Images\ScreenMask.png" LogicalName="Images/ScreenMask.png" />
+        <EmbeddedResource Include="Images\Set.png" LogicalName="Images/Set.png" />
+        <EmbeddedResource Include="Images\Sfx.png" LogicalName="Images/Sfx.png" />
+        <EmbeddedResource Include="Images\TexMovie.png" LogicalName="Images/TexMovie.png" />
+        <EmbeddedResource Include="Images\Text.png" LogicalName="Images/Text.png" />
+        <EmbeddedResource Include="Images\TransAnim.png" LogicalName="Images/TransAnim.png" />
+        <EmbeddedResource Include="Images\TransProxy.png" LogicalName="Images/TransProxy.png" />
+        <EmbeddedResource Include="Images\Trigger.png" LogicalName="Images/Trigger.png" />
+        <EmbeddedResource Include="Images\UIColor.png" LogicalName="Images/UIColor.png" />
+        <EmbeddedResource Include="Images\UIGuide.png" LogicalName="Images/UIGuide.png" />
+        <EmbeddedResource Include="Images\UILabel.png" LogicalName="Images/UILabel.png" />
+        <EmbeddedResource Include="Images\UIListDir.png" LogicalName="Images/UIListDir.png" />
+        <EmbeddedResource Include="Images\WorldDir.png" LogicalName="Images/WorldDir.png" />
+        <EmbeddedResource Include="Images\WorldInstance.png" LogicalName="Images/WorldInstance.png" />
     </ItemGroup>
+    
 </Project>

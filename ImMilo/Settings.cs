@@ -6,7 +6,7 @@ namespace ImMilo;
 /// <summary>
 /// Persistent settings for the user. TODO: serialize this.
 /// </summary>
-[Name("ImMilo Settings"), Description("Automatically saved on close.")]
+[Name("ImMilo Settings"), Description("These do not save yet!")]
 public class Settings
 {
 
@@ -16,7 +16,7 @@ public class Settings
     public class FontSettings
     {
         [Name("Font Size")]
-        public int FontSize = 16;
+        public int FontSize = 18;
         [Name("Icon Size"), Description("Size of the icons used in the scene tree.")]
         public int IconSize = 24;
 

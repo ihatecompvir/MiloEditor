@@ -94,6 +94,8 @@ class Program
 
     static void MainUI()
     {
+        var io = ImGui.GetIO();
+        io.FontGlobalScale = Settings.Current.UIScale;
         var viewport = ImGui.GetMainViewport();
         ImGui.SetNextWindowPos(viewport.WorkPos);
         ImGui.SetNextWindowSize(viewport.WorkSize);
@@ -263,8 +265,8 @@ class Program
     {
         var filterActive = filter != "";
         ImGui.PushID(id);
-        var flags = ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.OpenOnDoubleClick |
-                    ImGuiTreeNodeFlags.SpanAvailWidth;
+        var flags = ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.OpenOnDoubleClick
+            | ImGuiTreeNodeFlags.SpanFullWidth;
         if (root || filterActive)
         {
             flags |= ImGuiTreeNodeFlags.DefaultOpen;
@@ -278,7 +280,7 @@ class Program
         {
             flags |= ImGuiTreeNodeFlags.Selected;
         }
-        if (ImGui.TreeNodeEx(Util.GetIconCodePoint(Icons.MapTypeName(dir.type)) + dir.name, flags))
+        if (Util.SceneTreeItem(dir, flags))
         {
             unsafe
             {
@@ -336,12 +338,12 @@ class Program
                     {
                         ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 0.5f);
                     }
-                    ImGuiTreeNodeFlags leafFlags = ImGuiTreeNodeFlags.Leaf;
+                    ImGuiTreeNodeFlags leafFlags = ImGuiTreeNodeFlags.Leaf | ImGuiTreeNodeFlags.SpanFullWidth;
                     if (viewingObject != null && viewingObject == entry.obj)
                     {
                         leafFlags |= ImGuiTreeNodeFlags.Selected;
                     }
-                    ImGui.TreeNodeEx(Util.GetIconCodePoint(Icons.MapTypeName(dir.type)) + entry.name, leafFlags);
+                    Util.SceneTreeItem(entry, leafFlags);
                     if (ImGui.IsItemClicked(ImGuiMouseButton.Left) && entry.obj != null)
                     {
                         NavigateObject(entry.obj);

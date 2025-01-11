@@ -342,13 +342,14 @@ public class EditorPanel
 
                 break;
             case List<Symbol> symbolsValue:
+                var buttonSize = new Vector2(ImGui.GetFrameHeight(), ImGui.GetFrameHeight());
                 ImGui.BeginChild("symbols##" + field.GetHashCode(), new Vector2(0, 100f),
                     ImGuiChildFlags.Borders | ImGuiChildFlags.ResizeY);
                 for (int i = 0; i < symbolsValue.Count; i++)
                 {
                     var symbol = symbolsValue[i];
                     var stringValue = symbol.ToString();
-                    if (ImGui.Button("-##" + i))
+                    if (ImGui.Button("-##" + i, buttonSize))
                     {
                         symbolsValue.Remove(symbol);
                         field.SetValue(parent, symbolsValue);
@@ -365,7 +366,7 @@ public class EditorPanel
                     }
                 }
 
-                if (ImGui.Button("+"))
+                if (ImGui.Button("+", buttonSize))
                 {
                     symbolsValue.Add(new Symbol(0, ""));
                     field.SetValue(parent, symbolsValue);
