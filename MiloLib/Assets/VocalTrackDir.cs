@@ -50,8 +50,11 @@ namespace MiloLib.Assets
             }
         }
 
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
+
+        private ushort altTrackRevision;
+        private ushort trackRevision;
 
         public bool unkBool1;
         public bool unkBool2;
@@ -262,19 +265,19 @@ namespace MiloLib.Assets
         public void LoadTrack(EndianReader reader, bool b1, bool b2, bool b3)
         {
             uint combinedRevision = reader.ReadUInt32();
-            if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
-            else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
+            if (BitConverter.IsLittleEndian) (trackRevision, altTrackRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
+            else (altTrackRevision, trackRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
 
             simulatedNet = reader.ReadBoolean();
             instrument = Symbol.Read(reader);
 
-            if (revision >= 1 && !b1)
+            if (trackRevision >= 1 && !b1)
             {
                 starPowerMeter = Symbol.Read(reader);
                 streakMeter = Symbol.Read(reader);
             }
             bool finalbool;
-            if (revision < 3)
+            if (trackRevision < 3)
             {
                 finalbool = false;
                 if (!b3 || !b1)
@@ -287,7 +290,7 @@ namespace MiloLib.Assets
             if (finalbool)
             {
                 playerIntro = Symbol.Read(reader);
-                if (revision < 1)
+                if (trackRevision < 1)
                 {
                     starPowerMeter = Symbol.Read(reader);
                     streakMeter = Symbol.Read(reader);
@@ -295,7 +298,7 @@ namespace MiloLib.Assets
                 popupObject = Symbol.Read(reader);
                 playerFeedback = Symbol.Read(reader);
                 failedFeedback = Symbol.Read(reader);
-                if (revision >= 2)
+                if (trackRevision >= 2)
                     endgameFeedback = Symbol.Read(reader);
             }
             if (!b1)
@@ -311,18 +314,18 @@ namespace MiloLib.Assets
 
         public void SaveTrack(EndianWriter writer, bool b1, bool b2, bool b3)
         {
-            writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
+            writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altTrackRevision << 16) | trackRevision) : (uint)((trackRevision << 16) | altTrackRevision));
 
             writer.WriteBoolean(simulatedNet);
             Symbol.Write(writer, instrument);
 
-            if (revision >= 1 && !b1)
+            if (trackRevision >= 1 && !b1)
             {
                 Symbol.Write(writer, starPowerMeter);
                 Symbol.Write(writer, streakMeter);
             }
             bool finalbool;
-            if (revision < 3)
+            if (trackRevision < 3)
             {
                 finalbool = false;
                 if (!b3 || !b1)
@@ -335,7 +338,7 @@ namespace MiloLib.Assets
             if (finalbool)
             {
                 Symbol.Write(writer, playerIntro);
-                if (revision < 1)
+                if (trackRevision < 1)
                 {
                     Symbol.Write(writer, starPowerMeter);
                     Symbol.Write(writer, streakMeter);
@@ -343,7 +346,7 @@ namespace MiloLib.Assets
                 Symbol.Write(writer, popupObject);
                 Symbol.Write(writer, playerFeedback);
                 Symbol.Write(writer, failedFeedback);
-                if (revision >= 2)
+                if (trackRevision >= 2)
                     Symbol.Write(writer, endgameFeedback);
             }
             if (!b1)

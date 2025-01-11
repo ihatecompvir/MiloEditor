@@ -23,6 +23,7 @@ namespace MiloLib.Assets
         public float halfDistance;
         [Name("Lighting Influence"), Description("The amount the spotlights will influence the real lighting of the world")]
         public float lightingInfluence;
+        public float lightingInfluence2;
         public Symbol texture = new(0, "");
         [Name("Proxy Fog Object"), Description("proxy fog object")]
         public Symbol proxy = new(0, "");
@@ -49,6 +50,7 @@ namespace MiloLib.Assets
 
         [MaxVersion(2)]
         public bool unkBool;
+
 
         public SpotlightDrawer Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
@@ -99,10 +101,9 @@ namespace MiloLib.Assets
             {
                 unkBool = reader.ReadBoolean();
             }
-
-            if (revision > 4)
+            else if (revision > 4)
             {
-                lightingInfluence = reader.ReadFloat();
+                lightingInfluence2 = reader.ReadFloat();
             }
 
             if (standalone)
@@ -158,10 +159,9 @@ namespace MiloLib.Assets
             {
                 writer.WriteBoolean(unkBool);
             }
-
-            if (revision > 4)
+            else if (revision > 4)
             {
-                writer.WriteFloat(lightingInfluence);
+                writer.WriteFloat(lightingInfluence2);
             }
 
             if (standalone)

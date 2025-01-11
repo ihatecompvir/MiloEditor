@@ -270,11 +270,11 @@ namespace MiloLib.Assets.UI
             }
             if (revision > 5)
             {
-                writer.WriteInt16(fixedLength);
+                writer.WriteInt32(fixedLength);
             }
             if (revision > 6)
             {
-                writer.WriteInt16(reservedLines);
+                writer.WriteInt32(reservedLines);
             }
             if (revision >= 9 && revision <= 15)
             {

@@ -69,6 +69,16 @@ namespace MiloLib.Assets.Rnd
             else
                 useExternalPath = reader.ReadUInt32() == 1;
 
+            if (revision == 5)
+            {
+                if (standalone)
+                {
+                    if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");
+                }
+                return this;
+            }
+
+
             if (parent.platform == DirectoryMeta.Platform.Wii && revision > 10)
                 unkShort = reader.ReadUInt16();
 

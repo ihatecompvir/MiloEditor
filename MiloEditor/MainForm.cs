@@ -367,6 +367,7 @@ namespace MiloEditor
                         contextMenu.Items.Add(new ToolStripMenuItem("Duplicate Directory", SystemIcons.Information.ToBitmap(), (s, ev) => DuplicateDirectory(e.Node)));
                         contextMenu.Items.Add(new ToolStripMenuItem("Rename Directory", SystemIcons.Information.ToBitmap(), (s, ev) => RenameDirectory(e.Node)));
                         contextMenu.Items.Add(new ToolStripMenuItem("Merge Directory", SystemIcons.Information.ToBitmap(), (s, ev) => MergeDirectory(e.Node)));
+                        contextMenu.Items.Add(new ToolStripMenuItem("Export Directory", SystemIcons.Information.ToBitmap(), (s, ev) => ExportDirectory(e.Node)));
                         contextMenu.Items.Add(new ToolStripSeparator());
                         contextMenu.Items.Add(new ToolStripMenuItem("Add Inlined Subdirectory", SystemIcons.Information.ToBitmap(), (s, ev) => AddInlinedSubdirectory(e.Node)));
                         contextMenu.Items.Add(new ToolStripSeparator());
@@ -579,6 +580,52 @@ namespace MiloEditor
                     }
                 }
                 PopulateListWithEntries();
+            }
+        }
+
+        private void ExportDirectory(TreeNode node)
+        {
+            // get directory from node
+            DirectoryMeta dirEntry = (DirectoryMeta)node.Tag;
+
+            if (dirEntry != null)
+            {
+
+                // bring up the milo save options dialog
+                MiloSaveOptionsForm miloSaveOptionsForm = new MiloSaveOptionsForm();
+                miloSaveOptionsForm.ShowDialog();
+
+                if (miloSaveOptionsForm.DialogResult == DialogResult.OK)
+                {
+                    SaveFileDialog saveFileDialog = new SaveFileDialog
+                    {
+                        Filter = "Milo Scenes|*.milo_ps2;*.milo_xbox;*.milo_ps3;*.milo_wii;*.milo_pc;*.rnd;*.rnd_ps2;*.rnd_xbox;*.rnd_gc;*.kr",
+                        Title = "Save Milo Scene As...",
+                        FileName = dirEntry.name
+                    };
+
+                    // create a milofile to serialize
+                    MiloFile file = new MiloFile(dirEntry);
+                    file.endian = currentMiloScene.endian;
+
+                    if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                    {
+                        file.Save(saveFileDialog.FileName, miloSaveOptionsForm.compressionType, 0x810, Endian.LittleEndian, miloSaveOptionsForm.useBigEndian ? Endian.BigEndian : Endian.LittleEndian);
+                        MessageBox.Show("Milo scene saved to " + saveFileDialog.FileName + " successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    else
+                    {
+                        return;
+                    }
+                }
+                else
+                {
+                    return;
+                }
+            }
+            else
+            {
+                MessageBox.Show("No Milo scene loaded to save!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
         private void ExtractAsset(TreeNode node)

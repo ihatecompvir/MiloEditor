@@ -52,8 +52,8 @@ namespace MiloLib.Assets.UI
 
             base.Write(writer, false, parent, entry);
 
-            trans.Write(writer, false, parent, entry);
-            draw.Write(writer, false, parent, entry);
+            trans.Write(writer, false, true);
+            draw.Write(writer, false, true);
 
             if (revision > 0)
             {

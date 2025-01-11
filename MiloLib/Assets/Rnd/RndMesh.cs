@@ -222,6 +222,9 @@ namespace MiloLib.Assets.Rnd
                                 newVert.tangent1 = reader.ReadFloat();
                                 newVert.tangent2 = reader.ReadFloat();
                                 newVert.tangent3 = reader.ReadFloat();
+
+                                newVert.unknown1 = reader.ReadFloat();
+                                newVert.unknown2 = reader.ReadFloat();
                             }
                         }
                     }
@@ -230,13 +233,11 @@ namespace MiloLib.Assets.Rnd
                         newVert.uvCheck = reader.ReadInt32();
                         if (newVert.uvCheck == -1)
                         {
-                            newVert.halfU = reader.ReadHalfFloat();
-                            newVert.halfV = reader.ReadHalfFloat();
+                            newVert.halfU = reader.ReadUInt16();
+                            newVert.halfV = reader.ReadUInt16();
 
                             newVert.normals = newVert.normals.Read(reader);
-
                             newVert.tangents = newVert.tangents.Read(reader);
-
                             newVert.weights = newVert.weights.Read(reader);
 
                             newVert.bone0 = reader.ReadByte();
@@ -246,12 +247,9 @@ namespace MiloLib.Assets.Rnd
                         }
                         else
                         {
-                            newVert.halfU = reader.ReadHalfFloat();
-                            newVert.halfV = reader.ReadHalfFloat();
-
-                            newVert.ny = reader.ReadHalfFloat();
-                            newVert.nz = reader.ReadHalfFloat();
-                            newVert.nw = reader.ReadHalfFloat();
+                            reader.BaseStream.Position -= 4;
+                            newVert.halfU = reader.ReadUInt16();
+                            newVert.halfV = reader.ReadUInt16();
 
                             newVert.qTangents = newVert.qTangents.Read(reader);
 
@@ -260,10 +258,10 @@ namespace MiloLib.Assets.Rnd
                             newVert.weight2 = reader.ReadByte();
                             newVert.weight3 = reader.ReadByte();
 
-                            newVert.bone0 = reader.ReadByte();
-                            newVert.bone1 = reader.ReadByte();
-                            newVert.bone2 = reader.ReadByte();
-                            newVert.bone3 = reader.ReadByte();
+                            newVert.bone0 = reader.ReadUInt16();
+                            newVert.bone1 = reader.ReadUInt16();
+                            newVert.bone2 = reader.ReadUInt16();
+                            newVert.bone3 = reader.ReadUInt16();
                         }
                     }
 
@@ -381,6 +379,11 @@ namespace MiloLib.Assets.Rnd
                                 writer.WriteFloat(vertex.tangent1);
                                 writer.WriteFloat(vertex.tangent2);
                                 writer.WriteFloat(vertex.tangent3);
+
+                                writer.WriteFloat(vertex.unknown1);
+                                writer.WriteFloat(vertex.unknown2);
+
+
                             }
                         }
                     }
@@ -405,12 +408,9 @@ namespace MiloLib.Assets.Rnd
                         }
                         else
                         {
+                            writer.BaseStream.Position -= 4;
                             writer.WriteUInt16((ushort)vertex.halfU);
                             writer.WriteUInt16((ushort)vertex.halfV);
-
-                            writer.WriteUInt16((ushort)vertex.ny);
-                            writer.WriteUInt16((ushort)vertex.nz);
-                            writer.WriteUInt16((ushort)vertex.nw);
 
                             vertex.qTangents.Write(writer);
 
@@ -419,10 +419,10 @@ namespace MiloLib.Assets.Rnd
                             writer.WriteByte((byte)vertex.weight2);
                             writer.WriteByte((byte)vertex.weight3);
 
-                            writer.WriteByte((byte)vertex.bone0);
-                            writer.WriteByte((byte)vertex.bone1);
-                            writer.WriteByte((byte)vertex.bone2);
-                            writer.WriteByte((byte)vertex.bone3);
+                            writer.WriteUInt16(vertex.bone0);
+                            writer.WriteUInt16(vertex.bone1);
+                            writer.WriteUInt16(vertex.bone2);
+                            writer.WriteUInt16(vertex.bone3);
                         }
                     }
                 }

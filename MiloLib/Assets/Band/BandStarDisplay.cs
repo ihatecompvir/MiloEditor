@@ -42,6 +42,9 @@ namespace MiloLib.Assets.Band
         {
             writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)(altRevision << 16 | revision) : (uint)(revision << 16 | altRevision));
 
+            if (entry != null && entry.isProxy)
+                Symbol.Write(writer, starType);
+
             base.Write(writer, false, parent, entry);
 
             if (standalone)

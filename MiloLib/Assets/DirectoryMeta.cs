@@ -458,6 +458,9 @@ namespace MiloLib.Assets
                 case "TrackDir":
                     ((TrackDir)directory).Write(writer, true, this, new Entry(type, name, directory));
                     break;
+                case "GemTrackDir":
+                    ((GemTrackDir)directory).Write(writer, true, this, new Entry(type, name, directory));
+                    break;
                 case "TrackPanelDir":
                     ((TrackPanelDir)directory).Write(writer, true, this, new Entry(type, name, directory));
                     break;
@@ -815,7 +818,7 @@ namespace MiloLib.Assets
                         entry.dir = dir;
 
                         // these can be followed by a Character or other dirs...wtf
-                        // if it is another dir it seems to allows be followed by persistentobjects
+                        // if it is another dir it seems to always be followed by persistentobjects
                         if (entry.dir != null && entry.dir.type.value == "WorldInstance")
                         {
                             if (((WorldInstance)dir.directory).hasPersistentObjects)
@@ -882,13 +885,25 @@ namespace MiloLib.Assets
                     Debug.WriteLine("Reading entry CharClipGroup " + entry.name.value);
                     entry.obj = new CharClipGroup().Read(reader, true, this, entry);
                     break;
+                case "CharForeTwist":
+                    Debug.WriteLine("Reading entry CharForeTwist " + entry.name.value);
+                    entry.obj = new CharForeTwist().Read(reader, true, this, entry);
+                    break;
                 case "CharGuitarString":
                     Debug.WriteLine("Reading entry CharGuitarString " + entry.name.value);
                     entry.obj = new CharGuitarString().Read(reader, true, this, entry);
                     break;
+                case "CharHair":
+                    Debug.WriteLine("Reading entry CharHair " + entry.name.value);
+                    entry.obj = new CharHair().Read(reader, true, this, entry);
+                    break;
                 case "CharIKMidi":
                     Debug.WriteLine("Reading entry CharIKMidi " + entry.name.value);
                     entry.obj = new CharIKMidi().Read(reader, true, this, entry);
+                    break;
+                case "CharIKRod":
+                    Debug.WriteLine("Reading entry CharIKRod " + entry.name.value);
+                    entry.obj = new CharIKRod().Read(reader, true, this, entry);
                     break;
                 case "CharInterest":
                     Debug.WriteLine("Reading entry CharInterest " + entry.name.value);
@@ -897,6 +912,18 @@ namespace MiloLib.Assets
                 case "CharMeshHide":
                     Debug.WriteLine("Reading entry CharMeshHide " + entry.name.value);
                     entry.obj = new CharMeshHide().Read(reader, true, this, entry);
+                    break;
+                case "CharPosConstraint":
+                    Debug.WriteLine("Reading entry CharPosConstraint " + entry.name.value);
+                    entry.obj = new CharPosConstraint().Read(reader, true, this, entry);
+                    break;
+                case "CharServoBone":
+                    Debug.WriteLine("Reading entry CharServoBone " + entry.name.value);
+                    entry.obj = new CharServoBone().Read(reader, true, this, entry);
+                    break;
+                case "CharUpperTwist":
+                    Debug.WriteLine("Reading entry CharUpperTwist " + entry.name.value);
+                    entry.obj = new CharUpperTwist().Read(reader, true, this, entry);
                     break;
                 case "CharWalk":
                     Debug.WriteLine("Reading entry CharWalk " + entry.name.value);
@@ -918,10 +945,10 @@ namespace MiloLib.Assets
                     Debug.WriteLine("Reading entry Environ " + entry.name.value);
                     entry.obj = new RndEnviron().Read(reader, true, this, entry);
                     break;
-                case "EventTrigger":
-                    Debug.WriteLine("Reading entry EventTrigger " + entry.name.value);
-                    entry.obj = new EventTrigger().Read(reader, true, this, entry);
-                    break;
+                //case "EventTrigger":
+                //    Debug.WriteLine("Reading entry EventTrigger " + entry.name.value);
+                //    entry.obj = new EventTrigger().Read(reader, true, this, entry);
+                //    break;
                 case "FileMerger":
                     Debug.WriteLine("Reading entry FileMerger " + entry.name.value);
                     entry.obj = new FileMerger().Read(reader, true, this, entry);
@@ -940,8 +967,6 @@ namespace MiloLib.Assets
                     entry.obj = new RndLight().Read(reader, true, this, entry);
                     break;
                 case "Mat":
-                    if (revision != 28)
-                        goto default;
                     Debug.WriteLine("Reading entry Mat " + entry.name.value);
                     entry.obj = new RndMat().Read(reader, true, this, entry);
                     break;
@@ -1112,6 +1137,11 @@ namespace MiloLib.Assets
                     entry.isProxy = false;
                     entry.dir.Write(writer);
                     break;
+                case "BandStarDisplay":
+                    ((BandStarDisplay)entry.obj).Write(writer, true, this, entry);
+                    entry.isProxy = false;
+                    entry.dir.Write(writer);
+                    break;
                 case "Character":
                     ((Character)entry.obj).Write(writer, true, this, entry);
                     if (((Character)entry.obj).proxyPath != String.Empty)
@@ -1136,11 +1166,11 @@ namespace MiloLib.Assets
                     entry.isProxy = false;
                     entry.dir.Write(writer);
                     break;
-                //case "GemTrackDir":
-                //    ((GemTrackDir)entry.obj).Write(writer, true, this, entry);
-                //    entry.isProxy = false;
-                //    entry.dir.Write(writer);
-                //    break;
+                case "GemTrackDir":
+                    ((GemTrackDir)entry.obj).Write(writer, true, this, entry);
+                    entry.isProxy = false;
+                    entry.dir.Write(writer);
+                    break;
                 case "MoveDir":
                     ((MoveDir)entry.obj).Write(writer, true, this, entry);
                     entry.isProxy = false;
@@ -1186,6 +1216,11 @@ namespace MiloLib.Assets
                     break;
                 case "SkeletonDir":
                     ((SkeletonDir)entry.obj).Write(writer, true, this, entry);
+                    entry.isProxy = false;
+                    entry.dir.Write(writer);
+                    break;
+                case "StreakMeterDir":
+                    ((StreakMeterDir)entry.obj).Write(writer, true, this, entry);
                     entry.isProxy = false;
                     entry.dir.Write(writer);
                     break;
@@ -1296,17 +1331,35 @@ namespace MiloLib.Assets
                 case "CharClipGroup":
                     ((CharClipGroup)entry.obj).Write(writer, true, this, entry);
                     break;
+                case "CharForeTwist":
+                    ((CharForeTwist)entry.obj).Write(writer, true, this, entry);
+                    break;
                 case "CharGuitarString":
                     ((CharGuitarString)entry.obj).Write(writer, true, this, entry);
                     break;
+                case "CharHair":
+                    ((CharHair)entry.obj).Write(writer, true, this, entry);
+                    break;
                 case "CharIKMidi":
                     ((CharIKMidi)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "CharIKRod":
+                    ((CharIKRod)entry.obj).Write(writer, true, this, entry);
                     break;
                 case "CharInterest":
                     ((CharInterest)entry.obj).Write(writer, true, this, entry);
                     break;
                 case "CharMeshHide":
                     ((CharMeshHide)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "CharPosConstraint":
+                    ((CharPosConstraint)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "CharServoBone":
+                    ((CharServoBone)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "CharUpperTwist":
+                    ((CharUpperTwist)entry.obj).Write(writer, true, this, entry);
                     break;
                 case "CharWalk":
                     ((CharWalk)entry.obj).Write(writer, true, this, entry);
@@ -1336,8 +1389,6 @@ namespace MiloLib.Assets
                     ((RndLight)entry.obj).Write(writer, true, this, entry);
                     break;
                 case "Mat":
-                    if (revision != 28)
-                        goto default;
                     ((RndMat)entry.obj).Write(writer, true, this, entry);
                     break;
                 case "MatAnim":
@@ -1413,6 +1464,11 @@ namespace MiloLib.Assets
                 //    break;
 
                 default:
+                    // see if the type contains "Dir" and if so, throw an exception because the Milo that will get produced will never work
+                    if (entry.type.value.Contains("Dir"))
+                        throw new Exception("Unknown entry type: " + entry.type.value + ", cannot continue writing directory");
+
+
                     Debug.WriteLine("Unknown entry type, dumping raw bytes for " + entry.type.value + " of name " + entry.name.value);
 
                     // this should allow saving Milos with types that have yet to be implemented

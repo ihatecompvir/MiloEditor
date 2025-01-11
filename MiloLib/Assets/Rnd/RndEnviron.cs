@@ -339,10 +339,6 @@ namespace MiloLib.Assets.Rnd
             {
                 writer.WriteUInt32(unkInt3);
             }
-            else if (revision - 0xC <= 1)
-            {
-                writer.WriteUInt32(unkInt4);
-            }
 
 
             if (standalone)

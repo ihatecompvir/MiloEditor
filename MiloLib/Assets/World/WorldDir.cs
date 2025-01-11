@@ -270,7 +270,7 @@ namespace MiloLib.Assets.World
                     xfm.Write(writer);
                 }
                 else if (revision > 6)
-                    camTrans.Write(writer, false, parent, entry);
+                    camTrans.Write(writer, false, true);
             }
 
             if (revision > 0xB)

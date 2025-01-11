@@ -45,10 +45,13 @@ namespace MiloLib.Assets.World
                     unkSym = Symbol.Read(reader);
 
 
-                    if (revision > 2)
+                    if (revision > 1)
                     {
-                        stringTableCount = reader.ReadUInt32();
-                        stringTableSize = reader.ReadUInt32();
+                        if (revision > 2)
+                        {
+                            stringTableCount = reader.ReadUInt32();
+                            stringTableSize = reader.ReadUInt32();
+                        }
 
                         objectCount = reader.ReadUInt32();
                         for (int i = 0; i < objectCount; i++)
@@ -68,6 +71,7 @@ namespace MiloLib.Assets.World
                             }
                         }
                     }
+
                 }
                 if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of persistent perObjs but didn't find the expected end bytes, read likely did not succeed");
 

@@ -136,36 +136,38 @@ namespace MiloLib.Assets.Band
                 }
                 return;
             }
-
-            if (!entry.isProxy)
+            else
             {
-                if (revision < 3)
+                if (!entry.isProxy)
                 {
-                    writer.WriteUInt32((uint)groups.Count);
-                    foreach (var group in groups)
+                    if (revision < 3)
                     {
-                        Symbol.Write(writer, group);
+                        writer.WriteUInt32((uint)groups.Count);
+                        foreach (var group in groups)
+                        {
+                            Symbol.Write(writer, group);
+                        }
                     }
-                }
 
-                if (revision >= 2)
+                    if (revision >= 2)
+                    {
+                        writer.WriteUInt32((uint)colors.Count);
+                        foreach (var color in colors)
+                        {
+                            color.Write(writer);
+                        }
+                    }
+
+                }
+                if (revision >= 1)
+                    writer.WriteFloat(peakValue);
+
+                base.Write(writer, false, parent, entry);
+
+                if (standalone)
                 {
-                    writer.WriteUInt32((uint)colors.Count);
-                    foreach (var color in colors)
-                    {
-                        color.Write(writer);
-                    }
+                    writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
                 }
-
-            }
-            if (revision >= 1)
-                writer.WriteFloat(peakValue);
-
-            base.Write(writer, false, parent, entry);
-
-            if (standalone)
-            {
-                writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
             }
         }
 

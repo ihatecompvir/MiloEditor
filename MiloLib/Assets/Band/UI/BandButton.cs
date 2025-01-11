@@ -138,8 +138,8 @@ namespace MiloLib.Assets.Band.UI
             {
                 if (revision <= 4)
                 {
-                    trans.Write(writer, false, parent, entry);
-                    draw.Write(writer, false, parent, entry);
+                    trans.Write(writer, false, true);
+                    draw.Write(writer, false, true);
                 }
                 else
                 {

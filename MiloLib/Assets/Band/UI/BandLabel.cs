@@ -36,13 +36,32 @@ namespace MiloLib.Assets.UI
         public int unkInt3;
         public int unkInt4;
 
+        public bool unkBool87;
+        public bool unkBool88;
+
+        public int unkIntI;
+        public int unkIntJ;
+        public int unkIntK;
+        public int unkIntL;
+
+        public int unkInt50;
+        public int unkInt6C;
+
+        public float unkFloatWidth;
+        public float unkFloatHeight;
+        public float unkFloatColR;
+        public float unkFloatColG;
+        public float unkFloatColB;
+        public float unkFloatColA;
+        public float unkFloatKerning;
+        public float unkFloatTextSize;
+        public float unkFloatLeading;
+
         public BandLabel Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
             else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
-
-            bool b87 = false;
 
             if (revision < 0xB)
             {
@@ -52,110 +71,127 @@ namespace MiloLib.Assets.UI
                     draw = draw.Read(reader, false, parent, entry);
                 }
                 else base.Read(reader, false, parent, entry);
+
                 if (revision > 5)
                 {
                     if (revision < 10)
                     {
-                        bool b88 = reader.ReadBoolean();
-                        width = reader.ReadFloat();
-                        height = reader.ReadFloat();
-                        if (b88) fitType = LabelFitTypes.kFitJust;
-                        else fitType = 0;
+                        unkBool88 = reader.ReadBoolean();
+                        unkFloatWidth = reader.ReadFloat();
+                        unkFloatHeight = reader.ReadFloat();
+                        fitType = unkBool88 ? LabelFitTypes.kFitJust : 0;
                     }
                     else
                     {
-                        int i50 = reader.ReadInt32();
-                        width = reader.ReadFloat();
-                        height = reader.ReadFloat();
-                        fitType = (LabelFitTypes)i50;
+                        unkInt50 = reader.ReadInt32();
+                        unkFloatWidth = reader.ReadFloat();
+                        unkFloatHeight = reader.ReadFloat();
+                        fitType = (LabelFitTypes)unkInt50;
                     }
                 }
-                if (revision > 4) leading = reader.ReadFloat();
+
+                if (revision > 4) unkFloatLeading = reader.ReadFloat();
                 if (revision > 3) alignment = (TextAlignments)reader.ReadInt32();
+
                 if (revision < 2)
                 {
-                    int i, j, k, l;
-                    i = reader.ReadInt32();
-                    j = reader.ReadInt32();
-                    k = reader.ReadInt32();
-                    l = reader.ReadInt32();
+                    unkIntI = reader.ReadInt32();
+                    unkIntJ = reader.ReadInt32();
+                    unkIntK = reader.ReadInt32();
+                    unkIntL = reader.ReadInt32();
                 }
+
                 if (revision <= 6)
                 {
                     Symbol s = Symbol.Read(reader);
                 }
-                if (revision != 0) b87 = reader.ReadBoolean();
-                else b87 = false;
+
+                if (revision != 0) unkBool87 = reader.ReadBoolean();
+                else unkBool87 = false;
+
                 if (revision <= 6) textToken = Symbol.Read(reader);
+
                 if (revision < 10) reader.ReadInt32();
+
                 if (revision > 8)
                 {
-                    float colr = reader.ReadFloat();
-                    float colg = reader.ReadFloat();
-                    float colb = reader.ReadFloat();
-                    float cola = reader.ReadFloat();
+                    unkFloatColR = reader.ReadFloat();
+                    unkFloatColG = reader.ReadFloat();
+                    unkFloatColB = reader.ReadFloat();
+                    unkFloatColA = reader.ReadFloat();
                 }
+
                 if (revision > 9)
                 {
-                    kerning = reader.ReadFloat();
-                    textSize = reader.ReadFloat();
+                    unkFloatKerning = reader.ReadFloat();
+                    unkFloatTextSize = reader.ReadFloat();
                 }
             }
             else
             {
                 base.Read(reader, false, parent, entry);
+
                 if (revision < 0xE)
                 {
-                    int i6c = reader.ReadInt32();
-                    fitType = (LabelFitTypes)i6c;
-                    width = reader.ReadFloat();
-                    height = reader.ReadFloat();
+                    unkInt6C = reader.ReadInt32();
+                    fitType = (LabelFitTypes)unkInt6C;
+                    unkFloatWidth = reader.ReadFloat();
+                    unkFloatHeight = reader.ReadFloat();
+
                     if (fitType == 0)
                     {
-                        height = 0;
-                        width = 0;
+                        unkFloatHeight = 0;
+                        unkFloatWidth = 0;
                     }
                 }
+
                 if (revision < 0xD)
                 {
-                    leading = reader.ReadFloat();
+                    unkFloatLeading = reader.ReadFloat();
                     alignment = (TextAlignments)reader.ReadInt32();
                 }
+
                 if (revision < 0xF)
                 {
-                    int i, j, k, l;
-                    i = reader.ReadInt32();
-                    j = reader.ReadInt32();
-                    k = reader.ReadInt32();
-                    l = reader.ReadInt32();
+                    unkIntI = reader.ReadInt32();
+                    unkIntJ = reader.ReadInt32();
+                    unkIntK = reader.ReadInt32();
+                    unkIntL = reader.ReadInt32();
                 }
+
                 if (revision < 0xD)
                 {
-                    b87 = reader.ReadBoolean();
-                    kerning = reader.ReadFloat();
-                    textSize = reader.ReadFloat();
+                    unkBool87 = reader.ReadBoolean();
+                    unkFloatKerning = reader.ReadFloat();
+                    unkFloatTextSize = reader.ReadFloat();
                 }
+
                 if (revision < 0xE) reader.ReadInt32();
+
                 if (revision < 0xF)
                 {
-                    float colr = reader.ReadFloat();
-                    float colg = reader.ReadFloat();
-                    float colb = reader.ReadFloat();
-                    float cola = reader.ReadFloat();
+                    unkFloatColR = reader.ReadFloat();
+                    unkFloatColG = reader.ReadFloat();
+                    unkFloatColB = reader.ReadFloat();
+                    unkFloatColA = reader.ReadFloat();
                 }
             }
+
             if (revision < 0xD)
             {
                 int capsmode = 0;
-                if (b87) capsmode = 2;
+                if (unkBool87) capsmode = 2;
                 capsMode = (CapsModes)capsmode;
             }
+
             if (revision == 0xF) LoadOldBandTextComp(reader);
+
             if (revision >= 0x11)
             {
                 inAnim = Symbol.Read(reader);
                 outAnim = Symbol.Read(reader);
             }
+
             if (standalone)
                 if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");
 
@@ -189,118 +225,159 @@ namespace MiloLib.Assets.UI
                 }
             }
         }
+
+        public void WriteOldBandTextComp(EndianWriter writer)
+        {
+            writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
+            if (revision > 2)
+            {
+                return;
+            }
+            else
+            {
+                if (revision < 1)
+                {
+                    writer.WriteInt32(unkInt1);
+                    writer.WriteInt32(unkInt1);
+                    writer.WriteInt32(unkInt1);
+                    writer.WriteInt32(unkInt1);
+                }
+                Symbol.Write(writer, oldLabelType);
+                if (oldLabelType == "custom_colors")
+                {
+                    if (revision >= 2) writer.WriteUInt32(oldLabelColorNum);
+                    for (int i = 0; i < oldLabelColorNum; i++) writer.WriteInt32(dummy);
+                }
+            }
+        }
         public override void Write(EndianWriter writer, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry? entry)
         {
             writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
-
-            bool b87 = false;
 
             if (revision < 0xB)
             {
                 if (revision <= 6)
                 {
-
+                    // Write Trans and Drawable members
+                    trans.Write(writer, false, true);
+                    draw.Write(writer, false, true);
                 }
-                else base.Write(writer, false, parent, entry);
+                else
+                {
+                    base.Write(writer, false, parent, entry);
+                }
+
                 if (revision > 5)
                 {
                     if (revision < 10)
                     {
-                        writer.WriteBoolean(false); //b88
-                        writer.WriteFloat(width);
-                        writer.WriteFloat(height);
+                        writer.WriteBoolean(unkBool88);
+                        writer.WriteFloat(unkFloatWidth);
+                        writer.WriteFloat(unkFloatHeight);
                     }
                     else
                     {
                         writer.WriteInt32((int)fitType);
-                        writer.WriteFloat(width);
-                        writer.WriteFloat(height);
+                        writer.WriteFloat(unkFloatWidth);
+                        writer.WriteFloat(unkFloatHeight);
                     }
                 }
-                if (revision > 4) writer.WriteFloat(leading);
+
+                if (revision > 4) writer.WriteFloat(unkFloatLeading);
                 if (revision > 3) writer.WriteInt32((int)alignment);
+
                 if (revision < 2)
                 {
-                    writer.WriteInt32(0);
-                    writer.WriteInt32(0);
-                    writer.WriteInt32(0);
-                    writer.WriteInt32(0);
+                    writer.WriteInt32(unkIntI);
+                    writer.WriteInt32(unkIntJ);
+                    writer.WriteInt32(unkIntK);
+                    writer.WriteInt32(unkIntL);
                 }
-                if (revision <= 6)
-                {
-                    Symbol.Write(writer, new Symbol(0, ""));
-                }
-                if (revision != 0) writer.WriteBoolean(b87);
+
+                if (revision <= 6) Symbol.Write(writer, new Symbol(0, ""));
+                writer.WriteBoolean(unkBool87);
+
                 if (revision <= 6) Symbol.Write(writer, textToken);
+
                 if (revision < 10) writer.WriteInt32(0);
+
                 if (revision > 8)
                 {
-                    writer.WriteFloat(0);
-                    writer.WriteFloat(0);
-                    writer.WriteFloat(0);
-                    writer.WriteFloat(0);
+                    writer.WriteFloat(unkFloatColR);
+                    writer.WriteFloat(unkFloatColG);
+                    writer.WriteFloat(unkFloatColB);
+                    writer.WriteFloat(unkFloatColA);
                 }
+
                 if (revision > 9)
                 {
-                    writer.WriteFloat(kerning);
-                    writer.WriteFloat(textSize);
+                    writer.WriteFloat(unkFloatKerning);
+                    writer.WriteFloat(unkFloatTextSize);
                 }
             }
             else
             {
                 base.Write(writer, false, parent, entry);
+
                 if (revision < 0xE)
                 {
                     writer.WriteInt32((int)fitType);
-                    writer.WriteFloat(width);
-                    writer.WriteFloat(height);
+                    writer.WriteFloat(unkFloatWidth);
+                    writer.WriteFloat(unkFloatHeight);
                 }
+
                 if (revision < 0xD)
                 {
-                    writer.WriteFloat(leading);
+                    writer.WriteFloat(unkFloatLeading);
                     writer.WriteInt32((int)alignment);
                 }
+
                 if (revision < 0xF)
                 {
-                    writer.WriteInt32(0);
-                    writer.WriteInt32(0);
-                    writer.WriteInt32(0);
-                    writer.WriteInt32(0);
+                    writer.WriteInt32(unkIntI);
+                    writer.WriteInt32(unkIntJ);
+                    writer.WriteInt32(unkIntK);
+                    writer.WriteInt32(unkIntL);
                 }
+
                 if (revision < 0xD)
                 {
-                    writer.WriteBoolean(b87);
-                    writer.WriteFloat(kerning);
-                    writer.WriteFloat(textSize);
+                    writer.WriteBoolean(unkBool87);
+                    writer.WriteFloat(unkFloatKerning);
+                    writer.WriteFloat(unkFloatTextSize);
                 }
+
                 if (revision < 0xE) writer.WriteInt32(0);
+
                 if (revision < 0xF)
                 {
-                    writer.WriteFloat(0);
-                    writer.WriteFloat(0);
-                    writer.WriteFloat(0);
-                    writer.WriteFloat(0);
+                    writer.WriteFloat(unkFloatColR);
+                    writer.WriteFloat(unkFloatColG);
+                    writer.WriteFloat(unkFloatColB);
+                    writer.WriteFloat(unkFloatColA);
                 }
             }
+
             if (revision < 0xD)
             {
-                int capsmode = 0;
-                if (b87) capsmode = 2;
-                capsMode = (CapsModes)capsmode;
+                int capsmode = unkBool87 ? 2 : 0;
+                writer.WriteInt32((int)capsMode);
             }
 
             if (revision == 0xF)
             {
-                // todo
+                WriteOldBandTextComp(writer);
             }
+
             if (revision >= 0x11)
             {
                 Symbol.Write(writer, inAnim);
                 Symbol.Write(writer, outAnim);
             }
+
             if (standalone)
                 writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
-
         }
+
     }
 }

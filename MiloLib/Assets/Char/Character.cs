@@ -142,7 +142,7 @@ namespace MiloLib.Assets.Char
             public uint unk2;
 
             [MaxVersion(13), MinVersion(10)]
-            public uint unk3;
+            public Symbol unkSymbol2 = new(0, "");
 
             [MaxVersion(0xD)]
             public uint bpm;
@@ -211,7 +211,7 @@ namespace MiloLib.Assets.Char
                 // not really sure if this is the exact ranges but RB2 (8) doesn't have this field while TBRB (10) does, and bank5 (14) doesn't again
                 if (revision < 14 && revision > 9)
                 {
-                    unk3 = reader.ReadUInt32();
+                    unkSymbol2 = Symbol.Read(reader);
                 }
 
                 return this;
@@ -273,7 +273,7 @@ namespace MiloLib.Assets.Char
                 // not really sure if this is the exact ranges but RB2 (8) doesn't have this field while TBRB (10) does, and bank5 (14) doesn't again
                 if (revision < 14 && revision > 9)
                 {
-                    writer.WriteUInt32(unk3);
+                    Symbol.Write(writer, unkSymbol2);
                 }
 
             }

@@ -24,8 +24,8 @@ namespace MiloLib.Assets.Rnd
         // UVs
         public float u { get; set; } = 0.0f;
         public float v { get; set; } = 0.0f;
-        public float halfU { get; set; } = 0.0f;
-        public float halfV { get; set; } = 0.0f;
+        public ushort halfU { get; set; } = 0;
+        public ushort halfV { get; set; } = 0;
 
         // Weights
         public float weight0 { get; set; } = 0.0f;
@@ -76,6 +76,7 @@ namespace MiloLib.Assets.Rnd
 
         public class SignedCompressedVec4
         {
+            public uint origValue { get; set; }
             public float x { get; set; } = 0.0f;
             public float y { get; set; } = 0.0f;
             public float z { get; set; } = 0.0f;
@@ -84,6 +85,7 @@ namespace MiloLib.Assets.Rnd
             public SignedCompressedVec4 Read(EndianReader reader)
             {
                 uint value = reader.ReadUInt32();
+                origValue = value;
 
                 const int MAX_2_BIT_SIGNED = (1 << 1) - 1; // 1
                 const int MASK_2_BIT = (1 << 2) - 1; // 3
@@ -142,7 +144,8 @@ namespace MiloLib.Assets.Rnd
                              | (uint)(zBits << 20)
                              | (uint)(wBits << 30);
 
-                writer.WriteUInt32(value);
+                //writer.WriteUInt32(value);
+                writer.WriteUInt32(origValue);
             }
         }
 
