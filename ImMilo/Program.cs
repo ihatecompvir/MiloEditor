@@ -37,6 +37,8 @@ class Program
     private static bool filterActive;
     private static List<object> breadcrumbs = [];
     
+    private static Settings.Theme currentTheme;
+    
     static void Main(string[] args)
     {
         // Create window, GraphicsDevice, and all resources necessary for the demo.
@@ -91,9 +93,32 @@ class Program
         gd.Dispose();
     }
 
+    static void UpdateTheme()
+    {
+        currentTheme = Settings.Current.useTheme;
+        switch (currentTheme)
+        {
+            case Settings.Theme.Dark:
+                ImGui.StyleColorsDark();
+                break;
+            case Settings.Theme.Light:
+                ImGui.StyleColorsLight();
+                break;
+            case Settings.Theme.ImGuiClassic:
+                ImGui.StyleColorsClassic();
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+    }
+
 
     static void MainUI()
     {
+        if (Settings.Current.useTheme != currentTheme)
+        {
+            UpdateTheme();
+        }
         var io = ImGui.GetIO();
         io.FontGlobalScale = Settings.Current.UIScale;
         var viewport = ImGui.GetMainViewport();
@@ -280,6 +305,26 @@ class Program
         {
             flags |= ImGuiTreeNodeFlags.Selected;
         }
+
+        var cursor = ImGui.GetCursorScreenPos();
+        var iconSize = Settings.Startup.fontSettings.IconSize;
+        var framePadding = ImGui.GetStyle().FramePadding;
+        var lineX = cursor.X+iconSize/2f+framePadding.X;
+        var lineY = cursor.Y+ImGui.GetFrameHeight()-ImGui.GetStyle().ItemSpacing.Y-framePadding.Y;
+        var drawList = ImGui.GetWindowDrawList();
+        var treeLineColor = ImGui.GetColorU32(ImGuiCol.Text);
+        treeLineColor = (0x00ffffff & treeLineColor) | 0x80000000;
+        var drawChildLine = (bool dir) =>
+        {
+            var cursor = ImGui.GetCursorScreenPos();
+            var lineEndX = cursor.X + framePadding.X;
+            if (!dir)
+            {
+                lineEndX += iconSize;
+            }
+            drawList.AddLine(new Vector2(lineX+1, cursor.Y+iconSize/2f), new Vector2(lineEndX, cursor.Y+iconSize/2f), treeLineColor);
+        };
+        var childrenDrawn = 0;
         if (Util.SceneTreeItem(dir, flags))
         {
             unsafe
@@ -307,7 +352,9 @@ class Program
                 i = 0;
                 foreach (var subDir in objDir.inlineSubDirs)
                 {
+                    drawChildLine(true);
                     DirNode(subDir, i);
+                    childrenDrawn++;
                     i++;
                 }
             }
@@ -324,8 +371,10 @@ class Program
                 {
                     //ImGui.Button("Test");
                     //ImGui.SameLine();
-                    
+
+                    drawChildLine(true);
                     DirNode(entry.dir, i);
+                    childrenDrawn++;
                 }
                 else
                 {
@@ -343,7 +392,10 @@ class Program
                     {
                         leafFlags |= ImGuiTreeNodeFlags.Selected;
                     }
+
+                    drawChildLine(false);
                     Util.SceneTreeItem(entry, leafFlags);
+                    childrenDrawn++;
                     if (ImGui.IsItemClicked(ImGuiMouseButton.Left) && entry.obj != null)
                     {
                         NavigateObject(entry.obj);
@@ -376,6 +428,10 @@ class Program
                 }
             }
             ImGui.TreePop();
+            if (childrenDrawn > 0)
+            {
+                drawList.AddLine(new Vector2(lineX, lineY), new Vector2(lineX, ImGui.GetCursorScreenPos().Y-ImGui.GetFrameHeight()/2f), treeLineColor);
+            }
             //ImGui.Unindent();
         }
         else

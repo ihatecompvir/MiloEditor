@@ -36,6 +36,15 @@ public class Settings
     
     [Name("Font Settings"), Description("Changing these requires a restart.")]
     public FontSettings fontSettings = new FontSettings();
+
+    public enum Theme
+    {
+        Dark,
+        Light,
+        ImGuiClassic
+    }
+    [Name("Theme")]
+    public Theme useTheme = Theme.Dark;
     
     
     [Name("Hide Field Descriptions"), Description("Hides the field descriptions (like these) in the editor panel.")]
