@@ -43,7 +43,7 @@ class Program
     
     static void Main(string[] args)
     {
-        Console.WriteLine(GraphicsDevice.IsBackendSupported(GraphicsBackend.Vulkan));
+        Console.WriteLine(VeldridStartup.GetPlatformDefaultBackend());
         Settings.Load();
         // Create window, GraphicsDevice, and all resources necessary for the demo.
         VeldridStartup.CreateWindowAndGraphicsDevice(
@@ -365,7 +365,7 @@ class Program
                         
                 }
             }
-            if (ImGui.IsItemClicked(ImGuiMouseButton.Left) && !ImGui.IsItemToggledOpen())
+            if (ImGui.IsItemActivated() && !ImGui.IsItemToggledOpen())
                 NavigateObject(dir.directory);
             var i = 0;
             //ImGui.Indent();

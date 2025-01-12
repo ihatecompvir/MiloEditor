@@ -1,9 +1,13 @@
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using ImGuiNET;
 using ImMilo.ImGuiUtils;
 using MiloLib.Assets.Rnd;
+using MiloLib.Classes;
 using Veldrid;
+using Vector2 = System.Numerics.Vector2;
+using Vector3 = System.Numerics.Vector3;
 
 namespace ImMilo;
 
@@ -33,6 +37,12 @@ public static class MeshEditor
 
     private static List<PackedVertex> vertices = new();
     private static List<PackedFace> faces = new();
+    private static Vector3 centerPos;
+
+    private static Matrix4x4 modelRotation = Matrix4x4.Identity;
+    private static Vector3 modelOffset = Vector3.Zero;
+    private static float zoom = -40f;
+    private static Vector2 prevMousePos;
     
     public struct PackedVertex
     {
@@ -84,18 +94,18 @@ public static class MeshEditor
         };
 
         layout = factory.CreateResourceLayout(new ResourceLayoutDescription(
-            new ResourceLayoutElementDescription("MatrixBuffer", ResourceKind.UniformBuffer, ShaderStages.Vertex)));
+            new ResourceLayoutElementDescription("ProjectionMatrixBuffer", ResourceKind.UniformBuffer, ShaderStages.Vertex)));
 
         GraphicsPipelineDescription pd = new GraphicsPipelineDescription(
             BlendStateDescription.SingleAlphaBlend,
             new DepthStencilStateDescription(true, true, ComparisonKind.Greater),
-            new RasterizerStateDescription(FaceCullMode.Back, PolygonFillMode.Solid, FrontFace.Clockwise, true, false),
+            new RasterizerStateDescription(FaceCullMode.None, PolygonFillMode.Wireframe, FrontFace.Clockwise, true, false),
             PrimitiveTopology.TriangleList,
-            new ShaderSetDescription(vertexLayouts, new [] {vertexShader, fragmentShader}),
-                new ResourceLayout[] {layout},
+            new ShaderSetDescription(vertexLayouts, [vertexShader, fragmentShader]),
+            [layout],
             framebuffer.OutputDescription,
             ResourceBindingModel.Default);
-        pipeline = factory.CreateGraphicsPipeline(pd);
+        pipeline = factory.CreateGraphicsPipeline(ref pd);
 
         mainResourceSet = factory.CreateResourceSet(new ResourceSetDescription(layout, matrixBuffer));
 
@@ -103,19 +113,55 @@ public static class MeshEditor
 
     static void UpdateMesh(RndMesh newMesh)
     {
+        var gd = Program.gd;
         curMesh = newMesh;
-        modelMatrix = Matrix4x4.CreateTranslation(0, 0, -30f); //negative z forward pls?
         vertices.Clear();
         faces.Clear();
-        
+        modelRotation = Matrix4x4.Identity;
+        modelOffset = Vector3.Zero;
+        zoom = -40;
+
+        var min = Vector3.Zero;
+        var max = Vector3.Zero;
+        var i = 0;
         foreach (var vertex in newMesh.vertices.vertices)
         {
-            vertices.Add(new PackedVertex(vertex));
+            var packedVertex = new PackedVertex(vertex);
+            var vecVert = new Vector3(packedVertex.X, packedVertex.Y, packedVertex.Z);
+            if (i == 0)
+            {
+                min = vecVert;
+                max = vecVert;
+            }
+            min = Vector3.Min(min, vecVert);
+            max = Vector3.Max(max, vecVert);
+            vertices.Add(packedVertex);
+            i++;
         }
+        Console.WriteLine("Min: " + min + ", Max: " + max);
+        centerPos = (min + max) / 2f;
+        Console.WriteLine("Center: " + centerPos);
+        //var modelPos = centerPos;
+        //modelMatrix = Matrix4x4.CreateRotationX(float.DegreesToRadians(90), centerPos);
+        modelMatrix = Matrix4x4.CreateTranslation(-centerPos); //negative z forward pls?
 
         foreach (var face in newMesh.faces)
         {
             faces.Add(new PackedFace(face));
+        }
+
+        uint totalVBSize = (uint)(vertices.Count * Unsafe.SizeOf<PackedVertex>());
+        if (totalVBSize > vertexBuffer.SizeInBytes)
+        {
+            gd.DisposeWhenIdle(vertexBuffer);
+            vertexBuffer = gd.ResourceFactory.CreateBuffer(new BufferDescription((uint)(totalVBSize * 1.5f), BufferUsage.Dynamic | BufferUsage.VertexBuffer));
+        }
+        
+        uint totalIBSize = (uint)(faces.Count * Unsafe.SizeOf<PackedFace>());
+        if (totalIBSize > indexBuffer.SizeInBytes)
+        {
+            gd.DisposeWhenIdle(indexBuffer);
+            indexBuffer = gd.ResourceFactory.CreateBuffer(new BufferDescription((uint)(totalIBSize * 1.5f), BufferUsage.Dynamic | BufferUsage.IndexBuffer));
         }
         
         commandList.UpdateBuffer(vertexBuffer, 0, vertices.ToArray());
@@ -156,6 +202,7 @@ public static class MeshEditor
 
     public static void Draw(RndMesh mesh)
     {
+        
         if (ImGui.GetContentRegionAvail() != viewportSize)
         {
             CreateFramebuffer(ImGui.GetContentRegionAvail());
@@ -164,24 +211,34 @@ public static class MeshEditor
         if (!initialized)
         {
             CreateDeviceResources();
-            projectionMatrix = Matrix4x4.CreatePerspectiveFieldOfView(float.DegreesToRadians(75), viewportSize.X / viewportSize.Y, 0.1f, 1000f);
+            //projectionMatrix = Matrix4x4.CreateOrthographic(40, 40, 0.1f, 100);
             initialized = true;
         }
-        
+        if (commandList == null)
+        {
+            throw new Exception("Command list is null");
+        }
+        commandList.Begin();
+
         if (mesh != curMesh)
         {
             UpdateMesh(mesh);
         }
 
-        if (commandList == null)
-        {
-            throw new Exception("Command list is null");
-        }
+        var offset = new Vector3(0, 0, zoom);
         
-        commandList.Begin();
-        Program.gd.UpdateBuffer(matrixBuffer, 0, new [] { projectionMatrix, modelMatrix });
+        projectionMatrix = Matrix4x4.CreateLookAt(offset, Vector3.Zero, Vector3.UnitY);
+        projectionMatrix *= Matrix4x4.CreatePerspectiveFieldOfView(float.DegreesToRadians(75), viewportSize.X / viewportSize.Y, 0.1f, 10000f);
+        modelMatrix = Matrix4x4.CreateTranslation(-centerPos+modelOffset);
+        modelMatrix *= modelRotation;
+
+
+        Program.gd.UpdateBuffer(matrixBuffer, 0, projectionMatrix);
+        Program.gd.UpdateBuffer(matrixBuffer, 64, modelMatrix);
         commandList.SetFramebuffer(framebuffer);
-        commandList.ClearColorTarget(0, new RgbaFloat(1, 0, 1, 1.0f));
+        commandList.SetFullViewports();
+        commandList.ClearDepthStencil(0);
+        commandList.ClearColorTarget(0, new RgbaFloat(0, 0, 0, 0.0f));
         commandList.SetVertexBuffer(0, vertexBuffer);
         commandList.SetIndexBuffer(indexBuffer, IndexFormat.UInt16);
         commandList.SetPipeline(pipeline);
@@ -191,5 +248,27 @@ public static class MeshEditor
         Program.gd.SubmitCommands(commandList);
         
         ImGui.Image(viewportId, viewportSize);
+        if (ImGui.IsItemHovered() && ImGui.IsMouseDown(ImGuiMouseButton.Left))
+        {
+            var delta = (ImGui.GetMousePos() - prevMousePos)*0.02f;
+            modelRotation *= Matrix4x4.CreateRotationX(delta.Y);
+            modelRotation *= Matrix4x4.CreateRotationY(delta.X);
+        } 
+        else if (ImGui.IsItemHovered() && ImGui.IsMouseDown(ImGuiMouseButton.Right))
+        {
+            var delta = (ImGui.GetMousePos() - prevMousePos)*0.1f;
+
+            Matrix4x4.Invert(modelRotation, out var inverted);
+            
+            modelOffset += Vector3.TransformNormal(-Vector3.UnitX*delta.X, inverted);
+            modelOffset += Vector3.TransformNormal(Vector3.UnitY*delta.Y, inverted);
+        }
+
+        if (ImGui.IsItemHovered())
+        {
+            zoom += ImGui.GetIO().MouseWheel;
+        }
+
+        prevMousePos = ImGui.GetMousePos();
     }
 }

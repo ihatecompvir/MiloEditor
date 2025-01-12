@@ -6,7 +6,7 @@ uniform ProjectionMatrixBuffer
     mat4 view_matrix;
 };
 
-in vec2 in_position;
+in vec3 in_position;
 //in vec2 in_texCoord;
 //in vec4 in_color;
 
@@ -15,7 +15,7 @@ in vec2 in_position;
 
 void main()
 {
-    gl_Position = projection_matrix * view_matrix * vec4(in_position, 0, 1);
+    gl_Position = projection_matrix * view_matrix * vec4(in_position, 1);
     //color = in_color;
 	//texCoord = in_texCoord;
 }
