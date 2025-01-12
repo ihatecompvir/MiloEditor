@@ -7,7 +7,7 @@ namespace ImMilo;
 /// <summary>
 /// Persistent settings for the user. TODO: serialize this.
 /// </summary>
-[Name("ImMilo Settings"), Description("These do not save yet!")]
+[Name("ImMilo Settings"), Description("Tweak to your liking. Currently stored as settings.json alongside the executable.")]
 public class Settings
 {
 
@@ -31,7 +31,7 @@ public class Settings
         [Name("Font Type")]
         public FontType Font = FontType.TTFBuiltIn;
 
-        [Name("Custom Font Path"), Description("Absolute path to the custom font file. Make sure Font Type is set to TTFCustom.")]
+        [Name("Custom Font Path"), Description("Absolute path to the custom font file. Make sure Font Type is set to TTFCustom. Warning: if you set this to an invalid file the app may crash when opening!")]
         public string CustomFontFilePath = "";
 
         public override bool Equals(object? obj) => this.Equals(obj as FontSettings);
