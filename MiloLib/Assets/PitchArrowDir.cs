@@ -4,7 +4,7 @@ using MiloLib.Utils;
 
 namespace MiloLib.Assets
 {
-    [Name("PitchArrowDir"), Description("")]
+    [Name("PitchArrowDir"), Description("singer's vocal HUD pitch guide arrow")]
     public class PitchArrowDir : RndDir
     {
 
@@ -12,10 +12,15 @@ namespace MiloLib.Assets
         private ushort revision;
 
         public bool unk18c;
+        [Name("Score"), Description("the score for the current frame, normalized between 0 and 1")]
         public float score;
+        [Name("Harmony FX"), Description("extra bonus fx that play when nailing harmony with another part")]
         public float harmonyFX;
+        [Name("Volume"), Description("arrow alpha driven by the mic volume in the current frame, normalized between 0 and 1")]
         public float volume;
+        [Name("Tilt"), Description("the tilt of the arrow direction in degrees")]
         public float tilt;
+        [Name("Color Fade"), Description("controls the saturation of the arrow color: 0 = max saturation, 1 = no saturation")]
         public float colorFade;
         public bool spotlight;
         public bool deploying;
@@ -41,10 +46,15 @@ namespace MiloLib.Assets
         public Symbol ghostFadeAnim;
         public Symbol arrowFXGrp;
         public bool unk280;
+        [Name("Spin Speed"), Description("controls the spin speed for helix particle effects.  Can be animated")]
         public float spinSpeed;
+        [Name("Spin Anim"), Description("this anim will loop its loop range according to the value of spin_speed")]
         public Symbol spinAnim;
+        [Name("Spin Rest Frame"), Description("frame where spin_anim should be when spin_speed is zero")]
         public float spinRestFrame;
+        [Name("Spin Begin Frame"), Description("loop start frame for spin_anim")]
         public float spinBeginFrame;
+        [Name("Spin End Frame"), Description("loop end frame for spin_anim")]
         public float spinEndFrame;
         public uint arrowFXGrpCount;
         public List<Symbol> arrowFXGrpList;

@@ -7,8 +7,8 @@ namespace MiloLib.Assets.Band
     [Name("BandCharacter"), Description("Band Character")]
     public class BandCharacter : Character
     {
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
 
         public int playFlags;
 

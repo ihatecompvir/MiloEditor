@@ -8,8 +8,8 @@ namespace MiloLib.Assets.World
     [Name("WorldDir"), Description("A WorldDir contains world perObjs.")]
     public class WorldDir : PanelDir
     {
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
         [Name("Fake HUD Filename"), Description("HUD Preview Dir")]
         public Symbol fakeHUDFilename = new(0, "");
         public class BitmapOverride

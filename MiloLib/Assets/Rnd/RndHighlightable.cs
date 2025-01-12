@@ -6,8 +6,8 @@ namespace MiloLib.Assets.Rnd
     [Name("RndHighlightable"), Description("")]
     public class RndHighlightable : Object
     {
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
 
         public RndHighlightable Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {

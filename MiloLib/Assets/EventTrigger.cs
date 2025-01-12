@@ -7,6 +7,13 @@ namespace MiloLib.Assets
     [Name("EventTrigger"), Description("Triggers animations, sfx, and responses to game events")]
     public class EventTrigger : Object
     {
+        public enum AnimTrigger : uint
+        {
+            kTriggerAnimNone,
+            kTriggerAnimStart,
+            kTriggerAnimEnd,
+            kTriggerAnimFrame
+        }
         public class Anim
         {
             public Symbol anim = new(0, "");
@@ -120,15 +127,18 @@ namespace MiloLib.Assets
         public List<Symbol> sounds = new();
 
         private uint showsCount;
+        [Name("Shows"), Description("objects to show")]
         public List<Symbol> shows = new();
 
         private uint hideDelaysCount;
         public List<HideDelay> hideDelays = new();
 
         private uint enableEventsCount;
+        [Name("Enable Events"), Description("event which enable this event trigger")]
         public List<Symbol> enableEvents = new();
 
         private uint disableEventsCount;
+        [Name("Disable Events"), Description("event which disable this event trigger")]
         public List<Symbol> disableEvents = new();
 
         private uint waitForEventsCount;
@@ -140,14 +150,18 @@ namespace MiloLib.Assets
         public List<ProxyCall> proxyCalls = new();
 
 
+        [Name("Trigger Order"), Description("Order of triggering next_link")]
         public uint triggerOrder;
 
         private uint resetTriggersCount;
         public List<Symbol> resetTriggers = new();
 
+        [Name("Enabled At Start"), Description("Initial state of the EventTrigger. If TRUE, the EventTrigger will work initially, if FALSE the EventTrigger will not work until an enable_event happens.")]
         public bool enabledAtStart;
 
-        public uint animTrigger;
+        [Name("Anim Trigger"), Description("Sets whether and how this will trigger itself based on Anim calls to it")]
+        public AnimTrigger animTrigger;
+        [Name("Anim Frame"), Description("If anim_trigger is kAnimTriggerFrame, then this is the frame we will trigger ourselves on")]
         public float animFrame;
 
         private uint partLauncherCount;
@@ -292,7 +306,7 @@ namespace MiloLib.Assets
 
             if (revision > 0xF)
             {
-                animTrigger = reader.ReadUInt32();
+                animTrigger = (AnimTrigger)reader.ReadUInt32();
                 animFrame = reader.ReadFloat();
             }
 
@@ -434,7 +448,7 @@ namespace MiloLib.Assets
 
             if (revision > 0xF)
             {
-                writer.WriteUInt32(animTrigger);
+                writer.WriteUInt32((uint)animTrigger);
                 writer.WriteFloat(animFrame);
             }
 

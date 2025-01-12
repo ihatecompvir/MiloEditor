@@ -29,8 +29,8 @@ namespace MiloLib.Assets.Band
             { Game.MiloGame.DanceCentral3, 0 }
         };
 
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
 
         public BandCrowdMeterIcon(ushort revision, ushort altRevision = 0) : base(revision, altRevision)
         {

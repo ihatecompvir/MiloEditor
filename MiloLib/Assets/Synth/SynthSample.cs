@@ -43,8 +43,8 @@ namespace MiloLib.Assets
                 kMP3,
                 kNintendoADPCM
             }
-            public ushort altRevision;
-            public ushort revision;
+            private ushort altRevision;
+            private ushort revision;
 
             [Name("TextureEncoding"), Description("The format of the sample data.")]
             public Encoding encoding;
@@ -130,8 +130,8 @@ namespace MiloLib.Assets
                 }
             }
         }
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
 
         [Name("File Name"), Description("Mono, 16-bit sample file")]
         public Symbol file = new(0, "");

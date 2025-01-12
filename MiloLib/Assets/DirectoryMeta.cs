@@ -949,10 +949,10 @@ namespace MiloLib.Assets
                     Debug.WriteLine("Reading entry Environ " + entry.name.value);
                     entry.obj = new RndEnviron().Read(reader, true, this, entry);
                     break;
-                //case "EventTrigger":
-                //    Debug.WriteLine("Reading entry EventTrigger " + entry.name.value);
-                //    entry.obj = new EventTrigger().Read(reader, true, this, entry);
-                //    break;
+                case "EventTrigger":
+                    Debug.WriteLine("Reading entry EventTrigger " + entry.name.value);
+                    entry.obj = new EventTrigger().Read(reader, true, this, entry);
+                    break;
                 case "FileMerger":
                     Debug.WriteLine("Reading entry FileMerger " + entry.name.value);
                     entry.obj = new FileMerger().Read(reader, true, this, entry);
@@ -1071,6 +1071,10 @@ namespace MiloLib.Assets
                 case "UIList":
                     Debug.WriteLine("Reading entry UIList " + entry.name.value);
                     entry.obj = new UIList().Read(reader, true, this, entry);
+                    break;
+                case "UITrigger":
+                    Debug.WriteLine("Reading entry UITrigger " + entry.name.value);
+                    entry.obj = new UITrigger().Read(reader, true, this, entry);
                     break;
                 case "Wind":
                     Debug.WriteLine("Reading entry Wind " + entry.name.value);
@@ -1474,6 +1478,9 @@ namespace MiloLib.Assets
                     break;
                 case "UIList":
                     ((UIList)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "UITrigger":
+                    ((UITrigger)entry.obj).Write(writer, true, this, entry);
                     break;
                 case "Wind":
                     ((RndWind)entry.obj).Write(writer, true, this, entry);

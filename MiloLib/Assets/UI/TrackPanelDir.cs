@@ -6,8 +6,8 @@ namespace MiloLib.Assets.UI
     [Name("TrackPanelDir"), Description("panel dir that handles tracks & hud")]
     public class TrackPanelDir : PanelDir
     {
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
 
         public uint viewTimeEasy;
         public uint viewTimeExpert;

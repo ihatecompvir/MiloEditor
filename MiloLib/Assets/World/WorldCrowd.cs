@@ -89,8 +89,8 @@ namespace MiloLib.Assets.World
             }
         }
 
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
 
         [Name("Placement Mesh"), Description("The placement mesh")]
         public Symbol placementMesh = new(0, "");

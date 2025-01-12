@@ -7,8 +7,8 @@ namespace MiloLib.Assets.UI
     public class UIColor : Object
     {
 
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
 
         [Name("Color")]
         public HmxColor4 color = new();

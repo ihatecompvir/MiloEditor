@@ -6,8 +6,8 @@ namespace MiloLib.Assets.Synth
     [Name("SynthDir"), Description("Container for Synth objects, registers itself as a bank")]
     public class SynthDir : ObjectDir
     {
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
 
         public SynthDir(ushort revision, ushort altRevision = 0) : base(revision, altRevision)
         {

@@ -7,8 +7,8 @@ namespace MiloLib.Assets.Band
     [Name("BandStarDisplay"), Description("HUD element which displays up to 5 stars")]
     public class BandStarDisplay : RndDir
     {
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
 
         [Name("Star Type"), Description("The type of star to display")]
         public Symbol starType = new(0, "");

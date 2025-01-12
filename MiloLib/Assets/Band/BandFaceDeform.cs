@@ -32,8 +32,8 @@ namespace MiloLib.Assets.Band
                 }
             }
         }
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
 
         private uint frameCount;
         [Name("Frames"), Description("number of vertices with non-zero deltas in this keyframe")]

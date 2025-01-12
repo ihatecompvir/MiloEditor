@@ -6,8 +6,8 @@ namespace MiloLib.Assets.Rnd
     [Name("RndPollAnim"), Description("Class that drives Anims with time based on their rate.")]
     public class RndPollAnim : Object
     {
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
 
         public RndAnimatable anim = new();
         public Object poll = new();

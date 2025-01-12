@@ -52,7 +52,7 @@ namespace MiloLib.Assets.Band
     [Name("Head"), Description("The configuration of the character's head.")]
     public class Head
     {
-        [Name("Hide"), Description("Hide the head.")]
+        [Name("Hide"), Description("if true, loads no head, for development")]
         public bool hide;
         [Name("Eye Color"), Description("eye color index")]
         public int eyeColor;

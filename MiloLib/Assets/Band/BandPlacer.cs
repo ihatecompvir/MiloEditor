@@ -13,8 +13,8 @@ namespace MiloLib.Assets.Band
             { Game.MiloGame.GuitarHero2_PS2, 2 },
             { Game.MiloGame.GuitarHero2_360, 2 },
         };
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
 
         public RndDrawable draw = new();
         public RndTrans trans = new();
