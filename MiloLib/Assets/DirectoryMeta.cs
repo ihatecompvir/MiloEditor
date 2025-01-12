@@ -1304,6 +1304,9 @@ namespace MiloLib.Assets
                 case "AnimFilter":
                     ((RndAnimFilter)entry.obj).Write(writer, true, this, entry);
                     break;
+                case "BandButton":
+                    ((BandButton)entry.obj).Write(writer, true, this, entry);
+                    break;
                 case "BandCharDesc":
                     ((BandCharDesc)entry.obj).Write(writer, true, this, entry);
                     break;
@@ -1466,7 +1469,7 @@ namespace MiloLib.Assets
                 default:
                     // see if the type contains "Dir" and if so, throw an exception because the Milo that will get produced will never work
                     if (entry.type.value.Contains("Dir"))
-                        throw new Exception("Unknown entry type: " + entry.type.value + ", cannot continue writing directory");
+                        throw new Exception("Trying to write an unsupported dir entry of type: " + entry.type.value + ", this Milo cannot be saved");
 
 
                     Debug.WriteLine("Unknown entry type, dumping raw bytes for " + entry.type.value + " of name " + entry.name.value);
