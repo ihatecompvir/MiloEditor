@@ -43,6 +43,7 @@ class Program
     
     static void Main(string[] args)
     {
+        Console.WriteLine(GraphicsDevice.IsBackendSupported(GraphicsBackend.Vulkan));
         Settings.Load();
         // Create window, GraphicsDevice, and all resources necessary for the demo.
         VeldridStartup.CreateWindowAndGraphicsDevice(

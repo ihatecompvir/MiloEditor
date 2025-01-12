@@ -35,9 +35,9 @@ namespace MiloLib.Assets.Rnd
 
         public class Face
         {
-            ushort idx1;
-            ushort idx2;
-            ushort idx3;
+            public ushort idx1;
+            public ushort idx2;
+            public ushort idx3;
 
             public Face Read(EndianReader reader)
             {
@@ -66,7 +66,7 @@ namespace MiloLib.Assets.Rnd
             public bool isNextGen;
             public uint vertexSize;
             public uint compressionType;
-            private List<Vertex> vertices = new();
+            public List<Vertex> vertices = new();
 
             public Vertices Read(EndianReader reader, uint meshVersion)
             {

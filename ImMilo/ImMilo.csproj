@@ -26,6 +26,10 @@
     <ItemGroup>
         <EmbeddedResource Include="ImGuiUtils\Shaders\GLSL\imgui-vertex.glsl" LogicalName="imgui-vertex.glsl" />
         <EmbeddedResource Include="ImGuiUtils\Shaders\GLSL\imgui-frag.glsl" LogicalName="imgui-frag.glsl" />
+        <EmbeddedResource Include="ImGuiUtils\Shaders\GLSL\meshpreview-frag.glsl" LogicalName="meshpreview-frag.glsl">
+        </EmbeddedResource>
+        <EmbeddedResource Include="ImGuiUtils\Shaders\GLSL\meshpreview-vertex.glsl" LogicalName="meshpreview-vertex.glsl">
+        </EmbeddedResource>
         <EmbeddedResource Include="ImGuiUtils\Shaders\HLSL\imgui-vertex.hlsl.bytes" LogicalName="imgui-vertex.hlsl.bytes" />
         <EmbeddedResource Include="ImGuiUtils\Shaders\HLSL\imgui-frag.hlsl.bytes" LogicalName="imgui-frag.hlsl.bytes" />
         <EmbeddedResource Include="ImGuiUtils\Shaders\SPIR-V\imgui-vertex.spv" LogicalName="imgui-vertex.spv" />
@@ -33,6 +37,8 @@
         <EmbeddedResource Include="ImGuiUtils\Shaders\Metal\imgui-vertex.metallib" LogicalName="imgui-vertex.metallib" />
         <EmbeddedResource Include="ImGuiUtils\Shaders\Metal\imgui-frag.metallib" LogicalName="imgui-frag.metallib" />
         <EmbeddedResource Include="ImGuiUtils\NotoSans-Regular.ttf" LogicalName="UIFont"/>
+        <EmbeddedResource Include="ImGuiUtils\Shaders\SPIR-V\meshpreview-frag.spv" LogicalName="meshpreview-frag.spv"/>
+        <EmbeddedResource Include="ImGuiUtils\Shaders\SPIR-V\meshpreview-vertex.spv" LogicalName="meshpreview-vertex.spv"/>
     </ItemGroup>
 
 </Project>

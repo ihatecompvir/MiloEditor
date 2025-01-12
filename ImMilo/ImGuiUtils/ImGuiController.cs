@@ -307,7 +307,7 @@ public class ImGuiController : IDisposable
         _lastAssignedID = 100;
     }
 
-    private byte[] LoadEmbeddedShaderCode(ResourceFactory factory, string name, ShaderStages stage)
+    public byte[] LoadEmbeddedShaderCode(ResourceFactory factory, string name, ShaderStages stage)
     {
         switch (factory.BackendType)
         {
@@ -341,6 +341,10 @@ public class ImGuiController : IDisposable
         Assembly assembly = typeof(ImGuiController).Assembly;
         using (Stream s = assembly.GetManifestResourceStream(resourceName))
         {
+            if (s == null)
+            {
+                throw new Exception($"Embedded resource {resourceName} was not found.");
+            }
             byte[] ret = new byte[s.Length];
             s.Read(ret, 0, (int)s.Length);
             return ret;
