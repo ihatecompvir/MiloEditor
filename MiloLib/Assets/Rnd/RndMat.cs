@@ -1,6 +1,7 @@
 ﻿using MiloLib.Classes;
 using MiloLib.Utils;
 using System;
+using System.Drawing;
 
 namespace MiloLib.Assets.Rnd
 {
@@ -295,6 +296,12 @@ namespace MiloLib.Assets.Rnd
         public int unkInt2;
         public int unkInt3;
 
+        public bool unkBool2;
+        public HmxColor3 unkColor3 = new();
+        public float unkFloat3;
+
+        public Symbol unkSym3 = new Symbol(0, "");
+
 
 
 
@@ -379,13 +386,28 @@ namespace MiloLib.Assets.Rnd
             {
                 unkBool1 = reader.ReadBoolean();
             }
-            stencilMode = (StencilMode)reader.ReadInt32();
+
+            if (revision > 27)
+                stencilMode = (StencilMode)reader.ReadInt32();
+
             if (revision < 33)
             {
             }
             else
             {
                 fur = Symbol.Read(reader);
+            }
+
+            if (revision >= 34 && revision < 49)
+            {
+                unkBool2 = reader.ReadBoolean();
+                unkColor3 = new HmxColor3().Read(reader);
+                unkFloat3 = reader.ReadFloat();
+
+                if (revision > 34)
+                {
+                    unkSym3 = Symbol.Read(reader);
+                }
             }
 
             if (revision <= 28)
@@ -398,11 +420,20 @@ namespace MiloLib.Assets.Rnd
             }
 
 
-            deNormal = reader.ReadFloat();
-            anisotropy = reader.ReadFloat();
-            normalDetailTiling = reader.ReadFloat();
-            normalDetailStrength = reader.ReadFloat();
-            normalDetailMap = Symbol.Read(reader);
+
+
+            if (revision > 35)
+            {
+                deNormal = reader.ReadFloat();
+                anisotropy = reader.ReadFloat();
+            }
+
+            if (revision > 38)
+            {
+                normalDetailTiling = reader.ReadFloat();
+                normalDetailStrength = reader.ReadFloat();
+                normalDetailMap = Symbol.Read(reader);
+            }
 
             pointLights = reader.ReadBoolean();
             if (revision < 0x3F)
@@ -411,13 +442,17 @@ namespace MiloLib.Assets.Rnd
             fadeout = reader.ReadBoolean();
             colorAdjust = reader.ReadBoolean();
 
-            rimRGB = new HmxColor3().Read(reader);
-            rimPower = reader.ReadFloat();
+            if (revision > 47)
+            {
+                rimRGB = new HmxColor3().Read(reader);
+                rimPower = reader.ReadFloat();
 
-            rimMap = Symbol.Read(reader);
-            rimAlwaysShow = reader.ReadBoolean();
+                rimMap = Symbol.Read(reader);
+                rimAlwaysShow = reader.ReadBoolean();
+            }
 
-            screenAligned = reader.ReadBoolean();
+            if (revision > 48)
+                screenAligned = reader.ReadBoolean();
 
             if (revision > 0x32)
             {
@@ -540,6 +575,18 @@ namespace MiloLib.Assets.Rnd
                 Symbol.Write(writer, fur);
             }
 
+            if (revision >= 34 && revision < 49)
+            {
+                writer.WriteBoolean(unkBool2);
+                unkColor3.Write(writer);
+                writer.WriteFloat(unkFloat3);
+
+                if (revision > 34)
+                {
+                    Symbol.Write(writer, unkSym3);
+                }
+            }
+
             if (revision <= 28)
             {
                 if (standalone)
@@ -562,13 +609,17 @@ namespace MiloLib.Assets.Rnd
             writer.WriteBoolean(fadeout);
             writer.WriteBoolean(colorAdjust);
 
-            rimRGB.Write(writer);
-            writer.WriteFloat(rimPower);
+            if (revision > 47)
+            {
+                rimRGB.Write(writer);
+                writer.WriteFloat(rimPower);
 
-            Symbol.Write(writer, rimMap);
-            writer.WriteBoolean(rimAlwaysShow);
+                Symbol.Write(writer, rimMap);
+                writer.WriteBoolean(rimAlwaysShow);
+            }
 
-            writer.WriteBoolean(screenAligned);
+            if (revision > 48)
+                writer.WriteBoolean(screenAligned);
 
             if (revision > 0x32)
             {
