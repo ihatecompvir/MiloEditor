@@ -1,6 +1,8 @@
-﻿using System.Numerics;
+﻿using System.Drawing;
+using System.Numerics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using IconFonts;
 using ImGuiNET;
 using Veldrid;
 
@@ -90,12 +92,21 @@ public class ImGuiController : IDisposable
         }
         var iconSize = Settings.Loaded.fontSettings.IconSize;
         font = CreateFontFromSettings(fontSize, confPtr);
-        confPtr.GlyphOffset = Vector2.Zero;
-        ushort[] PUA_RANGE = [0xE000, 0xF000, 0];
-        ImFontPtr iconFontPtr;
-        fixed (ushort* pPUA_RANGE = PUA_RANGE)
+
+        confPtr.MergeMode = true;
+        ushort[] iconRange = [FontAwesome5.IconMin, FontAwesome5.IconMax, 0];
+        fixed (ushort* iconRangePtr = iconRange)
         {
-            iconFontPtr = CreateFontInternal(Settings.FontSettings.FontType.TTFBuiltIn, iconSize, confPtr, (IntPtr)pPUA_RANGE);
+            // TODO: make sure this offset in size doesn't look bad on other fonts
+            CreateIconFont(fontSize*0.85f, confPtr, (IntPtr)iconRangePtr);
+        }
+        confPtr.MergeMode = false;
+        confPtr.GlyphOffset = Vector2.Zero;
+        ushort[] puaRange = [0xE000, 0xF000, 0];
+        ImFontPtr iconFontPtr;
+        fixed (ushort* puaRangePtr = puaRange)
+        {
+            iconFontPtr = CreateFontInternal(Settings.FontSettings.FontType.TTFBuiltIn, iconSize, confPtr, (IntPtr)puaRangePtr);
         }
         confPtr.MergeMode = true;
         if (iconSize > fontSize)
@@ -175,6 +186,23 @@ public class ImGuiController : IDisposable
                 return io.Fonts.AddFontFromFileTTF(path, size, config.Value, glyphRanges);;
             default:
                 throw new ArgumentOutOfRangeException();
+        }
+    }
+
+    private static unsafe ImFontPtr CreateIconFont(float size, ImFontConfigPtr? config, IntPtr glyphRanges)
+    {
+        var io = ImGui.GetIO();
+        var assembly = typeof(ImGuiController).Assembly;
+        var fontStream = assembly.GetManifestResourceStream(FontAwesome5.FileNameSolid);
+        var data = new byte[fontStream.Length];
+        fontStream.ReadExactly(data);
+        fixed (byte* ptr = data)
+        {
+            if (!config.HasValue)
+                return io.Fonts.AddFontFromMemoryTTF((IntPtr)ptr, (int)fontStream.Length, size);
+            if (glyphRanges == IntPtr.Zero)
+                return io.Fonts.AddFontFromMemoryTTF((IntPtr)ptr, (int)fontStream.Length, size, config.Value);
+            return io.Fonts.AddFontFromMemoryTTF((IntPtr)ptr, (int)fontStream.Length, size, config.Value, glyphRanges);
         }
     }
 

@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Numerics;
 using System.Text;
+using IconFonts;
 using ImGuiNET;
 using ImMilo.ImGuiUtils;
 using MiloIcons;

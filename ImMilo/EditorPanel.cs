@@ -424,14 +424,8 @@ public class EditorPanel
                 {
                     i++;
                     ImGui.PushID(i);
-                    if (ImGui.CollapsingHeader(value.ToString() + "##" + i))
+                    if (ImGui.CollapsingHeader(value.ToString() + "###" + i))
                     {
-                        /*
-                        Editing the object in a way that changes its ToString output causes the header
-                        to change, changing the storage values for what ImGui uses to track open state.
-                        This causes the header to close when an edit is made.
-                        TODO: fix this!
-                        */
                         ImGui.Indent();
                         if (ImGui.Button("Full View"))
                         {
