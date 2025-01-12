@@ -371,7 +371,7 @@ public class ImGuiController : IDisposable
         {
             if (s == null)
             {
-                throw new Exception($"Embedded resource {resourceName} was not found.");
+                throw new FileNotFoundException($"Embedded resource {resourceName} was not found.");
             }
             byte[] ret = new byte[s.Length];
             s.Read(ret, 0, (int)s.Length);

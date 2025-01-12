@@ -43,6 +43,8 @@ public static class MeshEditor
     private static Vector3 modelOffset = Vector3.Zero;
     private static float zoom = -40f;
     private static Vector2 prevMousePos;
+
+    private static Exception previewError;
     
     public struct PackedVertex
     {
@@ -210,10 +212,27 @@ public static class MeshEditor
         
         if (!initialized)
         {
-            CreateDeviceResources();
+            try
+            {
+                CreateDeviceResources();
+            }
+            catch (Exception e)
+            {
+                previewError = e;
+            }
+            
             //projectionMatrix = Matrix4x4.CreateOrthographic(40, 40, 0.1f, 100);
             initialized = true;
         }
+
+        if (previewError != null)
+        {
+            ImGui.Text("Could not show mesh preview. This is likely because the needed shaders for your platform are missing.");
+            ImGui.Text(previewError.GetType().Name);
+            ImGui.Text(previewError.Message);
+            return;
+        }
+        
         if (commandList == null)
         {
             throw new Exception("Command list is null");
