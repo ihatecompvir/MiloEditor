@@ -67,6 +67,11 @@ class Program
         {
             OpenErrorModal(new FileNotFoundException("Could not find font file at " + Settings.Loaded.fontSettings.CustomFontFilePath), "Failed to load custom font.");
         }
+
+        _window.DragDrop += (DragDropEvent evt) =>
+        {
+            OpenFile(evt.File);
+        };
         
         var stopwatch = Stopwatch.StartNew();
         float deltaTime;
@@ -181,6 +186,21 @@ class Program
         }
     }
 
+    static void OpenFile(string path)
+    {
+        try
+        {
+            currentScene = new MiloFile(path);
+            viewingObject = null;
+        }
+        catch (Exception e)
+        {
+            OpenErrorModal(e, "Error occurred while loading file:");
+            currentScene = null;
+            Console.WriteLine(e.Message);
+        }
+    }
+
     static void MenuBar()
     {
         if (ImGui.BeginMainMenuBar()) // TODO: keyboard shortcuts
@@ -197,18 +217,7 @@ class Program
                     var (canceled, paths) = TinyDialogs.OpenFileDialog("Open Milo Scene", "", false, filter);
                     if (!canceled)
                     {
-                        try
-                        {
-                            currentScene = new MiloFile(paths.First());
-                            viewingObject = null;
-                        }
-                        catch (Exception e)
-                        {
-                            OpenErrorModal(e, "Error occurred while loading file:");
-                            currentScene = null;
-                            Console.WriteLine(e.Message);
-                        }
-                        
+                        OpenFile(paths.First());
                     }
                 }
 
