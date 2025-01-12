@@ -540,6 +540,15 @@ class Program
                             }
                         }
                         
+                        if (viewingObject is RndMesh mesh)
+                        {
+                            if (ImGui.BeginTabItem("Mesh"))
+                            {
+                                MeshEditor.Draw(mesh);
+                                ImGui.EndTabItem();
+                            }
+                        }
+                        
                         if (ImGui.BeginTabItem("Fields"))
                         {
                             EditorPanel.Draw(viewingObject);

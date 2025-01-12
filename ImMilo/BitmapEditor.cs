@@ -10,7 +10,7 @@ using Vector2 = System.Numerics.Vector2;
 
 namespace ImMilo;
 
-public class BitmapEditor
+public static class BitmapEditor
 {
     private static RndTex curTexture;
     private static Texture previewTexture;
