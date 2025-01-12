@@ -108,7 +108,7 @@ namespace MiloLib.Assets
 
                 writer.WriteUInt32(sampleCount);
                 writer.WriteUInt32(sampleRate);
-                writer.WriteUInt32(samplesSize);
+                writer.WriteUInt32((uint)samples.Count);
 
                 writer.WriteBoolean(readSamples);
 

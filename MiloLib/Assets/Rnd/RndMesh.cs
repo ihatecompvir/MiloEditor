@@ -65,7 +65,7 @@ namespace MiloLib.Assets.Rnd
             private uint count;
             public bool isNextGen;
             public uint vertexSize;
-            public uint unkType;
+            public uint compressionType;
             private List<Vertex> vertices = new();
 
             public Vertices Read(EndianReader reader, uint meshVersion)
@@ -77,14 +77,14 @@ namespace MiloLib.Assets.Rnd
                     if (isNextGen)
                     {
                         vertexSize = reader.ReadUInt32();
-                        unkType = reader.ReadUInt32();
+                        compressionType = reader.ReadUInt32();
                     }
-                    ReadVertices(reader, meshVersion, isNextGen);
+                    ReadVertices(reader, meshVersion, isNextGen, compressionType);
                     return this;
                 }
                 else
                 {
-                    ReadVertices(reader, meshVersion, isNextGen);
+                    ReadVertices(reader, meshVersion, isNextGen, 0);
                 }
 
                 return this;
@@ -99,18 +99,18 @@ namespace MiloLib.Assets.Rnd
                     if (isNextGen)
                     {
                         writer.WriteUInt32(vertexSize);
-                        writer.WriteUInt32(unkType);
+                        writer.WriteUInt32(compressionType);
                     }
-                    WriteVertices(writer, meshVersion, isNextGen);
+                    WriteVertices(writer, meshVersion, isNextGen, compressionType);
                     return;
                 }
                 else
                 {
-                    WriteVertices(writer, meshVersion, isNextGen);
+                    WriteVertices(writer, meshVersion, isNextGen, 0);
                 }
             }
 
-            public void ReadVertices(EndianReader reader, uint meshVersion, bool isNextGen)
+            public void ReadVertices(EndianReader reader, uint meshVersion, bool isNextGen, uint compressionType)
             {
                 vertices = new();
                 for (int i = 0; i < count; i++)
@@ -247,21 +247,44 @@ namespace MiloLib.Assets.Rnd
                         }
                         else
                         {
-                            reader.BaseStream.Position -= 4;
-                            newVert.halfU = reader.ReadUInt16();
-                            newVert.halfV = reader.ReadUInt16();
+                            if (compressionType == 1)
+                            {
+                                reader.BaseStream.Position -= 4;
+                                newVert.halfU = reader.ReadUInt16();
+                                newVert.halfV = reader.ReadUInt16();
 
-                            newVert.qTangents = newVert.qTangents.Read(reader);
+                                newVert.qTangents = newVert.qTangents.Read(reader);
 
-                            newVert.weight0 = reader.ReadByte();
-                            newVert.weight1 = reader.ReadByte();
-                            newVert.weight2 = reader.ReadByte();
-                            newVert.weight3 = reader.ReadByte();
+                                newVert.weight0 = reader.ReadByte();
+                                newVert.weight1 = reader.ReadByte();
+                                newVert.weight2 = reader.ReadByte();
+                                newVert.weight3 = reader.ReadByte();
 
-                            newVert.bone0 = reader.ReadUInt16();
-                            newVert.bone1 = reader.ReadUInt16();
-                            newVert.bone2 = reader.ReadUInt16();
-                            newVert.bone3 = reader.ReadUInt16();
+                                newVert.bone0 = reader.ReadUInt16();
+                                newVert.bone1 = reader.ReadUInt16();
+                                newVert.bone2 = reader.ReadUInt16();
+                                newVert.bone3 = reader.ReadUInt16();
+                            }
+                            else if (compressionType == 2)
+                            {
+                                reader.BaseStream.Position -= 4;
+                                newVert.halfU = reader.ReadUInt16();
+                                newVert.halfV = reader.ReadUInt16();
+
+                                newVert.unknown2 = reader.ReadFloat();
+
+                                newVert.qTangents = newVert.qTangents.Read(reader);
+
+                                newVert.weight0 = reader.ReadByte();
+                                newVert.weight1 = reader.ReadByte();
+                                newVert.weight2 = reader.ReadByte();
+                                newVert.weight3 = reader.ReadByte();
+
+                                newVert.bone0 = reader.ReadUInt16();
+                                newVert.bone1 = reader.ReadUInt16();
+                                newVert.bone2 = reader.ReadUInt16();
+                                newVert.bone3 = reader.ReadUInt16();
+                            }
                         }
                     }
 
@@ -270,7 +293,7 @@ namespace MiloLib.Assets.Rnd
                 }
             }
 
-            public void WriteVertices(EndianWriter writer, uint meshVersion, bool isNextGen)
+            public void WriteVertices(EndianWriter writer, uint meshVersion, bool isNextGen, uint compressionType)
             {
                 foreach (var vertex in vertices)
                 {
@@ -408,21 +431,44 @@ namespace MiloLib.Assets.Rnd
                         }
                         else
                         {
-                            writer.BaseStream.Position -= 4;
-                            writer.WriteUInt16((ushort)vertex.halfU);
-                            writer.WriteUInt16((ushort)vertex.halfV);
+                            if (compressionType == 1)
+                            {
+                                writer.BaseStream.Position -= 4;
+                                writer.WriteUInt16((ushort)vertex.halfU);
+                                writer.WriteUInt16((ushort)vertex.halfV);
 
-                            vertex.qTangents.Write(writer);
+                                vertex.qTangents.Write(writer);
 
-                            writer.WriteByte((byte)vertex.weight0);
-                            writer.WriteByte((byte)vertex.weight1);
-                            writer.WriteByte((byte)vertex.weight2);
-                            writer.WriteByte((byte)vertex.weight3);
+                                writer.WriteByte((byte)vertex.weight0);
+                                writer.WriteByte((byte)vertex.weight1);
+                                writer.WriteByte((byte)vertex.weight2);
+                                writer.WriteByte((byte)vertex.weight3);
 
-                            writer.WriteUInt16(vertex.bone0);
-                            writer.WriteUInt16(vertex.bone1);
-                            writer.WriteUInt16(vertex.bone2);
-                            writer.WriteUInt16(vertex.bone3);
+                                writer.WriteUInt16(vertex.bone0);
+                                writer.WriteUInt16(vertex.bone1);
+                                writer.WriteUInt16(vertex.bone2);
+                                writer.WriteUInt16(vertex.bone3);
+                            }
+                            else if (compressionType == 2)
+                            {
+                                writer.BaseStream.Position -= 4;
+                                writer.WriteUInt16((ushort)vertex.halfU);
+                                writer.WriteUInt16((ushort)vertex.halfV);
+
+                                writer.WriteFloat(vertex.unknown2);
+
+                                vertex.qTangents.Write(writer);
+
+                                writer.WriteByte((byte)vertex.weight0);
+                                writer.WriteByte((byte)vertex.weight1);
+                                writer.WriteByte((byte)vertex.weight2);
+                                writer.WriteByte((byte)vertex.weight3);
+
+                                writer.WriteUInt16(vertex.bone0);
+                                writer.WriteUInt16(vertex.bone1);
+                                writer.WriteUInt16(vertex.bone2);
+                                writer.WriteUInt16(vertex.bone3);
+                            }
                         }
                     }
                 }
