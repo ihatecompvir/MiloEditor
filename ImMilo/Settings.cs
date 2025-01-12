@@ -57,7 +57,7 @@ public class Settings
                    (this.CustomFontFilePath == other.CustomFontFilePath);
         }
         
-        public override int GetHashCode() => (this.FontSize, this.IconSize, this.Font, this.CustomFontFilePath).GetHashCode();
+        //public override int GetHashCode() => (this.FontSize, this.IconSize, this.Font, this.CustomFontFilePath).GetHashCode();
         
         public static bool operator ==(FontSettings lhs, FontSettings rhs)
         {

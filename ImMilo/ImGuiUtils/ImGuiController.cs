@@ -39,6 +39,8 @@ public class ImGuiController : IDisposable
     private int _windowHeight;
     private Vector2 _scaleFactor = Vector2.One;
 
+    public static bool customFontFailed;
+
     // Image trackers
     private readonly Dictionary<TextureView, ResourceSetInfo> _setsByView
         = new Dictionary<TextureView, ResourceSetInfo>();
@@ -160,6 +162,12 @@ public class ImGuiController : IDisposable
                 }
             case Settings.FontSettings.FontType.TTFCustom:
                 var path = Settings.Loaded.fontSettings.CustomFontFilePath;
+                if (!File.Exists(path))
+                {
+                    customFontFailed = true;
+                    if (!config.HasValue) return io.Fonts.AddFontDefault();
+                    return io.Fonts.AddFontDefault(config.Value);
+                }
                 if (!config.HasValue)
                     return io.Fonts.AddFontFromFileTTF(path, size);
                 if (glyphRanges == IntPtr.Zero)

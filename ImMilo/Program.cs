@@ -62,6 +62,11 @@ class Program
         ImGui.GetStyle().FrameBorderSize = Settings.Loaded.UIScale;
         ImGui.GetStyle().ChildBorderSize = Settings.Loaded.UIScale;
         ImGui.GetIO().FontGlobalScale = Settings.Loaded.UIScale;
+
+        if (ImGuiController.customFontFailed)
+        {
+            OpenErrorModal(new FileNotFoundException("Could not find font file at " + Settings.Loaded.fontSettings.CustomFontFilePath), "Failed to load custom font.");
+        }
         
         var stopwatch = Stopwatch.StartNew();
         float deltaTime;
@@ -163,11 +168,13 @@ class Program
             ImGui.Text(errorModalMessage);
             ImGui.Text(errorModalException.GetType().Name);
             ImGui.Text(errorModalException.Message);
-            if (ImGui.CollapsingHeader("Callstack"))
+            if (errorModalException is not FileNotFoundException)
             {
-                ImGui.Text(errorModalException.StackTrace);
+                if (ImGui.CollapsingHeader("Callstack"))
+                {
+                    ImGui.Text(errorModalException.StackTrace);
+                }
             }
-
             if (ImGui.Button("OK", new Vector2(ImGui.GetContentRegionAvail().X, 0.0f)))
                 ImGui.CloseCurrentPopup();
             ImGui.EndPopup();
