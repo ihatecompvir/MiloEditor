@@ -11,6 +11,7 @@ public static class Util
 {
     
     private static Dictionary<string, char> IconCodePoints = new();
+    public static ImFontPtr mainFont;
     public static ImFontPtr iconFont;
 
     public static char GetIconCodePoint()
@@ -127,12 +128,21 @@ public static class Util
     private static bool SceneTreeItem(object obj, ImGuiTreeNodeFlags flags)
     {
         var (name, type) = QueryEntryOrDir(obj);
+        if ((flags & ImGuiTreeNodeFlags.Leaf) > 0)
+        {
+            name += "##" + obj.GetHashCode();
+        }
+        return IconTreeItem(type, name, flags);
+    }
+
+    public static bool IconTreeItem(string typeName, string label, ImGuiTreeNodeFlags flags)
+    {
         var homePos = ImGui.GetCursorScreenPos();
-        var treeOpen = ImGui.TreeNodeEx(Util.GetIconCodePoint() + name, flags);
+        var treeOpen = ImGui.TreeNodeEx(Util.GetIconCodePoint() + label, flags);
         var drawList = ImGui.GetWindowDrawList();
         var iconSize = Settings.Loaded.ScaledIconSize;
         var imagePos = homePos + new Vector2(iconSize+5 + ImGui.GetStyle().FramePadding.X, 0);
-        drawList.AddImage(GetAssetIcon(type), imagePos, imagePos+new Vector2(iconSize, iconSize));
+        drawList.AddImage(GetAssetIcon(typeName), imagePos, imagePos+new Vector2(iconSize, iconSize));
         return treeOpen;
     }
     

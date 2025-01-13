@@ -228,6 +228,7 @@ namespace IconFonts
         public const string Cocktail = "\uf561";
         public const string Code = "\uf121";
         public const string CodeBranch = "\uf126";
+        public const string CodeMerge = "\uf387";
         public const string Coffee = "\uf0f4";
         public const string Cog = "\uf013";
         public const string Cogs = "\uf085";

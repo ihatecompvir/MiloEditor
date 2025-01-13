@@ -94,12 +94,21 @@ public class ImGuiController : IDisposable
         font = CreateFontFromSettings(fontSize, confPtr);
 
         confPtr.MergeMode = true;
+        confPtr.PixelSnapH = false;
+        confPtr.OversampleH = 1;
+        confPtr.OversampleV = 2;
+        confPtr.GlyphMinAdvanceX = fontSize;
         ushort[] iconRange = [FontAwesome5.IconMin, FontAwesome5.IconMax, 0];
         fixed (ushort* iconRangePtr = iconRange)
         {
             // TODO: make sure this offset in size doesn't look bad on other fonts
-            CreateIconFont(fontSize*0.85f, confPtr, (IntPtr)iconRangePtr);
+            CreateIconFont(fontSize*0.9f, confPtr, (IntPtr)iconRangePtr);
         }
+
+        confPtr.GlyphMinAdvanceX = 0f;
+        confPtr.PixelSnapH = true;
+        confPtr.OversampleH = 2;
+        confPtr.OversampleV = 1;
         confPtr.MergeMode = false;
         confPtr.GlyphOffset = Vector2.Zero;
         ushort[] puaRange = [0xE000, 0xF000, 0];
@@ -118,6 +127,7 @@ public class ImGuiController : IDisposable
         CreateFontFromSettings(fontSize, confPtr);
         Util.CreateIconGlyph(iconFontPtr);
         Util.iconFont = iconFontPtr;
+        Util.mainFont = font;
 
         
         io.Fonts.Build();

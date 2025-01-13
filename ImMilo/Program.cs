@@ -7,7 +7,10 @@ using ImMilo.ImGuiUtils;
 using MiloIcons;
 using MiloLib;
 using MiloLib.Assets;
+using MiloLib.Assets.Band;
 using MiloLib.Assets.Rnd;
+using MiloLib.Utils;
+using MiloLib.Utils.Conversion;
 using TinyDialogsNet;
 using Object = MiloLib.Assets.Object;
 
@@ -19,12 +22,11 @@ using Veldrid.StartupUtilities;
 
 class Program
 {
-    
     private static Sdl2Window _window;
     public static GraphicsDevice gd;
     private static CommandList _cl;
     public static ImGuiController controller;
-    
+
     private static Vector3 _clearColor = new(0.45f, 0.55f, 0.6f);
 
     private static MiloFile currentScene;
@@ -37,11 +39,19 @@ class Program
     private static string filter = "";
     private static bool filterActive;
     private static List<object> breadcrumbs = [];
-    
+
     private static Settings.Theme currentTheme;
+    private static string modalString;
+
+    /// <summary>
+    /// temporary state
+    /// </summary>
+    private static object modalObject;
+
+    private static object modalObject2;
 
     public static bool NoSettingsReload => viewingObject is Settings;
-    
+
     static void Main(string[] args)
     {
         Console.WriteLine(VeldridStartup.GetPlatformDefaultBackend());
@@ -58,7 +68,8 @@ class Program
             controller.WindowResized(_window.Width, _window.Height);
         };
         _cl = gd.ResourceFactory.CreateCommandList();
-        controller = new ImGuiController(gd, gd.MainSwapchain.Framebuffer.OutputDescription, _window.Width, _window.Height);
+        controller = new ImGuiController(gd, gd.MainSwapchain.Framebuffer.OutputDescription, _window.Width,
+            _window.Height);
         //ImGui.StyleColorsLight();
         ImGui.GetStyle().ScaleAllSizes(Settings.Loaded.UIScale);
         ImGui.GetStyle().FrameBorderSize = Settings.Loaded.UIScale;
@@ -67,14 +78,14 @@ class Program
 
         if (ImGuiController.customFontFailed)
         {
-            OpenErrorModal(new FileNotFoundException("Could not find font file at " + Settings.Loaded.fontSettings.CustomFontFilePath), "Failed to load custom font.");
+            OpenErrorModal(
+                new FileNotFoundException("Could not find font file at " +
+                                          Settings.Loaded.fontSettings.CustomFontFilePath),
+                "Failed to load custom font.");
         }
 
-        _window.DragDrop += (DragDropEvent evt) =>
-        {
-            OpenFile(evt.File);
-        };
-        
+        _window.DragDrop += (DragDropEvent evt) => { OpenFile(evt.File); };
+
         var stopwatch = Stopwatch.StartNew();
         float deltaTime;
         // Main application loop
@@ -83,9 +94,14 @@ class Program
             deltaTime = stopwatch.ElapsedTicks / (float)Stopwatch.Frequency;
             stopwatch.Restart();
             InputSnapshot snapshot = _window.PumpEvents();
-            if (!_window.Exists) { break; }
-            controller.Update(deltaTime, snapshot); // Feed the input events to our ImGui controller, which passes them through to ImGui.
-            
+            if (!_window.Exists)
+            {
+                break;
+            }
+
+            controller.Update(deltaTime,
+                snapshot); // Feed the input events to our ImGui controller, which passes them through to ImGui.
+
             MainUI();
 
             _cl.Begin();
@@ -96,7 +112,7 @@ class Program
             gd.SubmitCommands(_cl);
             gd.SwapBuffers(gd.MainSwapchain);
         }
-        
+
         Settings.Save();
 
         if (!System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform
@@ -105,7 +121,7 @@ class Program
             // Linux bodge: Veldrid has some shitty bugs on Linux that cause WaitForIdle to hang. Just exit!
             Environment.Exit(0);
         }
-        
+
         // Clean up Veldrid resources
         gd.WaitForIdle();
         controller.Dispose();
@@ -138,13 +154,16 @@ class Program
         {
             UpdateTheme();
         }
+
         var viewport = ImGui.GetMainViewport();
         ImGui.SetNextWindowPos(viewport.WorkPos);
         ImGui.SetNextWindowSize(viewport.WorkSize);
         ImGui.SetNextWindowViewport(viewport.ID);
         ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 0);
         ImGui.PushStyleVar(ImGuiStyleVar.WindowBorderSize, 0);
-        ImGui.Begin("ImMilo", ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoBringToFrontOnFocus);
+        ImGui.Begin("ImMilo",
+            ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove |
+            ImGuiWindowFlags.NoBringToFrontOnFocus);
         MenuBar();
         DrawErrorModal();
         UIContent();
@@ -168,6 +187,7 @@ class Program
             ImGui.OpenPopup("Error");
             errorModalOpen = false;
         }
+
         ImGui.SetNextWindowPos(ImGui.GetMainViewport().GetCenter(), ImGuiCond.Appearing, new Vector2(0.5f, 0.5f));
 
         if (ImGui.BeginPopupModal("Error", ImGuiWindowFlags.AlwaysAutoResize))
@@ -182,6 +202,7 @@ class Program
                     ImGui.Text(errorModalException.StackTrace);
                 }
             }
+
             if (ImGui.Button("OK", new Vector2(ImGui.GetContentRegionAvail().X, 0.0f)))
                 ImGui.CloseCurrentPopup();
             ImGui.EndPopup();
@@ -209,7 +230,7 @@ class Program
         {
             if (ImGui.BeginMenu("File"))
             {
-                if (ImGui.MenuItem("Open" , "Ctrl+O"))
+                if (ImGui.MenuItem("Open", "Ctrl+O"))
                 {
                     var filter = new FileFilter("Milo Scenes",
                     [
@@ -268,6 +289,7 @@ class Program
                 {
                     NavigateObject(Settings.Editing, false);
                 }
+
                 ImGui.EndMenu();
             }
 
@@ -277,6 +299,7 @@ class Program
                 ImGui.MenuItem("Hide Nested Hmx::Object Fields", null, ref Settings.Editing.HideNestedHMXObjectFields);
                 ImGui.EndMenu();
             }
+
             ImGui.EndMainMenuBar();
         }
     }
@@ -311,14 +334,22 @@ class Program
 
     static void DirNode(DirectoryMeta dir, int id = 0, bool root = false)
     {
+        var iterId = 0;
+        DirNode(dir, ref iterId, id, root);
+    }
+
+    static void DirNode(DirectoryMeta dir, ref int iterId, int id = 0, bool root = false, DirectoryMeta parent = null,
+        bool inlined = false, DirectoryMeta.Entry? thisEntry = null, bool useEntryContextMenu = false)
+    {
         var filterActive = filter != "";
         ImGui.PushID(id);
         var flags = ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.OpenOnDoubleClick
-            | ImGuiTreeNodeFlags.SpanFullWidth;
+                                                   | ImGuiTreeNodeFlags.SpanFullWidth;
         if (root || filterActive)
         {
             flags |= ImGuiTreeNodeFlags.DefaultOpen;
         }
+
         if (filterActive)
         {
             ImGui.SetNextItemStorageID(ImGui.GetID("filtering"));
@@ -332,12 +363,13 @@ class Program
         var cursor = ImGui.GetCursorScreenPos();
         var iconSize = Settings.Loaded.ScaledIconSize;
         var framePadding = ImGui.GetStyle().FramePadding;
-        var lineX = cursor.X+iconSize/2f+framePadding.X;
-        var lineY = cursor.Y+ImGui.GetFrameHeight()-ImGui.GetStyle().ItemSpacing.Y-framePadding.Y;
+        var lineX = cursor.X + iconSize / 2f + framePadding.X;
+        var lineY = cursor.Y + ImGui.GetFrameHeight() - ImGui.GetStyle().ItemSpacing.Y - framePadding.Y;
         var drawList = ImGui.GetWindowDrawList();
         var treeLineColor = ImGui.GetColorU32(ImGuiCol.Text);
         treeLineColor = (0x00ffffff & treeLineColor) | 0x80000000;
-        var drawChildLine = (bool dir) =>
+
+        void DrawChildLine(bool dir)
         {
             var cursor = ImGui.GetCursorScreenPos();
             var lineEndX = cursor.X + framePadding.X;
@@ -345,11 +377,290 @@ class Program
             {
                 lineEndX += iconSize;
             }
-            drawList.AddLine(new Vector2(lineX+1, cursor.Y+iconSize/2f), new Vector2(lineEndX, cursor.Y+iconSize/2f), treeLineColor);
-        };
+
+            var yOffset = iconSize / 2f;
+            drawList.AddLine(new Vector2(lineX + 1, cursor.Y + yOffset), new Vector2(lineEndX, cursor.Y + yOffset),
+                treeLineColor);
+        }
+
+        void DirectoryContextMenu(ref int iterId)
+        {
+            if (useEntryContextMenu)
+            {
+                ItemContextMenu(thisEntry, ref iterId);
+                return;
+            }
+
+            ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 1f);
+            if (ImGui.BeginPopupContextItem())
+            {
+                ImGui.PushFont(Util.mainFont);
+                if (parent != null)
+                {
+                    if (ImGui.MenuItem(FontAwesome5.TrashAlt + "  Delete Directory"))
+                    {
+                        if (viewingObject == dir.directory)
+                        {
+                            viewingObject = null;
+                        }
+
+                        if (inlined)
+                        {
+                            var objDir = (ObjectDir)parent.directory;
+                            objDir.inlineSubDirs.Remove(dir);
+                        }
+                        else
+                        {
+                            parent.entries.Remove(thisEntry);
+                        }
+
+                        iterId--;
+                    }
+
+                    ImGui.MenuItem(FontAwesome5.Clone + "  Duplicate Directory");
+                }
+
+                ImGui.MenuItem(FontAwesome5.Edit + "  Rename Directory");
+                ImGui.MenuItem(FontAwesome5.CodeMerge + "  Merge Directory");
+                ImGui.MenuItem(FontAwesome5.Share + "  Export Directory");
+                ImGui.MenuItem(FontAwesome5.PlusSquare + "  Add Inlined Directory");
+                ImGui.Separator();
+                if (ImGui.MenuItem(FontAwesome5.FileImport + "  Import Asset")) //TODO: this isn't finished
+                {
+                    var (canceled, paths) = TinyDialogs.OpenFileDialog("Import Asset", "", false);
+                    if (!canceled)
+                    {
+                        var path = paths.First();
+                        // special handling of certain asset types
+
+                        // detect .prefab file
+                        if (Path.GetExtension(path) == ".prefab")
+                        {
+                            // read file
+                            BandCharDesc desc = NautilusInterop.ToBandCharDesc(File.ReadAllText(path));
+                            // add the BandCharDesc to the MiloFile
+                            currentScene.dirMeta.entries.Add(new DirectoryMeta.Entry("BandCharDesc",
+                                "prefab_" + Path.GetFileNameWithoutExtension(path), desc));
+                        }
+                        else
+                        {
+                            // popup a dropdown to ask for the asset type
+                            string[] assetTypes =
+                            {
+                                "Object", "RndTex", "RndMat", "RndMesh", "RndTrans", "RndTransAnim", "Sfx",
+                                "RndTexRenderer", "BandSongPref", "SynthSample"
+                            };
+
+                            string assetType =
+                                Microsoft.VisualBasic.Interaction.InputBox("Enter the asset type", "Import Asset",
+                                    "Object");
+                            
+                            // read the file into a byte array
+                            byte[] fileBytes = File.ReadAllBytes(path);
+                            
+                            // create a new entry
+                            DirectoryMeta.Entry entry = DirectoryMeta.Entry.CreateDirtyAssetFromBytes(assetType,
+                                Path.GetFileName(path), fileBytes.ToList<byte>());
+
+                            // add the entry to the parent dir
+                            dir.entries.Add(entry);
+
+                            // use an EndianReader to read the bytes into an Object
+                            using (EndianReader reader =
+                                   new EndianReader(new MemoryStream(fileBytes), Endian.BigEndian))
+                            {
+                                // read the object
+                                switch (entry.type.value)
+                                {
+                                    case "Tex":
+                                        entry.obj = new RndTex().Read(reader, false, dir, entry);
+                                        break;
+                                    case "Group":
+                                        entry.obj = new RndGroup().Read(reader, false, dir, entry);
+                                        break;
+                                    case "Trans":
+                                        entry.obj = new RndTrans().Read(reader, false, dir, entry);
+                                        break;
+                                    case "BandSongPref":
+                                        entry.obj = new BandSongPref().Read(reader, false, dir, entry);
+                                        break;
+                                    case "Sfx":
+                                        entry.obj = new Sfx().Read(reader, false, dir, entry);
+                                        break;
+                                    case "BandCharDesc":
+                                        entry.obj = new BandCharDesc().Read(reader, false, dir, entry);
+                                        break;
+                                    default:
+                                        Debug.WriteLine("Unknown asset type: " + entry.type.value);
+                                        entry.obj = new Object().Read(reader, false, dir, entry);
+                                        break;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                ImGui.MenuItem(FontAwesome5.PlusCircle + "  New Asset");
+                ImGui.PopFont();
+                ImGui.EndPopup();
+            }
+
+            ImGui.PopStyleVar();
+        }
+
+        void ItemContextMenu(DirectoryMeta.Entry entry, ref int curIndex)
+        {
+            ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 1f);
+            if (ImGui.BeginPopupContextItem())
+            {
+                ImGui.PushFont(Util.mainFont);
+                if (ImGui.MenuItem(FontAwesome5.TrashAlt + "  Delete Asset"))
+                {
+                    if (viewingObject == entry.obj)
+                    {
+                        viewingObject = null;
+                    }
+
+                    dir.entries.Remove(entry);
+                    curIndex--;
+                }
+
+                if (ImGui.MenuItem(FontAwesome5.Clone + "  Duplicate Asset"))
+                {
+                    modalObject = entry;
+                    modalString = "\uf000Duplicate" + id; // Hack to get around the lack of global ids
+                }
+
+                if (ImGui.MenuItem(FontAwesome5.Edit + "  Rename Asset"))
+                {
+                    modalObject = entry;
+                    modalString = "\uf000Rename" + id;
+                }
+
+                ImGui.Separator();
+                if (ImGui.MenuItem(FontAwesome5.Share + "  Extract Asset"))
+                {
+                    var (canceled, path) = TinyDialogs.SaveFileDialog("Extract Asset", entry.name);
+
+                    if (!canceled)
+                    {
+                        File.WriteAllBytes(path, entry.objBytes.ToArray());
+                    }
+                }
+
+                ImGui.MenuItem(FontAwesome5.Recycle + "  Replace Asset");
+                ImGui.PopFont();
+                ImGui.EndPopup();
+            }
+
+            ImGui.PopStyleVar();
+        }
+
+        if (modalString == "\uf000Duplicate" + id)
+        {
+            modalString = ((DirectoryMeta.Entry)modalObject).name;
+            ImGui.OpenPopup("Duplicate##" + id);
+        }
+
+        if (modalString == "\uf000Rename" + id)
+        {
+            modalString = ((DirectoryMeta.Entry)modalObject).name;
+            ImGui.OpenPopup("Rename##" + id);
+        }
+
+        ImGui.PushFont(Util.mainFont);
+        if (ImGui.BeginPopupModal("Duplicate##" + id, ImGuiWindowFlags.AlwaysAutoResize))
+        {
+            var entry = (DirectoryMeta.Entry)modalObject;
+            if (ImGui.IsWindowAppearing())
+            {
+                ImGui.SetKeyboardFocusHere();
+            }
+
+            var enter = ImGui.InputText("New Asset Name", ref modalString, 128, ImGuiInputTextFlags.EnterReturnsTrue);
+            if (ImGui.Button("OK") || enter)
+            {
+                try
+                {
+                    DirectoryMeta.Entry newEntry;
+
+                    if (entry.typeRecognized)
+                    {
+                        newEntry = new DirectoryMeta.Entry(entry.type, entry.name, entry.obj);
+
+                        // Using the same hack as in MiloEditor
+                        var updatedBytes = entry.objBytes.ToArray().Concat(new byte[] { 0xAD, 0xDE, 0xAD, 0xDE })
+                            .ToArray();
+                        using (MemoryStream ms = new MemoryStream(updatedBytes))
+                        {
+                            EndianReader reader = new EndianReader(ms, currentScene.endian);
+                            parent.ReadEntry(reader, entry);
+                        }
+                    }
+                    else
+                    {
+                        newEntry = DirectoryMeta.Entry.CreateDirtyAssetFromBytes(entry.type, entry.name,
+                            entry.objBytes);
+                    }
+
+                    newEntry.name = modalString;
+                    dir.entries.Add(newEntry);
+                    ImGui.CloseCurrentPopup();
+                    modalObject = null;
+                }
+                catch (Exception e)
+                {
+                    OpenErrorModal(e, "Failed to duplicate asset.");
+                }
+            }
+
+            ImGui.SameLine();
+            if (ImGui.Button("Cancel"))
+            {
+                ImGui.CloseCurrentPopup();
+                modalObject = null;
+            }
+
+            ImGui.EndPopup();
+        }
+
+        if (ImGui.BeginPopupModal("Rename##" + id, ImGuiWindowFlags.AlwaysAutoResize))
+        {
+            var entry = (DirectoryMeta.Entry)modalObject;
+            if (ImGui.IsWindowAppearing())
+            {
+                ImGui.SetKeyboardFocusHere();
+            }
+
+            var enter = ImGui.InputText("New Asset Name", ref modalString, 128, ImGuiInputTextFlags.EnterReturnsTrue);
+            if (ImGui.Button("OK") || enter)
+            {
+                entry.name = modalString;
+                if (entry.dir != null)
+                {
+                    entry.dir.name = modalString;
+                }
+
+                ImGui.CloseCurrentPopup();
+                modalObject = null;
+            }
+
+            ImGui.SameLine();
+            if (ImGui.Button("Cancel"))
+            {
+                ImGui.CloseCurrentPopup();
+                modalObject = null;
+            }
+
+            ImGui.EndPopup();
+        }
+
+        ImGui.PopFont();
+
         var childrenDrawn = 0;
         if (Util.SceneTreeItem(dir, flags))
         {
+            DirectoryContextMenu(ref iterId);
             unsafe
             {
                 if (ImGui.BeginDragDropSource())
@@ -359,44 +670,55 @@ class Program
                     fixed (byte* payloadPtr = payloadBytes)
                     {
                         ImGui.SetDragDropPayload("TreeEntryDir", (IntPtr)(payloadPtr), (uint)payloadBytes.Length);
-                        
+
                         ImGui.Text(payload);
                         ImGui.EndDragDropSource();
                     }
-                        
-                }
-            }
-            if (ImGui.IsItemActivated() && !ImGui.IsItemToggledOpen())
-                NavigateObject(dir.directory);
-            var i = 0;
-            //ImGui.Indent();
-            if (dir.directory is ObjectDir objDir && objDir.inlineSubDirs.Count > 0)
-            {
-                i = 0;
-                foreach (var subDir in objDir.inlineSubDirs)
-                {
-                    drawChildLine(true);
-                    DirNode(subDir, i);
-                    childrenDrawn++;
-                    i++;
                 }
             }
 
-            foreach (var entry in dir.entries)
+            if (ImGui.IsItemActivated() && !ImGui.IsItemToggledOpen())
+                NavigateObject(dir.directory);
+            var nodeId = 0;
+            //ImGui.Indent();
+            if (dir.directory is ObjectDir objDir && objDir.inlineSubDirs.Count > 0)
             {
+                DrawChildLine(true);
+                if (Util.IconTreeItem("ObjectDir", "Inline Subdirectories", ImGuiTreeNodeFlags.SpanFullWidth))
+                {
+                    nodeId = 0;
+                    for (int subDirIndex = 0; subDirIndex < objDir.inlineSubDirs.Count; subDirIndex++)
+                    {
+                        var subDir = objDir.inlineSubDirs[subDirIndex];
+                        DrawChildLine(true); // TODO: fix the tree traces for the inline subdirs node
+                        DirNode(subDir, ref subDirIndex, nodeId, false, dir, true);
+                        childrenDrawn++;
+                        nodeId++;
+                    }
+
+                    ImGui.TreePop();
+                }
+            }
+
+            nodeId = 1000; // Count of inlined dirs was affecting future node ids, just set it to 1000 and hope something doesn't have >1000 inlined subdirs
+
+            for (int entryIndex = 0; entryIndex < dir.entries.Count; entryIndex++)
+            {
+                var entry = dir.entries[entryIndex];
                 var matchesFilter = filterActive && entry.name.ToString().ToLower().Contains(filter.ToLower());
-                i++;
+                nodeId++;
                 if (matchesFilter)
                 {
                     ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0f, 0f, 1f, 1f));
                 }
+
                 if (entry.dir != null)
                 {
                     //ImGui.Button("Test");
                     //ImGui.SameLine();
 
-                    drawChildLine(true);
-                    DirNode(entry.dir, i);
+                    DrawChildLine(true);
+                    DirNode(entry.dir, ref entryIndex, nodeId, false, dir, false, entry, true);
                     childrenDrawn++;
                 }
                 else
@@ -410,19 +732,22 @@ class Program
                     {
                         ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 0.5f);
                     }
+
                     ImGuiTreeNodeFlags leafFlags = ImGuiTreeNodeFlags.Leaf | ImGuiTreeNodeFlags.SpanFullWidth;
                     if (viewingObject != null && viewingObject == entry.obj)
                     {
                         leafFlags |= ImGuiTreeNodeFlags.Selected;
                     }
 
-                    drawChildLine(false);
+                    DrawChildLine(false);
                     Util.SceneTreeItem(entry, leafFlags);
+                    ItemContextMenu(entry, ref entryIndex);
                     childrenDrawn++;
                     if (ImGui.IsItemClicked(ImGuiMouseButton.Left) && entry.obj != null)
                     {
                         NavigateObject(entry.obj);
                     }
+
                     unsafe
                     {
                         if (ImGui.BeginDragDropSource())
@@ -431,37 +756,43 @@ class Program
                             var payloadBytes = Encoding.UTF8.GetBytes(payload);
                             fixed (byte* payloadPtr = payloadBytes)
                             {
-                                ImGui.SetDragDropPayload("TreeEntryObject", (IntPtr)(payloadPtr), (uint)payloadBytes.Length);
+                                ImGui.SetDragDropPayload("TreeEntryObject", (IntPtr)(payloadPtr),
+                                    (uint)payloadBytes.Length);
                             }
 
                             ImGui.Text(payload);
                             ImGui.EndDragDropSource();
-
                         }
                     }
+
                     ImGui.TreePop();
                     if (entry.obj == null)
                     {
                         ImGui.PopStyleVar();
                     }
                 }
+
                 if (matchesFilter)
                 {
                     ImGui.PopStyleColor();
                 }
             }
+
             ImGui.TreePop();
             if (childrenDrawn > 0)
             {
-                drawList.AddLine(new Vector2(lineX, lineY), new Vector2(lineX, ImGui.GetCursorScreenPos().Y-ImGui.GetFrameHeight()/2f), treeLineColor);
+                drawList.AddLine(new Vector2(lineX, lineY),
+                    new Vector2(lineX, ImGui.GetCursorScreenPos().Y - ImGui.GetFrameHeight() / 2f), treeLineColor);
             }
             //ImGui.Unindent();
         }
         else
         {
+            DirectoryContextMenu(ref iterId);
             if (ImGui.IsItemClicked() && !ImGui.IsItemToggledOpen())
                 NavigateObject(dir.directory);
         }
+
         ImGui.PopID();
     }
 
@@ -473,6 +804,7 @@ class Program
             {
                 //ImGui.Text(currentScene.dirMeta.entries.Count + " entries");
             }
+
             ImGui.BeginChild("left pane", new Vector2(150, 0), ImGuiChildFlags.Borders | ImGuiChildFlags.ResizeX);
             ImGui.InputText("Filter", ref filter, 64);
             ImGui.BeginChild("entries");
@@ -482,11 +814,11 @@ class Program
                 if (currentScene.dirMeta != null)
                 {
                     ImGui.PushFont(Util.iconFont);
-                    DirNode(currentScene.dirMeta,  0, true);
+                    DirNode(currentScene.dirMeta, 0, true);
                     ImGui.PopFont();
                 }
-                
             }
+
             ImGui.EndChild();
             ImGui.EndChild();
             ImGui.EndGroup();
@@ -507,6 +839,7 @@ class Program
                         {
                             NavigateObject(obj, true);
                         }
+
                         ImGui.SameLine();
                         ImGui.Text(">");
                         ImGui.SameLine();
@@ -517,7 +850,7 @@ class Program
                     }
                 }
             }
-            
+
             if (viewingObject != null)
             {
                 bool hasCustomEditor = false;
@@ -525,37 +858,40 @@ class Program
                 {
                     hasCustomEditor = true;
                 }
+
                 if (viewingObject is RndMesh)
                 {
                     hasCustomEditor = true;
                 }
+
                 if (hasCustomEditor)
                 {
                     if (ImGui.BeginTabBar("Editors"))
                     {
                         if (viewingObject is RndTex tex)
                         {
-                            if (ImGui.BeginTabItem("Texture"))
+                            if (ImGui.BeginTabItem(FontAwesome5.Image + "  Texture"))
                             {
                                 BitmapEditor.Draw(tex);
                                 ImGui.EndTabItem();
                             }
                         }
-                        
+
                         if (viewingObject is RndMesh mesh)
                         {
-                            if (ImGui.BeginTabItem("Mesh"))
+                            if (ImGui.BeginTabItem(FontAwesome5.Cube + "  Mesh"))
                             {
                                 MeshEditor.Draw(mesh);
                                 ImGui.EndTabItem();
                             }
                         }
-                        
-                        if (ImGui.BeginTabItem("Fields"))
+
+                        if (ImGui.BeginTabItem(FontAwesome5.Table + "  Fields"))
                         {
                             EditorPanel.Draw(viewingObject);
                             ImGui.EndTabItem();
                         }
+
                         ImGui.EndTabBar();
                     }
                 }
@@ -563,8 +899,8 @@ class Program
                 {
                     EditorPanel.Draw(viewingObject);
                 }
-                
             }
+
             ImGui.EndChild();
             ImGui.EndGroup();
         }
