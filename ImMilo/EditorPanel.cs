@@ -451,7 +451,31 @@ public class EditorPanel
 
                 break;
             case Matrix matrixValue:
-                ImGui.Text("(Matrix hidden)"); // TODO: nice gridded matrix editor
+                bool edited = false;
+                var row1 = new System.Numerics.Vector4(matrixValue.m11, matrixValue.m21, matrixValue.m31, matrixValue.m41);
+                var row2 = new System.Numerics.Vector4(matrixValue.m12, matrixValue.m22, matrixValue.m32, matrixValue.m42);
+                var row3 = new System.Numerics.Vector4(matrixValue.m13, matrixValue.m23, matrixValue.m33, matrixValue.m43);
+                edited |= ImGui.InputFloat4("", ref row1);
+                edited |= ImGui.InputFloat4("", ref row2);
+                edited |= ImGui.InputFloat4("", ref row3);
+                if (edited)
+                {
+                    matrixValue.m11 = row1.X;
+                    matrixValue.m21 = row1.Y;
+                    matrixValue.m31 = row1.Z;
+                    matrixValue.m41 = row1.W;
+                    
+                    matrixValue.m12 = row1.X;
+                    matrixValue.m22 = row1.Y;
+                    matrixValue.m32 = row1.Z;
+                    matrixValue.m42 = row1.W;
+                    
+                    matrixValue.m13 = row1.X;
+                    matrixValue.m23 = row1.Y;
+                    matrixValue.m33 = row1.Z;
+                    matrixValue.m43 = row1.W;
+                    field.SetValue(parent, matrixValue);
+                }
                 break;
             case HmxColor3 colorValue:
             {
