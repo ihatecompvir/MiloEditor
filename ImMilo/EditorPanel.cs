@@ -455,9 +455,9 @@ public class EditorPanel
                 var row1 = new System.Numerics.Vector4(matrixValue.m11, matrixValue.m21, matrixValue.m31, matrixValue.m41);
                 var row2 = new System.Numerics.Vector4(matrixValue.m12, matrixValue.m22, matrixValue.m32, matrixValue.m42);
                 var row3 = new System.Numerics.Vector4(matrixValue.m13, matrixValue.m23, matrixValue.m33, matrixValue.m43);
-                edited |= ImGui.InputFloat4("", ref row1);
-                edited |= ImGui.InputFloat4("", ref row2);
-                edited |= ImGui.InputFloat4("", ref row3);
+                edited |= ImGui.InputFloat4("##row1", ref row1);
+                edited |= ImGui.InputFloat4("##row2", ref row2);
+                edited |= ImGui.InputFloat4("##row3", ref row3);
                 if (edited)
                 {
                     matrixValue.m11 = row1.X;
@@ -465,15 +465,15 @@ public class EditorPanel
                     matrixValue.m31 = row1.Z;
                     matrixValue.m41 = row1.W;
                     
-                    matrixValue.m12 = row1.X;
-                    matrixValue.m22 = row1.Y;
-                    matrixValue.m32 = row1.Z;
-                    matrixValue.m42 = row1.W;
+                    matrixValue.m12 = row2.X;
+                    matrixValue.m22 = row2.Y;
+                    matrixValue.m32 = row2.Z;
+                    matrixValue.m42 = row2.W;
                     
-                    matrixValue.m13 = row1.X;
-                    matrixValue.m23 = row1.Y;
-                    matrixValue.m33 = row1.Z;
-                    matrixValue.m43 = row1.W;
+                    matrixValue.m13 = row3.X;
+                    matrixValue.m23 = row3.Y;
+                    matrixValue.m33 = row3.Z;
+                    matrixValue.m43 = row3.W;
                     field.SetValue(parent, matrixValue);
                 }
                 break;
