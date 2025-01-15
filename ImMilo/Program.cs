@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using System.Text;
 using IconFonts;
 using ImGuiNET;
@@ -56,10 +57,17 @@ class Program
     {
         Console.WriteLine(VeldridStartup.GetPlatformDefaultBackend());
         Settings.Load();
+        var graphicsDebug = true;
+        if (System.Diagnostics.Debugger.IsAttached)
+        {
+            // On my machine, there's a weird bug where running the app with the debugger attached causes
+            // CreateWindowAndGraphicsDevice to crash with little to no information.
+            graphicsDebug = !System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
+        }
         // Create window, GraphicsDevice, and all resources necessary for the demo.
         VeldridStartup.CreateWindowAndGraphicsDevice(
             new WindowCreateInfo(50, 50, 1280, 720, WindowState.Normal, "ImMilo"),
-            new GraphicsDeviceOptions(true, null, true, ResourceBindingModel.Improved, true, true),
+            new GraphicsDeviceOptions(graphicsDebug, null, true, ResourceBindingModel.Improved, true, true),
             out _window,
             out gd);
         _window.Resized += () =>
@@ -146,6 +154,13 @@ class Program
             default:
                 throw new ArgumentOutOfRangeException();
         }
+    }
+
+    static unsafe bool IsThemeDark()
+    {
+        var col = ImGui.GetStyleColorVec4(ImGuiCol.Text);
+        ImGui.ColorConvertRGBtoHSV(col->X, col->Y, col->Z, out _, out _, out var value);
+        return value > 0.5f;
     }
 
     static void MainUI()
@@ -341,6 +356,10 @@ class Program
     static void DirNode(DirectoryMeta dir, ref int iterId, int id = 0, bool root = false, DirectoryMeta parent = null,
         bool inlined = false, DirectoryMeta.Entry? thisEntry = null, bool useEntryContextMenu = false)
     {
+        if (Settings.Editing.compactScreneTree)
+        {
+            ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(ImGui.GetStyle().ItemSpacing.X, 0f));
+        }
         var filterActive = filter != "";
         ImGui.PushID(id);
         var flags = ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.OpenOnDoubleClick
@@ -392,6 +411,7 @@ class Program
             }
 
             ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 1f);
+            ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, ImGui.GetStyle().FramePadding);
             if (ImGui.BeginPopupContextItem())
             {
                 ImGui.PushFont(Util.mainFont);
@@ -444,58 +464,9 @@ class Program
                         }
                         else
                         {
-                            // popup a dropdown to ask for the asset type
-                            string[] assetTypes =
-                            {
-                                "Object", "RndTex", "RndMat", "RndMesh", "RndTrans", "RndTransAnim", "Sfx",
-                                "RndTexRenderer", "BandSongPref", "SynthSample"
-                            };
-
-                            string assetType =
-                                Microsoft.VisualBasic.Interaction.InputBox("Enter the asset type", "Import Asset",
-                                    "Object");
-                            
-                            // read the file into a byte array
-                            byte[] fileBytes = File.ReadAllBytes(path);
-                            
-                            // create a new entry
-                            DirectoryMeta.Entry entry = DirectoryMeta.Entry.CreateDirtyAssetFromBytes(assetType,
-                                Path.GetFileName(path), fileBytes.ToList<byte>());
-
-                            // add the entry to the parent dir
-                            dir.entries.Add(entry);
-
-                            // use an EndianReader to read the bytes into an Object
-                            using (EndianReader reader =
-                                   new EndianReader(new MemoryStream(fileBytes), Endian.BigEndian))
-                            {
-                                // read the object
-                                switch (entry.type.value)
-                                {
-                                    case "Tex":
-                                        entry.obj = new RndTex().Read(reader, false, dir, entry);
-                                        break;
-                                    case "Group":
-                                        entry.obj = new RndGroup().Read(reader, false, dir, entry);
-                                        break;
-                                    case "Trans":
-                                        entry.obj = new RndTrans().Read(reader, false, dir, entry);
-                                        break;
-                                    case "BandSongPref":
-                                        entry.obj = new BandSongPref().Read(reader, false, dir, entry);
-                                        break;
-                                    case "Sfx":
-                                        entry.obj = new Sfx().Read(reader, false, dir, entry);
-                                        break;
-                                    case "BandCharDesc":
-                                        entry.obj = new BandCharDesc().Read(reader, false, dir, entry);
-                                        break;
-                                    default:
-                                        Debug.WriteLine("Unknown asset type: " + entry.type.value);
-                                        entry.obj = new Object().Read(reader, false, dir, entry);
-                                        break;
-                                }
-                            }
+                            modalObject = path;
+                            modalObject2 = 0;
+                            modalString = "\uf000Import Asset" + id;
                         }
                     }
                 }
@@ -504,13 +475,14 @@ class Program
                 ImGui.PopFont();
                 ImGui.EndPopup();
             }
-
+            ImGui.PopStyleVar();
             ImGui.PopStyleVar();
         }
 
         void ItemContextMenu(DirectoryMeta.Entry entry, ref int curIndex)
         {
             ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 1f);
+            ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, ImGui.GetStyle().FramePadding);
             if (ImGui.BeginPopupContextItem())
             {
                 ImGui.PushFont(Util.mainFont);
@@ -552,7 +524,7 @@ class Program
                 ImGui.PopFont();
                 ImGui.EndPopup();
             }
-
+            ImGui.PopStyleVar();
             ImGui.PopStyleVar();
         }
 
@@ -566,6 +538,13 @@ class Program
         {
             modalString = ((DirectoryMeta.Entry)modalObject).name;
             ImGui.OpenPopup("Rename##" + id);
+        }
+
+        if (modalString == "\uf000Import Asset" + id)
+        {
+            modalString = (string)modalObject;
+            Console.WriteLine("Import Asset##" + id);
+            ImGui.OpenPopup("Import Asset##" + id);
         }
 
         ImGui.PushFont(Util.mainFont);
@@ -582,26 +561,7 @@ class Program
             {
                 try
                 {
-                    DirectoryMeta.Entry newEntry;
-
-                    if (entry.typeRecognized)
-                    {
-                        newEntry = new DirectoryMeta.Entry(entry.type, entry.name, entry.obj);
-
-                        // Using the same hack as in MiloEditor
-                        var updatedBytes = entry.objBytes.ToArray().Concat(new byte[] { 0xAD, 0xDE, 0xAD, 0xDE })
-                            .ToArray();
-                        using (MemoryStream ms = new MemoryStream(updatedBytes))
-                        {
-                            EndianReader reader = new EndianReader(ms, currentScene.endian);
-                            parent.ReadEntry(reader, entry);
-                        }
-                    }
-                    else
-                    {
-                        newEntry = DirectoryMeta.Entry.CreateDirtyAssetFromBytes(entry.type, entry.name,
-                            entry.objBytes);
-                    }
+                    var newEntry = DuplicateEntry(entry, parent);
 
                     newEntry.name = modalString;
                     dir.entries.Add(newEntry);
@@ -655,6 +615,33 @@ class Program
             ImGui.EndPopup();
         }
 
+        if (ImGui.BeginPopupModal("Import Asset##" + id, ImGuiWindowFlags.AlwaysAutoResize))
+        {
+            string[] assetTypes = ["Object", "Tex", "Group", "Trans", "BandSongPref", "Sfx", "BandCharDesc"];
+            
+
+            var curType = (int)modalObject2;
+            
+            ImGui.Combo("Asset type", ref curType, assetTypes, assetTypes.Length);
+
+            modalObject2 = curType;
+
+            if (ImGui.Button("OK"))
+            {
+                ImportAsset(dir, modalString, assetTypes[curType]);
+                ImGui.CloseCurrentPopup();
+                modalObject = null;
+                modalObject2 = null;
+            }
+
+            if (ImGui.Button("Cancel"))
+            {
+                ImGui.CloseCurrentPopup();
+                modalObject = null;
+                modalObject2 = null;
+            }
+            ImGui.EndPopup();
+        }
         ImGui.PopFont();
 
         var childrenDrawn = 0;
@@ -679,14 +666,13 @@ class Program
 
             if (ImGui.IsItemActivated() && !ImGui.IsItemToggledOpen())
                 NavigateObject(dir.directory);
-            var nodeId = 0;
+            var nodeId = 200;
             //ImGui.Indent();
             if (dir.directory is ObjectDir objDir && objDir.inlineSubDirs.Count > 0)
             {
                 DrawChildLine(true);
                 if (Util.IconTreeItem("ObjectDir", "Inline Subdirectories", ImGuiTreeNodeFlags.SpanFullWidth))
                 {
-                    nodeId = 0;
                     for (int subDirIndex = 0; subDirIndex < objDir.inlineSubDirs.Count; subDirIndex++)
                     {
                         var subDir = objDir.inlineSubDirs[subDirIndex];
@@ -709,7 +695,15 @@ class Program
                 nodeId++;
                 if (matchesFilter)
                 {
-                    ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0f, 0f, 1f, 1f));
+                    if (IsThemeDark())
+                    {
+                        ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1f, 1f, 0f, 1f));
+                    }
+                    else
+                    {
+                        ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0f, 0f, 0.7f, 1f));
+                    }
+                    
                 }
 
                 if (entry.dir != null)
@@ -718,7 +712,7 @@ class Program
                     //ImGui.SameLine();
 
                     DrawChildLine(true);
-                    DirNode(entry.dir, ref entryIndex, nodeId, false, dir, false, entry, true);
+                    DirNode(entry.dir, ref entryIndex, nodeId, false, dir, false, entry, false);
                     childrenDrawn++;
                 }
                 else
@@ -781,8 +775,9 @@ class Program
             ImGui.TreePop();
             if (childrenDrawn > 0)
             {
+                var stylePtr = ImGui.GetStyle();
                 drawList.AddLine(new Vector2(lineX, lineY),
-                    new Vector2(lineX, ImGui.GetCursorScreenPos().Y - ImGui.GetFrameHeight() / 2f), treeLineColor);
+                    new Vector2(lineX, (ImGui.GetCursorScreenPos().Y - stylePtr.ItemSpacing.Y) - ImGui.GetFrameHeight()/2f + stylePtr.FramePadding.Y + 1f), treeLineColor);
             }
             //ImGui.Unindent();
         }
@@ -794,6 +789,81 @@ class Program
         }
 
         ImGui.PopID();
+        if (Settings.Editing.compactScreneTree)
+        {
+            ImGui.PopStyleVar();
+        }
+    }
+
+    public static void ImportAsset(DirectoryMeta dir, string path, string assetType)
+    {
+        // read the file into a byte array
+        byte[] fileBytes = File.ReadAllBytes(path);
+                            
+        // create a new entry
+        DirectoryMeta.Entry entry = DirectoryMeta.Entry.CreateDirtyAssetFromBytes(assetType,
+            Path.GetFileName(path), fileBytes.ToList<byte>());
+
+        // add the entry to the parent dir
+        dir.entries.Add(entry);
+        
+        // use an EndianReader to read the bytes into an Object
+        using (EndianReader reader =
+               new EndianReader(new MemoryStream(fileBytes), Endian.BigEndian))
+        {
+            // read the object
+            switch (entry.type.value)
+            {
+                case "Tex":
+                    entry.obj = new RndTex().Read(reader, false, dir, entry);
+                    break;
+                case "Group":
+                    entry.obj = new RndGroup().Read(reader, false, dir, entry);
+                    break;
+                case "Trans":
+                    entry.obj = new RndTrans().Read(reader, false, dir, entry);
+                    break;
+                case "BandSongPref":
+                    entry.obj = new BandSongPref().Read(reader, false, dir, entry);
+                    break;
+                case "Sfx":
+                    entry.obj = new Sfx().Read(reader, false, dir, entry);
+                    break;
+                case "BandCharDesc":
+                    entry.obj = new BandCharDesc().Read(reader, false, dir, entry);
+                    break;
+                default:
+                    Debug.WriteLine("Unknown asset type: " + entry.type.value);
+                    entry.obj = new Object().Read(reader, false, dir, entry);
+                    break;
+            }
+        }
+    }
+
+    public static DirectoryMeta.Entry DuplicateEntry(DirectoryMeta.Entry entry, DirectoryMeta parent)
+    {
+        DirectoryMeta.Entry newEntry;
+
+        if (entry.typeRecognized)
+        {
+            newEntry = new DirectoryMeta.Entry(entry.type, entry.name, entry.obj);
+
+            // Using the same hack as in MiloEditor
+            var updatedBytes = entry.objBytes.ToArray().Concat(new byte[] { 0xAD, 0xDE, 0xAD, 0xDE })
+                .ToArray();
+            using (MemoryStream ms = new MemoryStream(updatedBytes))
+            {
+                EndianReader reader = new EndianReader(ms, currentScene.endian);
+                parent.ReadEntry(reader, entry);
+            }
+        }
+        else
+        {
+            newEntry = DirectoryMeta.Entry.CreateDirtyAssetFromBytes(entry.type, entry.name,
+                entry.objBytes);
+        }
+
+        return newEntry;
     }
 
     static void UIContent()
