@@ -106,11 +106,30 @@ public class Settings
     /// Use for things that can change at runtime.
     /// </summary>
     public static Settings Editing = new Settings();
+    
     /// <summary>
     /// An internal copy of Settings that only contains the settings loaded from disk.
     /// Use for things that cannot change at runtime.
     /// </summary>
     public static Settings Loaded = new Settings();
+
+    /// <summary>
+    /// Internal copy of Settings.Editing to detect changes
+    /// </summary>
+    private static Settings EditingInternalClone = new Settings();
+
+    /// <summary>
+    /// Acknowledges that a change to settings was made. 
+    /// </summary>
+    public static void UpdateInternal()
+    {
+        EditingInternalClone = Editing.Clone();
+    }
+
+    public static bool IsUpdated()
+    {
+        return EditingInternalClone != Editing;
+    }
 
     public float ScaledIconSize => Loaded.fontSettings.IconSize*Editing.UIScale;
 

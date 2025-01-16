@@ -136,14 +136,16 @@ public class ImGuiController : IDisposable
     
     void PollSettings()
     {
-        if (Settings.Editing != Settings.Loaded && !Program.NoSettingsReload)
+        if (Settings.IsUpdated() && !Program.NoSettingsReload)
         {
-            ImGui.GetStyle().ScaleAllSizes(1f/Settings.Loaded.UIScale);
+            var style = ImGui.GetStyle();
+            style.ScaleAllSizes(1f/Settings.Loaded.UIScale);
             Util.ClearIconCache();
             //Settings.Loaded = Settings.Editing.Clone();
-            ImGui.GetStyle().ScaleAllSizes(Settings.Editing.UIScale);
-            ImGui.GetStyle().FrameBorderSize = Settings.Editing.UIScale;
-            ImGui.GetStyle().ChildBorderSize = Settings.Editing.UIScale;
+            Settings.UpdateInternal();
+            style.ScaleAllSizes(Settings.Editing.UIScale);
+            style.FrameBorderSize = Settings.Editing.UIScale;
+            style.ChildBorderSize = Settings.Editing.UIScale;
             ImGui.GetIO().FontGlobalScale = Settings.Editing.UIScale;
             Settings.Save();
         }

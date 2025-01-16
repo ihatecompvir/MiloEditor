@@ -46,6 +46,7 @@ public static class MeshEditor
 
     private static Exception previewError;
     
+    [StructLayout(LayoutKind.Sequential)]
     public struct PackedVertex
     {
         public float X, Y, Z;
@@ -58,6 +59,7 @@ public static class MeshEditor
         }
     }
 
+    [StructLayout(LayoutKind.Sequential)]
     public struct PackedFace(RndMesh.Face face)
     {
         public ushort idx1 = face.idx1, idx2 = face.idx2, idx3 = face.idx3;
