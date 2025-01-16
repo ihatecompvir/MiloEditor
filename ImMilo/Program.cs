@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 using IconFonts;
@@ -10,10 +9,14 @@ using MiloLib;
 using MiloLib.Assets;
 using MiloLib.Assets.Band;
 using MiloLib.Assets.Rnd;
+using MiloLib.Classes;
 using MiloLib.Utils;
 using MiloLib.Utils.Conversion;
 using TinyDialogsNet;
 using Object = MiloLib.Assets.Object;
+using Vector2 = System.Numerics.Vector2;
+using Vector3 = System.Numerics.Vector3;
+using Vector4 = System.Numerics.Vector4;
 
 namespace ImMilo;
 
@@ -445,7 +448,7 @@ class Program
                 ImGui.MenuItem(FontAwesome5.Share + "  Export Directory");
                 ImGui.MenuItem(FontAwesome5.PlusSquare + "  Add Inlined Directory");
                 ImGui.Separator();
-                if (ImGui.MenuItem(FontAwesome5.FileImport + "  Import Asset")) //TODO: this isn't finished
+                if (ImGui.MenuItem(FontAwesome5.FileImport + "  Import Asset"))
                 {
                     var (canceled, paths) = TinyDialogs.OpenFileDialog("Import Asset", "", false);
                     if (!canceled)
@@ -520,7 +523,39 @@ class Program
                     }
                 }
 
-                ImGui.MenuItem(FontAwesome5.Recycle + "  Replace Asset");
+                if (ImGui.MenuItem(FontAwesome5.Recycle + "  Replace Asset"))
+                {
+                    var (canceled, paths) = TinyDialogs.OpenFileDialog("Replace Asset", "", false);
+                    if (!canceled)
+                    {
+                        var backupSuccess = false;
+                        var backupStream = new MemoryStream();
+                        try
+                        {
+                            
+                            // Backup the asset in case of an error while reading
+                            entry.obj.GetType().GetMethod("Write").Invoke(entry.obj,
+                                [new EndianWriter(backupStream, currentScene.endian), false, dir, entry]);
+                            backupSuccess = true;
+                            var path = paths.First();
+
+                            byte[] fileBytes = File.ReadAllBytes(path);
+                            entry.objBytes = fileBytes.ToList();
+                            // Use reflection to call the read method as the comment below only calls the Object's Read()
+                            entry.obj.GetType().GetMethod("Read").Invoke(entry.obj, [new EndianReader(new MemoryStream(fileBytes), currentScene.endian), false, dir, entry]);
+                            //entry.obj.Read(new EndianReader(new MemoryStream(fileBytes), currentScene.endian), false, dir, entry);
+                        }
+                        catch (Exception e)
+                        {
+                            OpenErrorModal(e, "Cannot replace asset.");
+                            if (backupSuccess)
+                            {
+                                backupStream.Seek(0, SeekOrigin.Begin);
+                                entry.obj.GetType().GetMethod("Read").Invoke(entry.obj, [new EndianReader(backupStream, currentScene.endian), false, dir, entry]);
+                            }
+                        }
+                    }
+                }
                 ImGui.PopFont();
                 ImGui.EndPopup();
             }
@@ -794,6 +829,8 @@ class Program
             ImGui.PopStyleVar();
         }
     }
+    
+    
 
     public static void ImportAsset(DirectoryMeta dir, string path, string assetType)
     {
