@@ -1,3 +1,5 @@
+using MiloLib;
+
 namespace ImMilo;
 
 using System.Text;
@@ -17,12 +19,6 @@ public partial class Program
 {
 
     private static string PopupFlag = "";
-    
-    static void DirNode(DirectoryMeta dir, int id = 0, bool root = false)
-    {
-        var iterId = 0;
-        DirNode(dir, ref iterId, id, root);
-    }
 
     static bool BeginPopupModalDirNode(string label, ImGuiWindowFlags flags)
     {
@@ -37,6 +33,74 @@ public partial class Program
     static void OpenPopupDirNode(string label)
     {
         PopupFlag = label;
+    }
+
+    static void DirNode(DirectoryMeta dir, int id = 0, bool root = false)
+    {
+        var iterId = 0;
+        DirNode(dir, ref iterId, id, root);
+    }
+
+    static async void MergeDirectory(DirectoryMeta dirEntry, string path)
+    {
+        MiloFile externalMiloScene = new MiloFile(path);
+        ObjectDir dir = (ObjectDir)dirEntry.directory;
+
+        // Iterate through entries in the external scene to be merged
+        foreach (DirectoryMeta.Entry mergeEntry in externalMiloScene.dirMeta.entries)
+        {
+            bool entryMerged = false; // Flag to track if we have either merged an entry or added a new entry
+
+            // Iterate through the existing entries in the current scene
+            for (int i = 0; i < currentScene.dirMeta.entries.Count; i++)
+            {
+                DirectoryMeta.Entry currentEntry = currentScene.dirMeta.entries[i];
+
+                if (mergeEntry.name.value == currentEntry.name.value)
+                {
+                    if (await ShowConfirmPrompt($"An entry with the name {currentEntry.name.value} already exists. Do you want to overwrite it?"))
+                    {
+                        currentScene.dirMeta.entries[i].obj = mergeEntry.obj;
+                    }
+                    entryMerged = true;
+                    break; // Entry has been processed, no need to check other entries.
+                }
+            }
+
+            if (!entryMerged)
+            {
+                // Add a new entry from the external file
+                dirEntry.entries.Add(mergeEntry);
+            }
+        }
+
+        foreach (DirectoryMeta externalSubDir in ((ObjectDir)externalMiloScene.dirMeta.directory).inlineSubDirs)
+        {
+            bool subDirMerged = false;
+
+            for (int i = 0; i < dir.inlineSubDirs.Count; i++)
+            {
+                DirectoryMeta currentSubDir = dir.inlineSubDirs[i];
+
+                if (externalSubDir.name.value == currentSubDir.name.value)
+                {
+                    if (await ShowConfirmPrompt($"An inline subdirectory with the name {currentSubDir.name.value} already exists. Do you want to overwrite it?"))
+                    {
+                        dir.inlineSubDirs[i] = externalSubDir;
+                    }
+                    subDirMerged = true;
+                    break;
+                }
+            }
+
+            if (!subDirMerged)
+            {
+                dir.inlineSubDirs.Add(externalSubDir);
+                dir.inlineSubDirNames.Add($"{externalSubDir.name.value}.milo");
+                dir.referenceTypes.Add(ObjectDir.ReferenceType.kInlineCached);
+                dir.referenceTypesAlt.Add(ObjectDir.ReferenceType.kInlineCached);
+            }
+        }
     }
 
     static void DirNode(DirectoryMeta dir, ref int iterId, int id = 0, bool root = false, DirectoryMeta parent = null,
@@ -74,6 +138,7 @@ public partial class Program
         
         Stack<Vector2> traceStack = new();
 
+        // Adds to the trace stack, run before a tree directory is drawn
         void PushTrace()
         {
             var cursor = ImGui.GetCursorScreenPos();
@@ -82,6 +147,7 @@ public partial class Program
             traceStack.Push(new Vector2(lineX, lineY));
         }
 
+        // Pops from the trace stack, and draws the line
         void PopTrace()
         {
             var line = traceStack.Pop();
@@ -90,14 +156,8 @@ public partial class Program
                 new Vector2(line.X, (ImGui.GetCursorScreenPos().Y - stylePtr.ItemSpacing.Y) - ImGui.GetFrameHeight()/2f + stylePtr.FramePadding.Y + 1f), treeLineColor);
         }
 
-        Vector2 CurTrace()
+        void DrawChildLine(bool dir, Vector2 cursor)
         {
-            return traceStack.Peek();
-        }
-
-        void DrawChildLine(bool dir)
-        {
-            var cursor = ImGui.GetCursorScreenPos();
             var lineEndX = cursor.X + framePadding.X;
             if (!dir)
             {
@@ -105,7 +165,7 @@ public partial class Program
             }
 
             var yOffset = iconSize / 2f;
-            drawList.AddLine(new Vector2(CurTrace().X + 1, cursor.Y + yOffset), new Vector2(lineEndX, cursor.Y + yOffset),
+            drawList.AddLine(new Vector2(traceStack.Peek().X + 1, cursor.Y + yOffset), new Vector2(lineEndX, cursor.Y + yOffset),
                 treeLineColor);
         }
 
@@ -144,13 +204,22 @@ public partial class Program
                         iterId--;
                     }
 
-                    ImGui.MenuItem(FontAwesome5.Clone + "  Duplicate Directory");
+                    ImGui.MenuItem(FontAwesome5.Clone + "  Duplicate Directory", "", false, false);
                 }
 
-                ImGui.MenuItem(FontAwesome5.Edit + "  Rename Directory");
-                ImGui.MenuItem(FontAwesome5.CodeMerge + "  Merge Directory");
-                ImGui.MenuItem(FontAwesome5.Share + "  Export Directory");
-                ImGui.MenuItem(FontAwesome5.PlusSquare + "  Add Inlined Directory");
+                ImGui.MenuItem(FontAwesome5.Edit + "  Rename Directory", "", false, false);
+                if (ImGui.MenuItem(FontAwesome5.CodeMerge + "  Merge Directory"))
+                {
+                    var (canceled, path) = TinyDialogs.OpenFileDialog("Merge Directory", currentScene.filePath, false,
+                        MiloFileFilter);
+
+                    if (!canceled)
+                    {
+                        MergeDirectory(dir, path.First());
+                    }
+                }
+                ImGui.MenuItem(FontAwesome5.Share + "  Export Directory", "", false, false);
+                ImGui.MenuItem(FontAwesome5.PlusSquare + "  Add Inlined Directory", "", false, false);
                 ImGui.Separator();
                 if (ImGui.MenuItem(FontAwesome5.FileImport + "  Import Asset"))
                 {
@@ -178,7 +247,7 @@ public partial class Program
                     }
                 }
 
-                ImGui.MenuItem(FontAwesome5.PlusCircle + "  New Asset");
+                ImGui.MenuItem(FontAwesome5.PlusCircle + "  New Asset", "", false, false);
                 ImGui.PopFont();
                 ImGui.EndPopup();
             }
@@ -395,7 +464,7 @@ public partial class Program
             if (dir.directory is ObjectDir objDir && objDir.inlineSubDirs.Count > 0)
             {
                 childrenDrawn++;
-                DrawChildLine(true);
+                var childLinePos = ImGui.GetCursorScreenPos();
                 PushTrace();
                 if (Util.IconTreeItem("ObjectDir", "Inline Subdirectories", ImGuiTreeNodeFlags.SpanFullWidth))
                 {
@@ -403,8 +472,9 @@ public partial class Program
                     for (int subDirIndex = 0; subDirIndex < objDir.inlineSubDirs.Count; subDirIndex++)
                     {
                         var subDir = objDir.inlineSubDirs[subDirIndex];
-                        DrawChildLine(true); // TODO: fix the tree traces for the inline subdirs node
+                        var subDirChildLinePos = ImGui.GetCursorScreenPos();
                         DirNode(subDir, ref subDirIndex, nodeId, false, dir, true);
+                        DrawChildLine(true, subDirChildLinePos);
                         nodeId++;
                     }
                     ImGui.TreePop();
@@ -414,6 +484,7 @@ public partial class Program
                 {
                     traceStack.Pop();
                 }
+                DrawChildLine(true, childLinePos);
             }
 
             nodeId = 1000; // Count of inlined dirs was affecting future node ids, just set it to 1000 and hope something doesn't have >1000 inlined subdirs
@@ -435,14 +506,15 @@ public partial class Program
                     }
                     
                 }
+                var childLinePos = ImGui.GetCursorScreenPos();
 
                 if (entry.dir != null)
                 {
                     //ImGui.Button("Test");
                     //ImGui.SameLine();
 
-                    DrawChildLine(true);
                     DirNode(entry.dir, ref entryIndex, nodeId, false, dir, false, entry, false);
+                    DrawChildLine(true, childLinePos);
                     childrenDrawn++;
                 }
                 else
@@ -463,8 +535,9 @@ public partial class Program
                         leafFlags |= ImGuiTreeNodeFlags.Selected;
                     }
 
-                    DrawChildLine(false);
+                    
                     Util.SceneTreeItem(entry, leafFlags);
+                    DrawChildLine(false, childLinePos);
                     ItemContextMenu(entry, ref entryIndex);
                     childrenDrawn++;
                     if (ImGui.IsItemClicked(ImGuiMouseButton.Left) && entry.obj != null)

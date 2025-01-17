@@ -49,6 +49,12 @@ public static partial class Program
 
     private static object? modalObject2;
 
+    public static readonly FileFilter MiloFileFilter = new FileFilter("Milo Scenes",
+    [
+        "*.milo_ps2", "*.milo_xbox", "*.milo_ps3", "*.milo_wii", "*.milo_pc", "*.rnd", "*.rnd_ps2",
+        "*.rnd_xbox", "*.rnd_gc", "*.kr"
+    ]);
+
     public static bool NoSettingsReload => viewingObject is Settings;
 
     static void Main(string[] args)
@@ -180,6 +186,7 @@ public static partial class Program
         MenuBar();
         DrawErrorModal();
         UIContent();
+        ProcessPrompts();
         ImGui.End();
         ImGui.PopStyleVar();
         ImGui.PopStyleVar();
@@ -286,12 +293,7 @@ public static partial class Program
 
     private static void PromptSaveCurrentScene()
     {
-        var fileFilter = new FileFilter("Milo Scenes",
-        [
-            "*.milo_ps2", "*.milo_xbox", "*.milo_ps3", "*.milo_wii", "*.milo_pc", "*.rnd", "*.rnd_ps2",
-            "*.rnd_xbox", "*.rnd_gc", "*.kr"
-        ]);
-        var (canceled, path) = TinyDialogs.SaveFileDialog("Save Milo Scene", currentScene.filePath, fileFilter);
+        var (canceled, path) = TinyDialogs.SaveFileDialog("Save Milo Scene", currentScene.filePath, MiloFileFilter);
 
         if (!canceled)
         {
