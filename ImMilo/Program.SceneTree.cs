@@ -15,10 +15,28 @@ using Vector4 = System.Numerics.Vector4;
 
 public partial class Program
 {
+
+    private static string PopupFlag = "";
+    
     static void DirNode(DirectoryMeta dir, int id = 0, bool root = false)
     {
         var iterId = 0;
         DirNode(dir, ref iterId, id, root);
+    }
+
+    static bool BeginPopupModalDirNode(string label, ImGuiWindowFlags flags)
+    {
+        if (PopupFlag == label)
+        {
+            ImGui.OpenPopup(label);
+            PopupFlag = "";
+        }
+        return ImGui.BeginPopupModal(label, flags);
+    }
+
+    static void OpenPopupDirNode(string label)
+    {
+        PopupFlag = label;
     }
 
     static void DirNode(DirectoryMeta dir, ref int iterId, int id = 0, bool root = false, DirectoryMeta parent = null,
@@ -46,15 +64,36 @@ public partial class Program
         {
             flags |= ImGuiTreeNodeFlags.Selected;
         }
-
-        var cursor = ImGui.GetCursorScreenPos();
+        
         var iconSize = Settings.Loaded.ScaledIconSize;
         var framePadding = ImGui.GetStyle().FramePadding;
-        var lineX = cursor.X + iconSize / 2f + framePadding.X;
-        var lineY = cursor.Y + ImGui.GetFrameHeight() - ImGui.GetStyle().ItemSpacing.Y - framePadding.Y;
+        
         var drawList = ImGui.GetWindowDrawList();
         var treeLineColor = ImGui.GetColorU32(ImGuiCol.Text);
         treeLineColor = (0x00ffffff & treeLineColor) | 0x80000000;
+        
+        Stack<Vector2> traceStack = new();
+
+        void PushTrace()
+        {
+            var cursor = ImGui.GetCursorScreenPos();
+            var lineX = cursor.X + iconSize / 2f + framePadding.X;
+            var lineY = cursor.Y + ImGui.GetFrameHeight() - ImGui.GetStyle().ItemSpacing.Y - framePadding.Y;
+            traceStack.Push(new Vector2(lineX, lineY));
+        }
+
+        void PopTrace()
+        {
+            var line = traceStack.Pop();
+            var stylePtr = ImGui.GetStyle();
+            drawList.AddLine(line,
+                new Vector2(line.X, (ImGui.GetCursorScreenPos().Y - stylePtr.ItemSpacing.Y) - ImGui.GetFrameHeight()/2f + stylePtr.FramePadding.Y + 1f), treeLineColor);
+        }
+
+        Vector2 CurTrace()
+        {
+            return traceStack.Peek();
+        }
 
         void DrawChildLine(bool dir)
         {
@@ -66,7 +105,7 @@ public partial class Program
             }
 
             var yOffset = iconSize / 2f;
-            drawList.AddLine(new Vector2(lineX + 1, cursor.Y + yOffset), new Vector2(lineEndX, cursor.Y + yOffset),
+            drawList.AddLine(new Vector2(CurTrace().X + 1, cursor.Y + yOffset), new Vector2(lineEndX, cursor.Y + yOffset),
                 treeLineColor);
         }
 
@@ -132,9 +171,9 @@ public partial class Program
                         }
                         else
                         {
-                            modalObject = path;
                             modalObject2 = 0;
-                            modalString = "\uf000Import Asset" + id;
+                            modalString = path;
+                            OpenPopupDirNode("Import Asset##" + id);
                         }
                     }
                 }
@@ -168,13 +207,15 @@ public partial class Program
                 if (ImGui.MenuItem(FontAwesome5.Clone + "  Duplicate Asset"))
                 {
                     modalObject = entry;
-                    modalString = "\uf000Duplicate" + id; // Hack to get around the lack of global ids
+                    modalString = entry.name;
+                    OpenPopupDirNode("Duplicate##" + id);
                 }
 
                 if (ImGui.MenuItem(FontAwesome5.Edit + "  Rename Asset"))
                 {
                     modalObject = entry;
-                    modalString = "\uf000Rename" + id;
+                    modalString = entry.name;
+                    OpenPopupDirNode("Rename##" + id);
                 }
 
                 ImGui.Separator();
@@ -228,27 +269,8 @@ public partial class Program
             ImGui.PopStyleVar();
         }
 
-        if (modalString == "\uf000Duplicate" + id)
-        {
-            modalString = ((DirectoryMeta.Entry)modalObject).name;
-            ImGui.OpenPopup("Duplicate##" + id);
-        }
-
-        if (modalString == "\uf000Rename" + id)
-        {
-            modalString = ((DirectoryMeta.Entry)modalObject).name;
-            ImGui.OpenPopup("Rename##" + id);
-        }
-
-        if (modalString == "\uf000Import Asset" + id)
-        {
-            modalString = (string)modalObject;
-            Console.WriteLine("Import Asset##" + id);
-            ImGui.OpenPopup("Import Asset##" + id);
-        }
-
         ImGui.PushFont(Util.mainFont);
-        if (ImGui.BeginPopupModal("Duplicate##" + id, ImGuiWindowFlags.AlwaysAutoResize))
+        if (BeginPopupModalDirNode("Duplicate##" + id, ImGuiWindowFlags.AlwaysAutoResize))
         {
             var entry = (DirectoryMeta.Entry)modalObject;
             if (ImGui.IsWindowAppearing())
@@ -284,7 +306,7 @@ public partial class Program
             ImGui.EndPopup();
         }
 
-        if (ImGui.BeginPopupModal("Rename##" + id, ImGuiWindowFlags.AlwaysAutoResize))
+        if (BeginPopupModalDirNode("Rename##" + id, ImGuiWindowFlags.AlwaysAutoResize))
         {
             var entry = (DirectoryMeta.Entry)modalObject;
             if (ImGui.IsWindowAppearing())
@@ -315,7 +337,7 @@ public partial class Program
             ImGui.EndPopup();
         }
 
-        if (ImGui.BeginPopupModal("Import Asset##" + id, ImGuiWindowFlags.AlwaysAutoResize))
+        if (BeginPopupModalDirNode("Import Asset##" + id, ImGuiWindowFlags.AlwaysAutoResize))
         {
             string[] assetTypes = ["Object", "Tex", "Group", "Trans", "BandSongPref", "Sfx", "BandCharDesc"];
             
@@ -346,6 +368,7 @@ public partial class Program
         ImGui.PopFont();
 
         var childrenDrawn = 0;
+        PushTrace();
         if (Util.SceneTreeItem(dir, flags))
         {
             DirectoryContextMenu(ref iterId);
@@ -371,19 +394,25 @@ public partial class Program
             //ImGui.Indent();
             if (dir.directory is ObjectDir objDir && objDir.inlineSubDirs.Count > 0)
             {
+                childrenDrawn++;
                 DrawChildLine(true);
+                PushTrace();
                 if (Util.IconTreeItem("ObjectDir", "Inline Subdirectories", ImGuiTreeNodeFlags.SpanFullWidth))
                 {
+                    
                     for (int subDirIndex = 0; subDirIndex < objDir.inlineSubDirs.Count; subDirIndex++)
                     {
                         var subDir = objDir.inlineSubDirs[subDirIndex];
                         DrawChildLine(true); // TODO: fix the tree traces for the inline subdirs node
                         DirNode(subDir, ref subDirIndex, nodeId, false, dir, true);
-                        childrenDrawn++;
                         nodeId++;
                     }
-
                     ImGui.TreePop();
+                    PopTrace();
+                }
+                else
+                {
+                    traceStack.Pop();
                 }
             }
 
@@ -476,9 +505,7 @@ public partial class Program
             ImGui.TreePop();
             if (childrenDrawn > 0)
             {
-                var stylePtr = ImGui.GetStyle();
-                drawList.AddLine(new Vector2(lineX, lineY),
-                    new Vector2(lineX, (ImGui.GetCursorScreenPos().Y - stylePtr.ItemSpacing.Y) - ImGui.GetFrameHeight()/2f + stylePtr.FramePadding.Y + 1f), treeLineColor);
+                PopTrace();
             }
             //ImGui.Unindent();
         }
