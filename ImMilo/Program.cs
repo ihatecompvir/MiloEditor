@@ -1,22 +1,17 @@
 ﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Text;
 using IconFonts;
 using ImGuiNET;
 using ImMilo.ImGuiUtils;
-using MiloIcons;
 using MiloLib;
 using MiloLib.Assets;
 using MiloLib.Assets.Band;
 using MiloLib.Assets.Rnd;
-using MiloLib.Classes;
 using MiloLib.Utils;
-using MiloLib.Utils.Conversion;
 using TinyDialogsNet;
 using Object = MiloLib.Assets.Object;
 using Vector2 = System.Numerics.Vector2;
 using Vector3 = System.Numerics.Vector3;
-using Vector4 = System.Numerics.Vector4;
 
 namespace ImMilo;
 
@@ -24,35 +19,35 @@ using Veldrid;
 using Veldrid.Sdl2;
 using Veldrid.StartupUtilities;
 
-class Program
+public static partial class Program
 {
-    private static Sdl2Window _window;
-    public static GraphicsDevice gd;
-    private static CommandList _cl;
-    public static ImGuiController controller;
+    private static Sdl2Window? _window;
+    public static GraphicsDevice? gd;
+    private static CommandList? _cl;
+    public static ImGuiController? controller;
 
-    private static Vector3 _clearColor = new(0.45f, 0.55f, 0.6f);
+    private static readonly Vector3 ClearColor = new(0.45f, 0.55f, 0.6f);
 
-    private static MiloFile currentScene;
+    private static MiloFile? currentScene;
 
-    private static Exception errorModalException;
+    private static Exception? errorModalException;
     private static bool errorModalOpen;
-    private static string errorModalMessage;
+    private static string errorModalMessage = "";
 
-    private static object viewingObject;
+    private static object? viewingObject;
     private static string filter = "";
     private static bool filterActive;
-    private static List<object> breadcrumbs = [];
+    private static readonly List<object> Breadcrumbs = [];
 
     private static Settings.Theme currentTheme;
-    private static string modalString;
+    private static string modalString = "";
 
     /// <summary>
     /// temporary state
     /// </summary>
-    private static object modalObject;
+    private static object? modalObject;
 
-    private static object modalObject2;
+    private static object? modalObject2;
 
     public static bool NoSettingsReload => viewingObject is Settings;
 
@@ -61,11 +56,11 @@ class Program
         Console.WriteLine(VeldridStartup.GetPlatformDefaultBackend());
         Settings.Load();
         var graphicsDebug = true;
-        if (System.Diagnostics.Debugger.IsAttached)
+        if (Debugger.IsAttached)
         {
             // On my machine, there's a weird bug where running the app with the debugger attached causes
             // CreateWindowAndGraphicsDevice to crash with little to no information.
-            graphicsDebug = !System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
+            graphicsDebug = !RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
         }
         // Create window, GraphicsDevice, and all resources necessary for the demo.
         VeldridStartup.CreateWindowAndGraphicsDevice(
@@ -95,14 +90,13 @@ class Program
                 "Failed to load custom font.");
         }
 
-        _window.DragDrop += (DragDropEvent evt) => { OpenFile(evt.File); };
+        _window.DragDrop += evt => { OpenFile(evt.File); };
 
         var stopwatch = Stopwatch.StartNew();
-        float deltaTime;
         // Main application loop
         while (_window.Exists)
         {
-            deltaTime = stopwatch.ElapsedTicks / (float)Stopwatch.Frequency;
+            var deltaTime = stopwatch.ElapsedTicks / (float)Stopwatch.Frequency;
             stopwatch.Restart();
             InputSnapshot snapshot = _window.PumpEvents();
             if (!_window.Exists)
@@ -117,7 +111,7 @@ class Program
 
             _cl.Begin();
             _cl.SetFramebuffer(gd.MainSwapchain.Framebuffer);
-            _cl.ClearColorTarget(0, new RgbaFloat(_clearColor.X, _clearColor.Y, _clearColor.Z, 1f));
+            _cl.ClearColorTarget(0, new RgbaFloat(ClearColor.X, ClearColor.Y, ClearColor.Z, 1f));
             controller.Render(gd, _cl);
             _cl.End();
             gd.SubmitCommands(_cl);
@@ -126,7 +120,7 @@ class Program
 
         Settings.Save();
 
-        if (!System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform
                 .Windows))
         {
             // Linux bodge: Veldrid has some shitty bugs on Linux that cause WaitForIdle to hang. Just exit!
@@ -166,6 +160,7 @@ class Program
         return value > 0.5f;
     }
 
+    // ReSharper disable once InconsistentNaming
     static void MainUI()
     {
         if (Settings.Editing.useTheme != currentTheme)
@@ -211,16 +206,18 @@ class Program
         if (ImGui.BeginPopupModal("Error", ImGuiWindowFlags.AlwaysAutoResize))
         {
             ImGui.Text(errorModalMessage);
-            ImGui.Text(errorModalException.GetType().Name);
-            ImGui.Text(errorModalException.Message);
-            if (errorModalException is not FileNotFoundException)
+            if (errorModalException != null)
             {
-                if (ImGui.CollapsingHeader("Callstack"))
+                ImGui.Text(errorModalException.GetType().Name);
+                ImGui.Text(errorModalException.Message);
+                if (errorModalException is not FileNotFoundException)
                 {
-                    ImGui.Text(errorModalException.StackTrace);
+                    if (ImGui.CollapsingHeader("Callstack"))
+                    {
+                        ImGui.Text(errorModalException.StackTrace);
+                    }
                 }
             }
-
             if (ImGui.Button("OK", new Vector2(ImGui.GetContentRegionAvail().X, 0.0f)))
                 ImGui.CloseCurrentPopup();
             ImGui.EndPopup();
@@ -250,57 +247,22 @@ class Program
             {
                 if (ImGui.MenuItem("Open", "Ctrl+O"))
                 {
-                    var filter = new FileFilter("Milo Scenes",
-                    [
-                        "*.milo_ps2", "*.milo_xbox", "*.milo_ps3", "*.milo_wii", "*.milo_pc", "*.rnd", "*.rnd_ps2",
-                        "*.rnd_xbox", "*.rnd_gc", "*.kr"
-                    ]);
-                    var (canceled, paths) = TinyDialogs.OpenFileDialog("Open Milo Scene", "", false, filter);
-                    if (!canceled)
-                    {
-                        OpenFile(paths.First());
-                    }
+                    PromptOpen();
                 }
 
-                if (ImGui.MenuItem("Close", "Ctrl+W", false, viewingObject != null))
+                if (ImGui.MenuItem("Close", "Ctrl+W", false, viewingObject != null || currentScene != null))
                 {
-                    viewingObject = null;
-                    currentScene = null;
-                    BitmapEditor.Dispose();
+                    CloseAssetAndScene();
                 }
 
-                if (ImGui.MenuItem("Save", "Ctrl+S", false, viewingObject != null))
+                if (ImGui.MenuItem("Save", "Ctrl+S", false, currentScene != null))
                 {
-                    try
-                    {
-                        currentScene.Save(null, null);
-                    }
-                    catch (Exception e)
-                    {
-                        OpenErrorModal(e, "Error occurred while saving file:");
-                    }
+                    SaveCurrentScene();
                 }
 
-                if (ImGui.MenuItem("Save As...", "Ctrl+Shift+S", false, viewingObject != null))
+                if (ImGui.MenuItem("Save As...", "Ctrl+Shift+S", false, currentScene != null))
                 {
-                    var filter = new FileFilter("Milo Scenes",
-                    [
-                        "*.milo_ps2", "*.milo_xbox", "*.milo_ps3", "*.milo_wii", "*.milo_pc", "*.rnd", "*.rnd_ps2",
-                        "*.rnd_xbox", "*.rnd_gc", "*.kr"
-                    ]);
-                    var (canceled, path) = TinyDialogs.SaveFileDialog("Save Milo Scene", currentScene.filePath, filter);
-
-                    if (!canceled)
-                    {
-                        try
-                        {
-                            currentScene.Save(path, null);
-                        }
-                        catch (Exception e)
-                        {
-                            OpenErrorModal(e, "Error occurred while saving file:");
-                        }
-                    }
+                    PromptSaveCurrentScene();
                 }
 
                 if (ImGui.MenuItem("Settings"))
@@ -322,6 +284,61 @@ class Program
         }
     }
 
+    private static void PromptSaveCurrentScene()
+    {
+        var fileFilter = new FileFilter("Milo Scenes",
+        [
+            "*.milo_ps2", "*.milo_xbox", "*.milo_ps3", "*.milo_wii", "*.milo_pc", "*.rnd", "*.rnd_ps2",
+            "*.rnd_xbox", "*.rnd_gc", "*.kr"
+        ]);
+        var (canceled, path) = TinyDialogs.SaveFileDialog("Save Milo Scene", currentScene.filePath, fileFilter);
+
+        if (!canceled)
+        {
+            try
+            {
+                currentScene.Save(path, null);
+            }
+            catch (Exception e)
+            {
+                OpenErrorModal(e, "Error occurred while saving file:");
+            }
+        }
+    }
+
+    private static void SaveCurrentScene()
+    {
+        try
+        {
+            currentScene.Save(null, null);
+        }
+        catch (Exception e)
+        {
+            OpenErrorModal(e, "Error occurred while saving file:");
+        }
+    }
+
+    private static void CloseAssetAndScene()
+    {
+        viewingObject = null;
+        currentScene = null;
+        BitmapEditor.Dispose();
+    }
+
+    private static void PromptOpen()
+    {
+        var fileFilter = new FileFilter("Milo Scenes",
+        [
+            "*.milo_ps2", "*.milo_xbox", "*.milo_ps3", "*.milo_wii", "*.milo_pc", "*.rnd", "*.rnd_ps2",
+            "*.rnd_xbox", "*.rnd_gc", "*.kr"
+        ]);
+        var (canceled, paths) = TinyDialogs.OpenFileDialog("Open Milo Scene", "", false, fileFilter);
+        if (!canceled)
+        {
+            OpenFile(paths.First());
+        }
+    }
+
     /// <summary>
     /// Makes the editor pane view the specified object, for editing.
     /// </summary>
@@ -333,503 +350,23 @@ class Program
         viewingObject = toView;
         if (breadcrumb)
         {
-            if (!breadcrumbs.Contains(toView))
+            if (!Breadcrumbs.Contains(toView))
             {
-                breadcrumbs.Add(toView);
+                Breadcrumbs.Add(toView);
             }
             else
             {
-                var index = breadcrumbs.IndexOf(toView);
-                breadcrumbs.RemoveAll(x => breadcrumbs.IndexOf(x) > index);
+                var index = Breadcrumbs.IndexOf(toView);
+                Breadcrumbs.RemoveAll(x => Breadcrumbs.IndexOf(x) > index);
             }
         }
         else
         {
-            breadcrumbs.Clear();
-            breadcrumbs.Add(toView);
+            Breadcrumbs.Clear();
+            Breadcrumbs.Add(toView);
         }
     }
 
-    static void DirNode(DirectoryMeta dir, int id = 0, bool root = false)
-    {
-        var iterId = 0;
-        DirNode(dir, ref iterId, id, root);
-    }
-
-    static void DirNode(DirectoryMeta dir, ref int iterId, int id = 0, bool root = false, DirectoryMeta parent = null,
-        bool inlined = false, DirectoryMeta.Entry? thisEntry = null, bool useEntryContextMenu = false)
-    {
-        if (Settings.Editing.compactScreneTree)
-        {
-            ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(ImGui.GetStyle().ItemSpacing.X, 0f));
-        }
-        var filterActive = filter != "";
-        ImGui.PushID(id);
-        var flags = ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.OpenOnDoubleClick
-                                                   | ImGuiTreeNodeFlags.SpanFullWidth;
-        if (root || filterActive)
-        {
-            flags |= ImGuiTreeNodeFlags.DefaultOpen;
-        }
-
-        if (filterActive)
-        {
-            ImGui.SetNextItemStorageID(ImGui.GetID("filtering"));
-        }
-
-        if (viewingObject == dir.directory)
-        {
-            flags |= ImGuiTreeNodeFlags.Selected;
-        }
-
-        var cursor = ImGui.GetCursorScreenPos();
-        var iconSize = Settings.Loaded.ScaledIconSize;
-        var framePadding = ImGui.GetStyle().FramePadding;
-        var lineX = cursor.X + iconSize / 2f + framePadding.X;
-        var lineY = cursor.Y + ImGui.GetFrameHeight() - ImGui.GetStyle().ItemSpacing.Y - framePadding.Y;
-        var drawList = ImGui.GetWindowDrawList();
-        var treeLineColor = ImGui.GetColorU32(ImGuiCol.Text);
-        treeLineColor = (0x00ffffff & treeLineColor) | 0x80000000;
-
-        void DrawChildLine(bool dir)
-        {
-            var cursor = ImGui.GetCursorScreenPos();
-            var lineEndX = cursor.X + framePadding.X;
-            if (!dir)
-            {
-                lineEndX += iconSize;
-            }
-
-            var yOffset = iconSize / 2f;
-            drawList.AddLine(new Vector2(lineX + 1, cursor.Y + yOffset), new Vector2(lineEndX, cursor.Y + yOffset),
-                treeLineColor);
-        }
-
-        void DirectoryContextMenu(ref int iterId)
-        {
-            if (useEntryContextMenu)
-            {
-                ItemContextMenu(thisEntry, ref iterId);
-                return;
-            }
-
-            ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 1f);
-            ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, ImGui.GetStyle().FramePadding);
-            if (ImGui.BeginPopupContextItem())
-            {
-                ImGui.PushFont(Util.mainFont);
-                if (parent != null)
-                {
-                    if (ImGui.MenuItem(FontAwesome5.TrashAlt + "  Delete Directory"))
-                    {
-                        if (viewingObject == dir.directory)
-                        {
-                            viewingObject = null;
-                        }
-
-                        if (inlined)
-                        {
-                            var objDir = (ObjectDir)parent.directory;
-                            objDir.inlineSubDirs.Remove(dir);
-                        }
-                        else
-                        {
-                            parent.entries.Remove(thisEntry);
-                        }
-
-                        iterId--;
-                    }
-
-                    ImGui.MenuItem(FontAwesome5.Clone + "  Duplicate Directory");
-                }
-
-                ImGui.MenuItem(FontAwesome5.Edit + "  Rename Directory");
-                ImGui.MenuItem(FontAwesome5.CodeMerge + "  Merge Directory");
-                ImGui.MenuItem(FontAwesome5.Share + "  Export Directory");
-                ImGui.MenuItem(FontAwesome5.PlusSquare + "  Add Inlined Directory");
-                ImGui.Separator();
-                if (ImGui.MenuItem(FontAwesome5.FileImport + "  Import Asset"))
-                {
-                    var (canceled, paths) = TinyDialogs.OpenFileDialog("Import Asset", "", false);
-                    if (!canceled)
-                    {
-                        var path = paths.First();
-                        // special handling of certain asset types
-
-                        // detect .prefab file
-                        if (Path.GetExtension(path) == ".prefab")
-                        {
-                            // read file
-                            BandCharDesc desc = NautilusInterop.ToBandCharDesc(File.ReadAllText(path));
-                            // add the BandCharDesc to the MiloFile
-                            currentScene.dirMeta.entries.Add(new DirectoryMeta.Entry("BandCharDesc",
-                                "prefab_" + Path.GetFileNameWithoutExtension(path), desc));
-                        }
-                        else
-                        {
-                            modalObject = path;
-                            modalObject2 = 0;
-                            modalString = "\uf000Import Asset" + id;
-                        }
-                    }
-                }
-
-                ImGui.MenuItem(FontAwesome5.PlusCircle + "  New Asset");
-                ImGui.PopFont();
-                ImGui.EndPopup();
-            }
-            ImGui.PopStyleVar();
-            ImGui.PopStyleVar();
-        }
-
-        void ItemContextMenu(DirectoryMeta.Entry entry, ref int curIndex)
-        {
-            ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 1f);
-            ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, ImGui.GetStyle().FramePadding);
-            if (ImGui.BeginPopupContextItem())
-            {
-                ImGui.PushFont(Util.mainFont);
-                if (ImGui.MenuItem(FontAwesome5.TrashAlt + "  Delete Asset"))
-                {
-                    if (viewingObject == entry.obj)
-                    {
-                        viewingObject = null;
-                    }
-
-                    dir.entries.Remove(entry);
-                    curIndex--;
-                }
-
-                if (ImGui.MenuItem(FontAwesome5.Clone + "  Duplicate Asset"))
-                {
-                    modalObject = entry;
-                    modalString = "\uf000Duplicate" + id; // Hack to get around the lack of global ids
-                }
-
-                if (ImGui.MenuItem(FontAwesome5.Edit + "  Rename Asset"))
-                {
-                    modalObject = entry;
-                    modalString = "\uf000Rename" + id;
-                }
-
-                ImGui.Separator();
-                if (ImGui.MenuItem(FontAwesome5.Share + "  Extract Asset"))
-                {
-                    var (canceled, path) = TinyDialogs.SaveFileDialog("Extract Asset", entry.name);
-
-                    if (!canceled)
-                    {
-                        File.WriteAllBytes(path, entry.objBytes.ToArray());
-                    }
-                }
-
-                if (ImGui.MenuItem(FontAwesome5.Recycle + "  Replace Asset"))
-                {
-                    var (canceled, paths) = TinyDialogs.OpenFileDialog("Replace Asset", "", false);
-                    if (!canceled)
-                    {
-                        var backupSuccess = false;
-                        var backupStream = new MemoryStream();
-                        try
-                        {
-                            
-                            // Backup the asset in case of an error while reading
-                            entry.obj.GetType().GetMethod("Write").Invoke(entry.obj,
-                                [new EndianWriter(backupStream, currentScene.endian), false, dir, entry]);
-                            backupSuccess = true;
-                            var path = paths.First();
-
-                            byte[] fileBytes = File.ReadAllBytes(path);
-                            entry.objBytes = fileBytes.ToList();
-                            // Use reflection to call the read method as the comment below only calls the Object's Read()
-                            entry.obj.GetType().GetMethod("Read").Invoke(entry.obj, [new EndianReader(new MemoryStream(fileBytes), currentScene.endian), false, dir, entry]);
-                            //entry.obj.Read(new EndianReader(new MemoryStream(fileBytes), currentScene.endian), false, dir, entry);
-                        }
-                        catch (Exception e)
-                        {
-                            OpenErrorModal(e, "Cannot replace asset.");
-                            if (backupSuccess)
-                            {
-                                backupStream.Seek(0, SeekOrigin.Begin);
-                                entry.obj.GetType().GetMethod("Read").Invoke(entry.obj, [new EndianReader(backupStream, currentScene.endian), false, dir, entry]);
-                            }
-                        }
-                    }
-                }
-                ImGui.PopFont();
-                ImGui.EndPopup();
-            }
-            ImGui.PopStyleVar();
-            ImGui.PopStyleVar();
-        }
-
-        if (modalString == "\uf000Duplicate" + id)
-        {
-            modalString = ((DirectoryMeta.Entry)modalObject).name;
-            ImGui.OpenPopup("Duplicate##" + id);
-        }
-
-        if (modalString == "\uf000Rename" + id)
-        {
-            modalString = ((DirectoryMeta.Entry)modalObject).name;
-            ImGui.OpenPopup("Rename##" + id);
-        }
-
-        if (modalString == "\uf000Import Asset" + id)
-        {
-            modalString = (string)modalObject;
-            Console.WriteLine("Import Asset##" + id);
-            ImGui.OpenPopup("Import Asset##" + id);
-        }
-
-        ImGui.PushFont(Util.mainFont);
-        if (ImGui.BeginPopupModal("Duplicate##" + id, ImGuiWindowFlags.AlwaysAutoResize))
-        {
-            var entry = (DirectoryMeta.Entry)modalObject;
-            if (ImGui.IsWindowAppearing())
-            {
-                ImGui.SetKeyboardFocusHere();
-            }
-
-            var enter = ImGui.InputText("New Asset Name", ref modalString, 128, ImGuiInputTextFlags.EnterReturnsTrue);
-            if (ImGui.Button("OK") || enter)
-            {
-                try
-                {
-                    var newEntry = DuplicateEntry(entry, parent);
-
-                    newEntry.name = modalString;
-                    dir.entries.Add(newEntry);
-                    ImGui.CloseCurrentPopup();
-                    modalObject = null;
-                }
-                catch (Exception e)
-                {
-                    OpenErrorModal(e, "Failed to duplicate asset.");
-                }
-            }
-
-            ImGui.SameLine();
-            if (ImGui.Button("Cancel"))
-            {
-                ImGui.CloseCurrentPopup();
-                modalObject = null;
-            }
-
-            ImGui.EndPopup();
-        }
-
-        if (ImGui.BeginPopupModal("Rename##" + id, ImGuiWindowFlags.AlwaysAutoResize))
-        {
-            var entry = (DirectoryMeta.Entry)modalObject;
-            if (ImGui.IsWindowAppearing())
-            {
-                ImGui.SetKeyboardFocusHere();
-            }
-
-            var enter = ImGui.InputText("New Asset Name", ref modalString, 128, ImGuiInputTextFlags.EnterReturnsTrue);
-            if (ImGui.Button("OK") || enter)
-            {
-                entry.name = modalString;
-                if (entry.dir != null)
-                {
-                    entry.dir.name = modalString;
-                }
-
-                ImGui.CloseCurrentPopup();
-                modalObject = null;
-            }
-
-            ImGui.SameLine();
-            if (ImGui.Button("Cancel"))
-            {
-                ImGui.CloseCurrentPopup();
-                modalObject = null;
-            }
-
-            ImGui.EndPopup();
-        }
-
-        if (ImGui.BeginPopupModal("Import Asset##" + id, ImGuiWindowFlags.AlwaysAutoResize))
-        {
-            string[] assetTypes = ["Object", "Tex", "Group", "Trans", "BandSongPref", "Sfx", "BandCharDesc"];
-            
-
-            var curType = (int)modalObject2;
-            
-            ImGui.Combo("Asset type", ref curType, assetTypes, assetTypes.Length);
-
-            modalObject2 = curType;
-
-            if (ImGui.Button("OK"))
-            {
-                ImportAsset(dir, modalString, assetTypes[curType]);
-                ImGui.CloseCurrentPopup();
-                modalObject = null;
-                modalObject2 = null;
-            }
-
-            if (ImGui.Button("Cancel"))
-            {
-                ImGui.CloseCurrentPopup();
-                modalObject = null;
-                modalObject2 = null;
-            }
-            ImGui.EndPopup();
-        }
-        ImGui.PopFont();
-
-        var childrenDrawn = 0;
-        if (Util.SceneTreeItem(dir, flags))
-        {
-            DirectoryContextMenu(ref iterId);
-            unsafe
-            {
-                if (ImGui.BeginDragDropSource())
-                {
-                    var payload = dir.name.ToString();
-                    var payloadBytes = Encoding.UTF8.GetBytes(payload);
-                    fixed (byte* payloadPtr = payloadBytes)
-                    {
-                        ImGui.SetDragDropPayload("TreeEntryDir", (IntPtr)(payloadPtr), (uint)payloadBytes.Length);
-
-                        ImGui.Text(payload);
-                        ImGui.EndDragDropSource();
-                    }
-                }
-            }
-
-            if (ImGui.IsItemActivated() && !ImGui.IsItemToggledOpen())
-                NavigateObject(dir.directory);
-            var nodeId = 200;
-            //ImGui.Indent();
-            if (dir.directory is ObjectDir objDir && objDir.inlineSubDirs.Count > 0)
-            {
-                DrawChildLine(true);
-                if (Util.IconTreeItem("ObjectDir", "Inline Subdirectories", ImGuiTreeNodeFlags.SpanFullWidth))
-                {
-                    for (int subDirIndex = 0; subDirIndex < objDir.inlineSubDirs.Count; subDirIndex++)
-                    {
-                        var subDir = objDir.inlineSubDirs[subDirIndex];
-                        DrawChildLine(true); // TODO: fix the tree traces for the inline subdirs node
-                        DirNode(subDir, ref subDirIndex, nodeId, false, dir, true);
-                        childrenDrawn++;
-                        nodeId++;
-                    }
-
-                    ImGui.TreePop();
-                }
-            }
-
-            nodeId = 1000; // Count of inlined dirs was affecting future node ids, just set it to 1000 and hope something doesn't have >1000 inlined subdirs
-
-            for (int entryIndex = 0; entryIndex < dir.entries.Count; entryIndex++)
-            {
-                var entry = dir.entries[entryIndex];
-                var matchesFilter = filterActive && entry.name.ToString().ToLower().Contains(filter.ToLower());
-                nodeId++;
-                if (matchesFilter)
-                {
-                    if (IsThemeDark())
-                    {
-                        ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1f, 1f, 0f, 1f));
-                    }
-                    else
-                    {
-                        ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0f, 0f, 0.7f, 1f));
-                    }
-                    
-                }
-
-                if (entry.dir != null)
-                {
-                    //ImGui.Button("Test");
-                    //ImGui.SameLine();
-
-                    DrawChildLine(true);
-                    DirNode(entry.dir, ref entryIndex, nodeId, false, dir, false, entry, false);
-                    childrenDrawn++;
-                }
-                else
-                {
-                    if (filterActive && !matchesFilter)
-                    {
-                        continue;
-                    }
-
-                    if (entry.obj == null)
-                    {
-                        ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 0.5f);
-                    }
-
-                    ImGuiTreeNodeFlags leafFlags = ImGuiTreeNodeFlags.Leaf | ImGuiTreeNodeFlags.SpanFullWidth;
-                    if (viewingObject != null && viewingObject == entry.obj)
-                    {
-                        leafFlags |= ImGuiTreeNodeFlags.Selected;
-                    }
-
-                    DrawChildLine(false);
-                    Util.SceneTreeItem(entry, leafFlags);
-                    ItemContextMenu(entry, ref entryIndex);
-                    childrenDrawn++;
-                    if (ImGui.IsItemClicked(ImGuiMouseButton.Left) && entry.obj != null)
-                    {
-                        NavigateObject(entry.obj);
-                    }
-
-                    unsafe
-                    {
-                        if (ImGui.BeginDragDropSource())
-                        {
-                            var payload = entry.name.ToString();
-                            var payloadBytes = Encoding.UTF8.GetBytes(payload);
-                            fixed (byte* payloadPtr = payloadBytes)
-                            {
-                                ImGui.SetDragDropPayload("TreeEntryObject", (IntPtr)(payloadPtr),
-                                    (uint)payloadBytes.Length);
-                            }
-
-                            ImGui.Text(payload);
-                            ImGui.EndDragDropSource();
-                        }
-                    }
-
-                    ImGui.TreePop();
-                    if (entry.obj == null)
-                    {
-                        ImGui.PopStyleVar();
-                    }
-                }
-
-                if (matchesFilter)
-                {
-                    ImGui.PopStyleColor();
-                }
-            }
-
-            ImGui.TreePop();
-            if (childrenDrawn > 0)
-            {
-                var stylePtr = ImGui.GetStyle();
-                drawList.AddLine(new Vector2(lineX, lineY),
-                    new Vector2(lineX, (ImGui.GetCursorScreenPos().Y - stylePtr.ItemSpacing.Y) - ImGui.GetFrameHeight()/2f + stylePtr.FramePadding.Y + 1f), treeLineColor);
-            }
-            //ImGui.Unindent();
-        }
-        else
-        {
-            DirectoryContextMenu(ref iterId);
-            if (ImGui.IsItemClicked() && !ImGui.IsItemToggledOpen())
-                NavigateObject(dir.directory);
-        }
-
-        ImGui.PopID();
-        if (Settings.Editing.compactScreneTree)
-        {
-            ImGui.PopStyleVar();
-        }
-    }
-    
     
 
     public static void ImportAsset(DirectoryMeta dir, string path, string assetType)
@@ -893,6 +430,7 @@ class Program
                 EndianReader reader = new EndianReader(ms, currentScene.endian);
                 parent.ReadEntry(reader, entry);
             }
+            entry.objBytes = updatedBytes.ToList();
         }
         else
         {
@@ -935,12 +473,12 @@ class Program
             ImGui.BeginGroup();
             ImGui.BeginChild("right pane", new Vector2(0, ImGui.GetContentRegionAvail().Y));
 
-            if (breadcrumbs.Count > 1)
+            if (Breadcrumbs.Count > 1)
             {
-                for (int i = 0; i < breadcrumbs.Count; i++)
+                for (int i = 0; i < Breadcrumbs.Count; i++)
                 {
-                    var obj = breadcrumbs[i];
-                    if (i < breadcrumbs.Count - 1)
+                    var obj = Breadcrumbs[i];
+                    if (i < Breadcrumbs.Count - 1)
                     {
                         if (ImGui.Button(obj.ToString()))
                         {

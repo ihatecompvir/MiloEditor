@@ -455,7 +455,7 @@ public class EditorPanel
                 var row1 = new System.Numerics.Vector4(matrixValue.m11, matrixValue.m21, matrixValue.m31, matrixValue.m41);
                 var row2 = new System.Numerics.Vector4(matrixValue.m12, matrixValue.m22, matrixValue.m32, matrixValue.m42);
                 var row3 = new System.Numerics.Vector4(matrixValue.m13, matrixValue.m23, matrixValue.m33, matrixValue.m43);
-                ImGui.PushItemWidth(-1);
+                ImGui.PushItemWidth(-ImGui.GetStyle().CellPadding.X);
                 edited |= ImGui.InputFloat4("##row1", ref row1);
                 edited |= ImGui.InputFloat4("##row2", ref row2);
                 edited |= ImGui.InputFloat4("##row3", ref row3);
