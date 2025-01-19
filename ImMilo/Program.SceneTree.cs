@@ -103,6 +103,113 @@ public partial class Program
         }
     }
 
+    static async void PromptDuplicateEntry(DirectoryMeta dir, DirectoryMeta.Entry entry)
+    {
+        
+        var newName = await ShowTextPrompt("New asset name", "Duplicate", entry.name.value);
+
+        if (newName == null)
+        {
+            return;
+        }
+        
+        try
+        {
+            var newEntry = DuplicateEntry(entry, dir);
+
+            newEntry.name = newName;
+            dir.entries.Add(newEntry);
+        }
+        catch (Exception e)
+        {
+            OpenErrorModal(e, "Failed to duplicate asset.");
+        }
+    }
+
+    static async void PromptRenameEntry(DirectoryMeta.Entry entry)
+    {
+        var newName = await ShowTextPrompt("New name", "Rename", entry.name.value);
+
+        if (newName == null)
+        {
+            return;
+        }
+        
+        entry.name = newName;
+        if (entry.dir != null)
+        {
+            entry.dir.name = newName;
+        }
+    }
+
+    class AssetTypePrompt : Prompt<string?>
+    {
+        private int curType = 0;
+        readonly string[] assetTypes = ["Object", "Tex", "Group", "Trans", "BandSongPref", "Sfx", "BandCharDesc"];
+
+        public AssetTypePrompt()
+        {
+            Title = "Import Asset";
+        }
+
+        public override void Show()
+        {
+            if (BeginModal())
+            {
+                ImGui.Combo("Asset type", ref curType, assetTypes, assetTypes.Length);
+
+                if (ImGui.Button("OK"))
+                {
+                    Complete(assetTypes[curType]);
+                }
+                ImGui.SameLine();
+                if (ImGui.Button("Cancel"))
+                {
+                    Complete(null);
+                }
+                ImGui.EndPopup();
+            }
+        }
+    }
+    static async void PromptImportAsset(DirectoryMeta dir)
+    {
+        var (canceled, paths) = TinyDialogs.OpenFileDialog("Import Asset", "", false);
+        if (!canceled)
+        {
+            var path = paths.First();
+            // special handling of certain asset types
+
+            // detect .prefab file
+            if (Path.GetExtension(path) == ".prefab")
+            {
+                // read file
+                BandCharDesc desc = NautilusInterop.ToBandCharDesc(File.ReadAllText(path));
+                // add the BandCharDesc to the MiloFile
+                currentScene.dirMeta.entries.Add(new DirectoryMeta.Entry("BandCharDesc",
+                    "prefab_" + Path.GetFileNameWithoutExtension(path), desc));
+            }
+            else
+            {
+                var assetType = await ShowGenericPrompt(new AssetTypePrompt());
+
+                if (assetType == null)
+                {
+                    return;
+                }
+
+                try
+                {
+                    ImportAsset(dir, path, assetType);
+                }
+                catch (Exception e)
+                {
+                    OpenErrorModal(e, "Failed to import asset.");
+                }
+                
+            }
+        }
+    }
+
     static void DirNode(DirectoryMeta dir, ref int iterId, int id = 0, bool root = false, DirectoryMeta parent = null,
         bool inlined = false, DirectoryMeta.Entry? thisEntry = null, bool useEntryContextMenu = false)
     {
@@ -223,28 +330,7 @@ public partial class Program
                 ImGui.Separator();
                 if (ImGui.MenuItem(FontAwesome5.FileImport + "  Import Asset"))
                 {
-                    var (canceled, paths) = TinyDialogs.OpenFileDialog("Import Asset", "", false);
-                    if (!canceled)
-                    {
-                        var path = paths.First();
-                        // special handling of certain asset types
-
-                        // detect .prefab file
-                        if (Path.GetExtension(path) == ".prefab")
-                        {
-                            // read file
-                            BandCharDesc desc = NautilusInterop.ToBandCharDesc(File.ReadAllText(path));
-                            // add the BandCharDesc to the MiloFile
-                            currentScene.dirMeta.entries.Add(new DirectoryMeta.Entry("BandCharDesc",
-                                "prefab_" + Path.GetFileNameWithoutExtension(path), desc));
-                        }
-                        else
-                        {
-                            modalObject2 = 0;
-                            modalString = path;
-                            OpenPopupDirNode("Import Asset##" + id);
-                        }
-                    }
+                    PromptImportAsset(dir);
                 }
 
                 ImGui.MenuItem(FontAwesome5.PlusCircle + "  New Asset", "", false, false);
@@ -275,16 +361,12 @@ public partial class Program
 
                 if (ImGui.MenuItem(FontAwesome5.Clone + "  Duplicate Asset"))
                 {
-                    modalObject = entry;
-                    modalString = entry.name;
-                    OpenPopupDirNode("Duplicate##" + id);
+                    PromptDuplicateEntry(dir, entry);
                 }
 
                 if (ImGui.MenuItem(FontAwesome5.Edit + "  Rename Asset"))
                 {
-                    modalObject = entry;
-                    modalString = entry.name;
-                    OpenPopupDirNode("Rename##" + id);
+                    PromptRenameEntry(entry);
                 }
 
                 ImGui.Separator();
@@ -337,104 +419,6 @@ public partial class Program
             ImGui.PopStyleVar();
             ImGui.PopStyleVar();
         }
-
-        ImGui.PushFont(Util.mainFont);
-        if (BeginPopupModalDirNode("Duplicate##" + id, ImGuiWindowFlags.AlwaysAutoResize))
-        {
-            var entry = (DirectoryMeta.Entry)modalObject;
-            if (ImGui.IsWindowAppearing())
-            {
-                ImGui.SetKeyboardFocusHere();
-            }
-
-            var enter = ImGui.InputText("New Asset Name", ref modalString, 128, ImGuiInputTextFlags.EnterReturnsTrue);
-            if (ImGui.Button("OK") || enter)
-            {
-                try
-                {
-                    var newEntry = DuplicateEntry(entry, dir);
-
-                    newEntry.name = modalString;
-                    dir.entries.Add(newEntry);
-                    ImGui.CloseCurrentPopup();
-                    modalObject = null;
-                }
-                catch (Exception e)
-                {
-                    OpenErrorModal(e, "Failed to duplicate asset.");
-                }
-            }
-
-            ImGui.SameLine();
-            if (ImGui.Button("Cancel"))
-            {
-                ImGui.CloseCurrentPopup();
-                modalObject = null;
-            }
-
-            ImGui.EndPopup();
-        }
-
-        if (BeginPopupModalDirNode("Rename##" + id, ImGuiWindowFlags.AlwaysAutoResize))
-        {
-            var entry = (DirectoryMeta.Entry)modalObject;
-            if (ImGui.IsWindowAppearing())
-            {
-                ImGui.SetKeyboardFocusHere();
-            }
-
-            var enter = ImGui.InputText("New Asset Name", ref modalString, 128, ImGuiInputTextFlags.EnterReturnsTrue);
-            if (ImGui.Button("OK") || enter)
-            {
-                entry.name = modalString;
-                if (entry.dir != null)
-                {
-                    entry.dir.name = modalString;
-                }
-
-                ImGui.CloseCurrentPopup();
-                modalObject = null;
-            }
-
-            ImGui.SameLine();
-            if (ImGui.Button("Cancel"))
-            {
-                ImGui.CloseCurrentPopup();
-                modalObject = null;
-            }
-
-            ImGui.EndPopup();
-        }
-
-        if (BeginPopupModalDirNode("Import Asset##" + id, ImGuiWindowFlags.AlwaysAutoResize))
-        {
-            string[] assetTypes = ["Object", "Tex", "Group", "Trans", "BandSongPref", "Sfx", "BandCharDesc"];
-            
-
-            var curType = (int)modalObject2;
-            
-            ImGui.Combo("Asset type", ref curType, assetTypes, assetTypes.Length);
-
-            modalObject2 = curType;
-
-            if (ImGui.Button("OK"))
-            {
-                ImportAsset(dir, modalString, assetTypes[curType]);
-                ImGui.CloseCurrentPopup();
-                modalObject = null;
-                modalObject2 = null;
-            }
-            ImGui.SameLine();
-
-            if (ImGui.Button("Cancel"))
-            {
-                ImGui.CloseCurrentPopup();
-                modalObject = null;
-                modalObject2 = null;
-            }
-            ImGui.EndPopup();
-        }
-        ImGui.PopFont();
 
         var childrenDrawn = 0;
         PushTrace();

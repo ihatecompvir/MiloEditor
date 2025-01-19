@@ -9,8 +9,7 @@ namespace ImMilo;
 
 public partial class Program
 {
-
-    private abstract class Prompt
+    public abstract class Prompt
     {
         public string Message;
         public bool Opened;
@@ -32,8 +31,8 @@ public partial class Program
 
         protected bool BeginModal(ImGuiWindowFlags toggleFlags = ImGuiWindowFlags.None) => ImGui.BeginPopupModal(Title, ImGuiWindowFlags.AlwaysAutoResize ^ toggleFlags);
     }
-    
-    private abstract class Prompt<T> : Prompt
+
+    public abstract class Prompt<T> : Prompt
     {
         public TaskCompletionSource<T> CompletionSource = new();
 
@@ -99,7 +98,7 @@ public partial class Program
         public MiloSaveSettingsPrompt(MiloFile target)
         {
             Message = "Save";
-            Title = "Save";
+            Title = "Save As";
             this.target = target;
             settings = new SaveSettings
             {
@@ -131,18 +130,63 @@ public partial class Program
         }
     }
 
+    private class TextPrompt : Prompt<string?>
+    {
+        private string value;
+        
+        public TextPrompt(string message, string title, string defaultValue = "")
+        {
+            Message = message;
+            Title = title;
+            value = defaultValue;
+        }
+
+        public override void Show()
+        {
+            if (BeginModal())
+            {
+                if (ImGui.IsWindowAppearing())
+                {
+                    ImGui.SetKeyboardFocusHere();
+                }
+                ImGui.InputText(Message, ref value, 128);
+
+                if (ImGui.Button("Ok"))
+                {
+                    Complete(value);
+                }
+                ImGui.SameLine();
+                if (ImGui.Button("Cancel"))
+                {
+                    Complete(null);
+                }
+                ImGui.EndPopup();
+            }
+        }
+    }
+
+    public static async Task<T> ShowGenericPrompt<T>(Prompt<T> prompt)
+    {
+        Prompt.prompts.Enqueue(prompt);
+        return await prompt.CompletionSource.Task;
+    }
+
     public static async Task<bool> ShowConfirmPrompt(string message)
     {
         var prompt = new ConfirmPrompt(message);
-        Prompt.prompts.Enqueue(prompt);
-        return await prompt.CompletionSource.Task;
+        return await ShowGenericPrompt(prompt);
+    }
+
+    public static async Task<string?> ShowTextPrompt(string inputLabel, string title, string defaultValue = "")
+    {
+        var prompt = new TextPrompt(inputLabel, title, defaultValue);
+        return await ShowGenericPrompt(prompt);
     }
 
     public static async Task<SaveSettings?> ShowSavePrompt(MiloFile target)
     {
         var prompt = new MiloSaveSettingsPrompt(target);
-        Prompt.prompts.Enqueue(prompt);
-        return await prompt.CompletionSource.Task;
+        return await ShowGenericPrompt(prompt);
     }
 
     public static void ProcessPrompts()

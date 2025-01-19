@@ -40,14 +40,6 @@ public static partial class Program
     private static readonly List<object> Breadcrumbs = [];
 
     private static Settings.Theme currentTheme;
-    private static string modalString = "";
-
-    /// <summary>
-    /// temporary state
-    /// </summary>
-    private static object? modalObject;
-
-    private static object? modalObject2;
 
     public static readonly FileFilter MiloFileFilter = new FileFilter("Milo Scenes",
     [
