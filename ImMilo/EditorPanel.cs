@@ -22,7 +22,7 @@ public class EditorPanel
 
     private static Dictionary<Type, List<string>> _enumValueCache = new Dictionary<Type, List<string>>();
 
-    private static List<string> GetCachedEnumValues(Type enumType)
+    public static List<string> GetCachedEnumValues(Type enumType)
     {
         if (!_enumValueCache.TryGetValue(enumType, out var enumValues))
         {

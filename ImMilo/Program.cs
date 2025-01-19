@@ -291,15 +291,22 @@ public static partial class Program
         }
     }
 
-    private static void PromptSaveCurrentScene()
+    private static async void PromptSaveCurrentScene()
     {
+        var settings = await ShowSavePrompt(currentScene);
+        if (settings == null)
+        {
+            return;
+        }
         var (canceled, path) = TinyDialogs.SaveFileDialog("Save Milo Scene", currentScene.filePath, MiloFileFilter);
-
+        
         if (!canceled)
         {
             try
             {
-                currentScene.Save(path, null);
+                currentScene.endian = settings.endianness;
+                currentScene.dirMeta.platform = settings.platform;
+                currentScene.Save(path, settings.compressionType, 2064U, Endian.LittleEndian, currentScene.endian);
             }
             catch (Exception e)
             {
@@ -312,7 +319,7 @@ public static partial class Program
     {
         try
         {
-            currentScene.Save(null, null);
+            currentScene.Save(null, null, 2064U, Endian.LittleEndian, currentScene.endian);
         }
         catch (Exception e)
         {
