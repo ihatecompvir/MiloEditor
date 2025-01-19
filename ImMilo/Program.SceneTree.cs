@@ -106,7 +106,7 @@ public partial class Program
     static async void PromptDuplicateEntry(DirectoryMeta dir, DirectoryMeta.Entry entry)
     {
         
-        var newName = await ShowTextPrompt("New asset name", "Duplicate", entry.name.value);
+        var newName = await ShowTextPrompt("New name", "Duplicate", entry.name.value);
 
         if (newName == null)
         {
