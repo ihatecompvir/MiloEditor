@@ -869,6 +869,10 @@ namespace MiloLib.Assets
                     Debug.WriteLine("Reading entry BandLabel " + entry.name.value);
                     entry.obj = new BandLabel().Read(reader, true, this, entry);
                     break;
+                case "BandList":
+                    Debug.WriteLine("Reading entry BandList " + entry.name.value);
+                    entry.obj = new BandList().Read(reader, true, this, entry);
+                    break;
                 case "BandPlacer":
                     Debug.WriteLine("Reading entry BandPlacer " + entry.name.value);
                     entry.obj = new BandPlacer().Read(reader, true, this, entry);
@@ -1059,6 +1063,14 @@ namespace MiloLib.Assets
                 case "UIGuide":
                     Debug.WriteLine("Reading entry UIGuide " + entry.name.value);
                     entry.obj = new UIGuide().Read(reader, true, this, entry);
+                    break;
+                case "UILabel":
+                    Debug.WriteLine("Reading entry UILabel " + entry.name.value);
+                    entry.obj = new UILabel().Read(reader, true, this, entry);
+                    break;
+                case "UIList":
+                    Debug.WriteLine("Reading entry UIList " + entry.name.value);
+                    entry.obj = new UIList().Read(reader, true, this, entry);
                     break;
                 case "Wind":
                     Debug.WriteLine("Reading entry Wind " + entry.name.value);
@@ -1322,6 +1334,9 @@ namespace MiloLib.Assets
                 case "BandLabel":
                     ((BandLabel)entry.obj).Write(writer, true, this, entry);
                     break;
+                case "BandList":
+                    ((BandList)entry.obj).Write(writer, true, this, entry);
+                    break;
                 case "BandPlacer":
                     ((BandPlacer)entry.obj).Write(writer, true, this, entry);
                     break;
@@ -1453,6 +1468,12 @@ namespace MiloLib.Assets
                     break;
                 case "UIGuide":
                     ((UIGuide)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "UILabel":
+                    ((UILabel)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "UIList":
+                    ((UIList)entry.obj).Write(writer, true, this, entry);
                     break;
                 case "Wind":
                     ((RndWind)entry.obj).Write(writer, true, this, entry);

@@ -110,6 +110,8 @@ namespace MiloLib.Assets.Rnd
                 }
             }
 
+            // TODO:
+            // these read and write vertex functions are genuinely horrible. need to refactor these in the future so converting between Mesh versions can be done more reliably
             public void ReadVertices(EndianReader reader, uint meshVersion, bool isNextGen, uint compressionType)
             {
                 vertices = new();

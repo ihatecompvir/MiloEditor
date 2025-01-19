@@ -13,9 +13,11 @@ namespace MiloLib.Assets.UI
         public RndTrans trans = new();
         public RndDrawable draw = new();
 
+        [Name("Nav Right"), Description("Object to navigate to when the right button is pressed"), MinVersion(1)]
         public Symbol navRight = new(0, "");
+        [Name("Nav Down"), Description("Object to navigate to when the down button is pressed"), MinVersion(1)]
         public Symbol navDown = new(0, "");
-        [Name("Resource Name"), Description("path to resource file for this component")]
+        [Name("Resource Name"), Description("path to resource file for this component"), MinVersion(2)]
         public Symbol resourceName = new(0, "");
 
 
