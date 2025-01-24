@@ -52,15 +52,15 @@ public partial class Program
             bool entryMerged = false; // Flag to track if we have either merged an entry or added a new entry
 
             // Iterate through the existing entries in the current scene
-            for (int i = 0; i < currentScene.dirMeta.entries.Count; i++)
+            for (int i = 0; i < dirEntry.entries.Count; i++)
             {
-                DirectoryMeta.Entry currentEntry = currentScene.dirMeta.entries[i];
+                DirectoryMeta.Entry currentEntry = dirEntry.entries[i];
 
                 if (mergeEntry.name.value == currentEntry.name.value)
                 {
                     if (await ShowConfirmPrompt($"An entry with the name {currentEntry.name.value} already exists. Do you want to overwrite it?"))
                     {
-                        currentScene.dirMeta.entries[i].obj = mergeEntry.obj;
+                        dirEntry.entries[i].obj = mergeEntry.obj;
                     }
                     entryMerged = true;
                     break; // Entry has been processed, no need to check other entries.
@@ -210,6 +210,30 @@ public partial class Program
         }
     }
 
+    static async void PromptExportDirectory(DirectoryMeta dir)
+    {
+        var file = new MiloFile(dir);
+        var saveSettings = await ShowSavePrompt(currentScene);
+        if (saveSettings == null)
+        {
+            return;
+        }
+
+        var (canceled, path) = TinyDialogs.SaveFileDialog("Export Asset", currentScene.filePath, MiloFileFilter);
+        if (!canceled)
+        {
+            try
+            {
+                file.Save(path, saveSettings.compressionType, 0x810, Endian.LittleEndian, saveSettings.endianness);
+                ShowNotifyPrompt($"Exported to {path} successfully.", "Export Directory");
+            }
+            catch (Exception e)
+            {
+                OpenErrorModal(e, "Failed to export directory.");
+            }
+        }
+    }
+
     static void DirNode(DirectoryMeta dir, ref int iterId, int id = 0, bool root = false, DirectoryMeta parent = null,
         bool inlined = false, DirectoryMeta.Entry? thisEntry = null, bool useEntryContextMenu = false)
     {
@@ -314,7 +338,22 @@ public partial class Program
                     ImGui.MenuItem(FontAwesome5.Clone + "  Duplicate Directory", "", false, false);
                 }
 
-                ImGui.MenuItem(FontAwesome5.Edit + "  Rename Directory", "", false, false);
+                if (ImGui.MenuItem(FontAwesome5.Edit + "  Rename Directory"))
+                {
+                    var prompt = async () =>
+                    {
+                        var newName = await ShowTextPrompt("New name", "Rename Directory", dir.name);
+                        if (newName != null)
+                        {
+                            dir.name = newName;
+                            if (thisEntry != null)
+                            {
+                                thisEntry.name = dir.name;
+                            }
+                        }
+                    };
+                    prompt();
+                }
                 if (ImGui.MenuItem(FontAwesome5.CodeMerge + "  Merge Directory"))
                 {
                     var (canceled, path) = TinyDialogs.OpenFileDialog("Merge Directory", currentScene.filePath, false,
@@ -325,7 +364,11 @@ public partial class Program
                         MergeDirectory(dir, path.First());
                     }
                 }
-                ImGui.MenuItem(FontAwesome5.Share + "  Export Directory", "", false, false);
+
+                if (ImGui.MenuItem(FontAwesome5.Share + "  Export Directory"))
+                {
+                    PromptExportDirectory(dir);
+                }
                 ImGui.MenuItem(FontAwesome5.PlusSquare + "  Add Inlined Directory", "", false, false);
                 ImGui.Separator();
                 if (ImGui.MenuItem(FontAwesome5.FileImport + "  Import Asset"))

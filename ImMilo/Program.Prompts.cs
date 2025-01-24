@@ -85,6 +85,30 @@ public partial class Program
         }
     }
 
+    private class NotifyPrompt : Prompt<bool>
+    {
+        public NotifyPrompt(string message, string title)
+        {
+            Message = message;
+            Title = title;
+        }
+
+        public override void Show()
+        {
+            if (BeginModal())
+            {
+                ImGui.Text(Message);
+
+                if (ImGui.Button("OK"))
+                {
+                    Complete(true);
+                }
+                
+                ImGui.EndPopup();
+            }
+        }
+    } 
+
     public class SaveSettings
     {
         [Name("Compression Type")]
@@ -183,6 +207,17 @@ public partial class Program
     {
         Prompt.prompts.Enqueue(prompt);
         return await prompt.CompletionSource.Task;
+    }
+    
+    /// <summary>
+    /// Shows a notification prompt, simply conveying information to the user.
+    /// </summary>
+    /// <param name="message">The text to show the user.</param>
+    /// <param name="title">The title of the prompt window.</param>
+    /// <returns></returns>
+    public static async void ShowNotifyPrompt(string message, string title)
+    {
+        await ShowGenericPrompt(new NotifyPrompt(message, title));
     }
 
     /// <summary>
