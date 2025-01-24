@@ -14,8 +14,9 @@ namespace ImMilo;
 public class EditorPanel
 {
     // Cache for Reflection info
-    private static Dictionary<Type, List<FieldInfo>> _fieldCache = new Dictionary<Type, List<FieldInfo>>();
-    private static Dictionary<Type, NameAttribute> _nameAttributeCache = new Dictionary<Type, NameAttribute>();
+    private static Dictionary<Type, List<FieldInfo>> _fieldCache = new();
+    private static Dictionary<Type, NameAttribute> _nameAttributeCache = new();
+    private static Dictionary<MemberInfo, NameAttribute> _enumMemberNameCache = new();
 
     private static Dictionary<Type, DescriptionAttribute> _descriptionAttributeCache =
         new Dictionary<Type, DescriptionAttribute>();
@@ -69,6 +70,17 @@ public class EditorPanel
         {
             attribute = type.GetCustomAttribute<NameAttribute>();
             _nameAttributeCache[type] = attribute;
+        }
+
+        return attribute;
+    }
+    
+    private static NameAttribute? GetCachedNameAttribute(MemberInfo mInfo)
+    {
+        if (!_enumMemberNameCache.TryGetValue(mInfo, out NameAttribute attribute))
+        {
+            attribute = mInfo.GetCustomAttribute<NameAttribute>();
+            _enumMemberNameCache[mInfo] = attribute;
         }
 
         return attribute;
@@ -513,8 +525,22 @@ public class EditorPanel
                 break;
             case object enumValue when field.FieldType.IsEnum:
                 var values = GetCachedEnumValues(field.FieldType);
+                var niceValues = new string[values.Count];
+                for (int i = 0; i < values.Count; i++)
+                {
+                    var member = field.FieldType.GetMember(values[i]).FirstOrDefault(m => m.DeclaringType == field.FieldType);
+                    var nameAtt = GetCachedNameAttribute(member);
+                    if (nameAtt != null)
+                    {
+                        niceValues[i] = nameAtt.Value;
+                    }
+                    else
+                    {
+                        niceValues[i] = values[i];
+                    }
+                }
                 var curValue = values.IndexOf(enumValue.ToString());
-                if (ImGui.Combo("", ref curValue, values.ToArray(), values.Count))
+                if (ImGui.Combo("", ref curValue, niceValues, values.Count))
                 {
                     field.SetValue(parent, Enum.Parse(field.FieldType, values[curValue]));
                 }

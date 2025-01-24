@@ -5,6 +5,7 @@ using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 using ICSharpCode.SharpZipLib.GZip;
 using System.IO;
 using System.Reflection.PortableExecutable;
+using MiloLib.Classes;
 
 namespace MiloLib
 {
@@ -27,21 +28,25 @@ namespace MiloLib
             /// <summary>
             /// no compression, root dir starts at startOffset
             /// </summary>
+            [Name("Uncompressed")]
             Uncompressed = 0xCABEDEAF,
 
             /// <summary>
             /// zlib compressed, without uncompressed size before the start of blocks
             /// </summary>
+            [Name("ZLib (AntiGrav to GDRB)")]
             CompressedZlib = 0xCBBEDEAF,
 
             /// <summary>
             /// normal gzip
             /// </summary>
+            [Name("GZip (Amplitude and earlier)")]
             CompressedGzip = 0xCCBEDEAF,
 
             /// <summary>
             /// zlib compressed, with uncompressed size before the start of blocks
             /// </summary>
+            [Name("ZLib Alternate (RB3 and later)")]
             CompressedZlibAlt = 0xCDBEDEAF,
         }
 
