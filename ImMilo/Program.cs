@@ -41,6 +41,8 @@ public static partial class Program
 
     private static Settings.Theme currentTheme;
 
+    public static List<TaskCompletionSource> callAfterFrame = new();
+
     public static readonly FileFilter MiloFileFilter = new FileFilter("Milo Scenes",
     [
         "*.milo_ps2", "*.milo_xbox", "*.milo_ps3", "*.milo_wii", "*.milo_pc", "*.rnd", "*.rnd_ps2",
@@ -54,16 +56,25 @@ public static partial class Program
         Console.WriteLine(VeldridStartup.GetPlatformDefaultBackend());
         Settings.Load();
         var graphicsDebug = true;
-        if (Debugger.IsAttached)
+        var backend = VeldridStartup.GetPlatformDefaultBackend();
+        if (Debugger.IsAttached && backend == GraphicsBackend.OpenGL)
         {
             // On my machine, there's a weird bug where running the app with the debugger attached causes
             // CreateWindowAndGraphicsDevice to crash with little to no information.
             graphicsDebug = !RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
         }
+        
+        
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            backend = GraphicsBackend.Vulkan; // I'm just going to force Vulkan on Windows, getting D3D to work with my shaders has bested me.
+        }
         // Create window, GraphicsDevice, and all resources necessary for the demo.
         VeldridStartup.CreateWindowAndGraphicsDevice(
             new WindowCreateInfo(50, 50, 1280, 720, WindowState.Normal, "ImMilo"),
             new GraphicsDeviceOptions(graphicsDebug, null, true, ResourceBindingModel.Improved, true, true),
+            backend,
             out _window,
             out gd);
         _window.Resized += () =>
@@ -114,6 +125,11 @@ public static partial class Program
             _cl.End();
             gd.SubmitCommands(_cl);
             gd.SwapBuffers(gd.MainSwapchain);
+            foreach (var task in callAfterFrame)
+            {
+                task.SetResult();
+            }
+            callAfterFrame.Clear();
         }
 
         Settings.Save();

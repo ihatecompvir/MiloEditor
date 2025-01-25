@@ -66,12 +66,17 @@ public static class BitmapEditor
         
     }
 
-    public static void Dispose()
+    public async static void Dispose()
     {
+        var view = previewTextureView;
+        var tex = previewTexture;
+        var tcs = new TaskCompletionSource();
+        Program.callAfterFrame.Add(tcs);
+        await tcs.Task;
         if (previewTexture != null)
         {
-            previewTexture.Dispose();
-            previewTextureView.Dispose();
+            view.Dispose();
+            tex.Dispose();
         }
     }
 
