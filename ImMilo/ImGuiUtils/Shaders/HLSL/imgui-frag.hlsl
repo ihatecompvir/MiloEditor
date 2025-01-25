@@ -1,5 +1,5 @@
-Texture2D<float4> FontTexture : register(t0);
-SamplerState FontSampler : register(s1);
+Texture2D<float4> FontTexture;
+SamplerState FontSampler;
 
 static float4 outputColor;
 static float4 color;

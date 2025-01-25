@@ -1,8 +1,4 @@
-cbuffer ProjectionMatrixBuffer : register(b0)
-{
-    row_major float4x4 _16_projection_matrix : packoffset(c0);
-};
-
+uniform float4 ProjectionMatrixBuffer[4];
 
 static float4 gl_Position;
 static float2 in_position;
@@ -27,7 +23,7 @@ struct SPIRV_Cross_Output
 
 void vert_main()
 {
-    gl_Position = mul(float4(in_position, 0.0f, 1.0f), _16_projection_matrix);
+    gl_Position = mul(float4(in_position, 0.0f, 1.0f), float4x4(ProjectionMatrixBuffer[0], ProjectionMatrixBuffer[1], ProjectionMatrixBuffer[2], ProjectionMatrixBuffer[3]));
     color = in_color;
     texCoord = in_texCoord;
 }

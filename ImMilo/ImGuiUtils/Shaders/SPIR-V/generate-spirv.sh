@@ -11,7 +11,7 @@ convert_glsl() {
 
 convert_hlsl() {
   local filename=$(basename $1 .spv)
-  spirv-cross --hlsl --shader-model 50 $1 --output "../HLSL/$filename.hlsl"
+  spirv-cross --hlsl --shader-model 40 --hlsl-auto-binding all --hlsl-enable-compat --flatten-ubo $1 --output "../HLSL/$filename.hlsl"
 }
 
 convert_metal() {
