@@ -53,7 +53,6 @@ public static partial class Program
 
     static void Main(string[] args)
     {
-        Console.WriteLine(VeldridStartup.GetPlatformDefaultBackend());
         Settings.Load();
         var graphicsDebug = true;
         var backend = VeldridStartup.GetPlatformDefaultBackend();
@@ -63,13 +62,14 @@ public static partial class Program
             // CreateWindowAndGraphicsDevice to crash with little to no information.
             graphicsDebug = !RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
         }
-        
-        
+
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
             backend = GraphicsBackend.Vulkan; // I'm just going to force Vulkan on Windows, getting D3D to work with my shaders has bested me.
         }
+
+        Console.WriteLine(backend);
         // Create window, GraphicsDevice, and all resources necessary for the demo.
         VeldridStartup.CreateWindowAndGraphicsDevice(
             new WindowCreateInfo(50, 50, 1280, 720, WindowState.Normal, "ImMilo"),
