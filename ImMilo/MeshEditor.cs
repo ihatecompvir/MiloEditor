@@ -146,8 +146,9 @@ public static class MeshEditor
         centerPos = (min + max) / 2f;
         Console.WriteLine("Center: " + centerPos);
         //var modelPos = centerPos;
-        //modelMatrix = Matrix4x4.CreateRotationX(float.DegreesToRadians(90), centerPos);
-        modelMatrix = Matrix4x4.CreateTranslation(-centerPos); //negative z forward pls?
+        //modelMatrix = Matrix4x4.CreateTranslation(-centerPos); //negative z forward pls?
+        //modelOffset += centerPos;
+        //modelMatrix *= Matrix4x4.CreateRotationX(float.DegreesToRadians(90), centerPos);
 
         foreach (var face in newMesh.faces)
         {
@@ -272,7 +273,7 @@ public static class MeshEditor
         if (ImGui.IsItemHovered() && ImGui.IsMouseDown(ImGuiMouseButton.Left))
         {
             var delta = (ImGui.GetMousePos() - prevMousePos)*0.02f;
-            modelRotation *= Matrix4x4.CreateRotationX(delta.Y);
+            modelRotation *= Matrix4x4.CreateRotationX(-delta.Y);
             modelRotation *= Matrix4x4.CreateRotationY(delta.X);
         } 
         else if (ImGui.IsItemHovered() && ImGui.IsMouseDown(ImGuiMouseButton.Right))
@@ -282,7 +283,7 @@ public static class MeshEditor
             Matrix4x4.Invert(modelRotation, out var inverted);
             
             modelOffset += Vector3.TransformNormal(-Vector3.UnitX*delta.X, inverted);
-            modelOffset += Vector3.TransformNormal(Vector3.UnitY*delta.Y, inverted);
+            modelOffset += Vector3.TransformNormal(-Vector3.UnitY*delta.Y, inverted);
         }
 
         if (ImGui.IsItemHovered())

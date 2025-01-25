@@ -68,6 +68,8 @@ public static class BitmapEditor
 
     public async static void Dispose()
     {
+        // Vulkan was complaining that the texture was being destroyed while the TextureView was still accessing it.
+        // Waiting until the end of the frame seems to have fixed it.
         var view = previewTextureView;
         var tex = previewTexture;
         var tcs = new TaskCompletionSource();
