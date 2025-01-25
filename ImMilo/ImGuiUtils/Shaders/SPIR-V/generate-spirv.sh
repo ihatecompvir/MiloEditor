@@ -11,7 +11,16 @@ convert_glsl() {
 
 convert_hlsl() {
   local filename=$(basename $1 .spv)
-  spirv-cross --hlsl --shader-model 40 --hlsl-auto-binding all --hlsl-enable-compat --flatten-ubo $1 --output "../HLSL/$filename.hlsl"
+  spirv-cross --hlsl --shader-model 50 --hlsl-enable-compat --hlsl-flatten-matrix-vertex-input-semantics $1 --output "../HLSL/$filename.hlsl"
+  # If you have dxc you can set DXC_PATH to its path and this script will compile the HLSL for you
+  if [[ -v DXC_PATH ]]; then
+    if [[ $filename == *"frag"* ]]; then
+      model="ps_5_0"
+    else
+      model="vs_5_0"
+    fi
+    $DXC_PATH -T $model "../HLSL/$filename.hlsl" -Fo "../HLSL/$filename.hlsl.bytes"
+  fi
 }
 
 convert_metal() {
@@ -29,3 +38,5 @@ convert_all imgui-frag.spv
 convert_all imgui-vertex.spv
 convert_all meshpreview-frag.spv
 convert_all meshpreview-vertex.spv
+
+
