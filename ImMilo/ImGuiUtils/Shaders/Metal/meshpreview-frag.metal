@@ -11,7 +11,7 @@ struct main0_out
 fragment main0_out main0()
 {
     main0_out out = {};
-    out.outputColor = float4(1.0);
+    out.outputColor = float4(1.0, 0.0, 0.0, 1.0);
     return out;
 }
 

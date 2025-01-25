@@ -30,7 +30,8 @@ convert_metal() {
 
 convert_all() {
   convert_glsl $1
-  convert_hlsl $1
+  # DirectX is not supported currently
+  #convert_hlsl $1
   convert_metal $1
 }
 
