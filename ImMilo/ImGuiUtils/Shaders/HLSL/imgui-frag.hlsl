@@ -1,4 +1,5 @@
-uniform sampler2D SPIRV_Cross_CombinedFontTextureFontSampler;
+Texture2D<float4> FontTexture : register(t0);
+SamplerState FontSampler : register(s1);
 
 static float4 outputColor;
 static float4 color;
@@ -12,12 +13,12 @@ struct SPIRV_Cross_Input
 
 struct SPIRV_Cross_Output
 {
-    float4 outputColor : COLOR0;
+    float4 outputColor : SV_Target0;
 };
 
 void frag_main()
 {
-    outputColor = color * tex2D(SPIRV_Cross_CombinedFontTextureFontSampler, texCoord);
+    outputColor = color * FontTexture.Sample(FontSampler, texCoord);
 }
 
 SPIRV_Cross_Output main(SPIRV_Cross_Input stage_input)
@@ -26,6 +27,6 @@ SPIRV_Cross_Output main(SPIRV_Cross_Input stage_input)
     texCoord = stage_input.texCoord;
     frag_main();
     SPIRV_Cross_Output stage_output;
-    stage_output.outputColor = float4(outputColor);
+    stage_output.outputColor = outputColor;
     return stage_output;
 }
