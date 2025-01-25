@@ -1,15 +1,31 @@
-struct PS_INPUT
+uniform sampler2D SPIRV_Cross_CombinedFontTextureFontSampler;
+
+static float4 outputColor;
+static float4 color;
+static float2 texCoord;
+
+struct SPIRV_Cross_Input
 {
-    float4 pos : SV_POSITION;
-    float4 col : COLOR0;
-    float2 uv  : TEXCOORD0;
+    float4 color : TEXCOORD0;
+    float2 texCoord : TEXCOORD1;
 };
 
-Texture2D FontTexture : register(t0);
-sampler FontSampler : register(s0);
-
-float4 FS(PS_INPUT input) : SV_Target
+struct SPIRV_Cross_Output
 {
-    float4 out_col = input.col * FontTexture.Sample(FontSampler, input.uv);
-    return out_col;
+    float4 outputColor : COLOR0;
+};
+
+void frag_main()
+{
+    outputColor = color * tex2D(SPIRV_Cross_CombinedFontTextureFontSampler, texCoord);
+}
+
+SPIRV_Cross_Output main(SPIRV_Cross_Input stage_input)
+{
+    color = stage_input.color;
+    texCoord = stage_input.texCoord;
+    frag_main();
+    SPIRV_Cross_Output stage_output;
+    stage_output.outputColor = float4(outputColor);
+    return stage_output;
 }

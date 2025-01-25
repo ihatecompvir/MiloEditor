@@ -1,14 +1,12 @@
-#version 330 core
+#version 330
+#ifdef GL_ARB_shading_language_420pack
+#extension GL_ARB_shading_language_420pack : require
+#endif
 
-//uniform sampler2D FontTexture;
-
-//in vec4 color;
-//in vec2 texCoord;
-
-out vec4 outputColor;
+layout(location = 0) out vec4 outputColor;
 
 void main()
 {
-    //outputColor = color * texture(FontTexture, texCoord);
-    outputColor = vec4(1.0f, 0.0f, 0.0f, 1.0f);
+    outputColor = vec4(1.0);
 }
+

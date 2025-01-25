@@ -1,18 +1,23 @@
 #include <metal_stdlib>
+#include <simd/simd.h>
+
 using namespace metal;
 
-struct PS_INPUT
+struct main0_out
 {
-    float4 pos [[ position ]];
-    float4 col;
-    float2 uv;
+    float4 outputColor [[color(0)]];
 };
 
-fragment float4 FS(
-    PS_INPUT input [[ stage_in ]],
-    texture2d<float> FontTexture [[ texture(0) ]],
-    sampler FontSampler [[ sampler(0) ]])
+struct main0_in
 {
-    float4 out_col = input.col * FontTexture.sample(FontSampler, input.uv);
-    return out_col;
+    float4 color [[user(locn0)]];
+    float2 texCoord [[user(locn1)]];
+};
+
+fragment main0_out main0(main0_in in [[stage_in]], texture2d<float> FontTexture [[texture(0)]], sampler FontSampler [[sampler(0)]])
+{
+    main0_out out = {};
+    out.outputColor = in.color * FontTexture.sample(FontSampler, in.texCoord);
+    return out;
 }
+

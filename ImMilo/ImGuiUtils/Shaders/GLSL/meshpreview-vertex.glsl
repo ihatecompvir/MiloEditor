@@ -1,21 +1,18 @@
-#version 330 core
+#version 330
+#ifdef GL_ARB_shading_language_420pack
+#extension GL_ARB_shading_language_420pack : require
+#endif
 
-uniform ProjectionMatrixBuffer
+layout(binding = 0, std140) uniform ProjectionMatrixBuffer
 {
     mat4 projection_matrix;
-    mat4 view_matrix;
-};
+    mat4 model_matrix;
+} _16;
 
-in vec3 in_position;
-//in vec2 in_texCoord;
-//in vec4 in_color;
-
-//out vec4 color;
-//out vec2 texCoord;
+layout(location = 0) in vec3 in_position;
 
 void main()
 {
-    gl_Position = projection_matrix * view_matrix * vec4(in_position, 1);
-    //color = in_color;
-	//texCoord = in_texCoord;
+    gl_Position = (_16.projection_matrix * _16.model_matrix) * vec4(in_position, 1.0);
 }
+
