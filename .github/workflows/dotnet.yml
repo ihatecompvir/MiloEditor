@@ -31,26 +31,10 @@ jobs:
       run: |
         Compress-Archive -Path publish/* -DestinationPath MiloEditor.zip
 
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Create Artifact
+      uses: actions/upload-artifact@v4
       with:
-        tag_name: continuous-${{ github.run_number }}
-        release_name: Continuous Build ${{ github.run_number }}
-        body: |
-          Build automatically generated from commit ${{ github.sha }}. This build may have bugs and/or corrupt Milo scenes - use with caution.
-        draft: false
-        prerelease: true # make it a pre-release
+        name: build-windows
+        path: MiloEditor.zip
+        compression-level: 0
 
-    - name: Upload Release Asset
-      id: upload-release-asset 
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: MiloEditor.zip
-        asset_name: MiloEditor.zip
-        asset_content_type: application/zip
