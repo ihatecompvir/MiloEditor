@@ -61,10 +61,11 @@ public static class InstrumentFixer
             for (int i = 0; i < translucentGrp.objects.Count; i++)
             {
                 var obj = translucentGrp.objects[i];
-                if (obj.value.EndsWith("_strings.mesh"))
+                if (obj.value.Contains("_string"))
                 {
                     translucentGrp.objects.Remove(obj);
                     translucentGrp.objects.Add(obj); // Reorders the strings to be last
+                    break;
                 }
             }
         }
