@@ -56,7 +56,17 @@ public static class InstrumentFixer
                 }
                 if (exists) continue;
                 translucentGrp.objects.Add(newMesh);
-            } 
+            }
+
+            for (int i = 0; i < translucentGrp.objects.Count; i++)
+            {
+                var obj = translucentGrp.objects[i];
+                if (obj.value.EndsWith("_strings.mesh"))
+                {
+                    translucentGrp.objects.Remove(obj);
+                    translucentGrp.objects.Add(obj); // Reorders the strings to be last
+                }
+            }
         }
 
         var compression = file.compressionType;
