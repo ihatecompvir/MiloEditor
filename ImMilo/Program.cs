@@ -124,12 +124,7 @@ public static partial class Program
             controller.Render(gd, _cl);
             _cl.End();
             gd.SubmitCommands(_cl);
-            if (_window.Visible)
-            {
-                // Vulkan validation layer caused an error when the window was minimized; checking if it's visible
-                // seems to have fixed this.
-                gd.SwapBuffers(gd.MainSwapchain);
-            }
+            gd.SwapBuffers(gd.MainSwapchain);
             foreach (var task in callAfterFrame)
             {
                 task.SetResult();
