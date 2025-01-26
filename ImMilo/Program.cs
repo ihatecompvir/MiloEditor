@@ -285,6 +285,11 @@ public static partial class Program
                     NavigateObject(Settings.Editing, false);
                 }
 
+                if (ImGui.MenuItem("Fix Instrument Folder"))
+                {
+                    InstrumentFixer.PromptInstrumentFix();
+                }
+
                 ImGui.EndMenu();
             }
 
