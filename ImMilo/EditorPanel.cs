@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Reflection;
 using System.Text;
+using IconFonts;
 using ImGuiNET;
 using ImMilo.ImGuiUtils;
 using MiloLib.Assets;
@@ -361,15 +362,54 @@ public class EditorPanel
                 {
                     var symbol = symbolsValue[i];
                     var stringValue = symbol.ToString();
-                    if (ImGui.Button("-##" + i, buttonSize))
+                    ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(ImGui.GetStyle().ItemSpacing.Y, ImGui.GetStyle().ItemSpacing.Y));
+                    if (ImGui.Button(FontAwesome5.Minus + "##" + i, buttonSize))
                     {
-                        symbolsValue.Remove(symbol);
-                        field.SetValue(parent, symbolsValue);
-                        i--;
-                        continue;
+                        var lambda = () =>
+                        {
+                            symbolsValue.Remove(symbol);
+                        };
+                        Program.defferedActions.Add(lambda);
                     }
-
                     ImGui.SameLine();
+                    if (i > 0)
+                    {
+                        if (ImGui.Button(FontAwesome5.ArrowUp + "##" + i, buttonSize))
+                        {
+                            var index = i;
+                            var lambda = () =>
+                            {
+                                symbolsValue.Remove(symbol);
+                                symbolsValue.Insert(index-1, symbol);
+                            };
+                            Program.defferedActions.Add(lambda);
+                        }
+                    }
+                    else
+                    {
+                        ImGui.InvisibleButton("disableup##" + i, buttonSize);
+                    }
+                    ImGui.SameLine();
+                    if (i < symbolsValue.Count-1)
+                    {
+                        if (ImGui.Button(FontAwesome5.ArrowDown + "##" + i, buttonSize))
+                        {
+                            var index = i;
+                            var lambda = () =>
+                            {
+                                symbolsValue.Remove(symbol);
+                                symbolsValue.Insert(index+1, symbol);
+                            };
+                            Program.defferedActions.Add(lambda);
+                        }
+                    }
+                    else
+                    {
+                        ImGui.InvisibleButton("disabledown##" + i, buttonSize);
+                    }
+                    ImGui.SameLine();
+                    ImGui.PopStyleVar();
+                    
                     if (ImGui.InputText("##" + i, ref stringValue, 128))
                     {
                         var symbolValue = new Symbol((uint)stringValue.Length, stringValue);
@@ -378,7 +418,7 @@ public class EditorPanel
                     }
                 }
 
-                if (ImGui.Button("+", buttonSize))
+                if (ImGui.Button(FontAwesome5.Plus, buttonSize))
                 {
                     symbolsValue.Add(new Symbol(0, ""));
                     field.SetValue(parent, symbolsValue);

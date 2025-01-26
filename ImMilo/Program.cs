@@ -42,6 +42,8 @@ public static partial class Program
     private static Settings.Theme currentTheme;
 
     public static List<TaskCompletionSource> callAfterFrame = new();
+    public static List<Action> defferedActions = new();
+    public static bool showDemoWindow = false;
 
     public static readonly FileFilter MiloFileFilter = new FileFilter("Milo Scenes",
     [
@@ -54,7 +56,7 @@ public static partial class Program
     static void Main(string[] args)
     {
         Settings.Load();
-        var graphicsDebug = true;
+        var graphicsDebug = false;
         var backend = VeldridStartup.GetPlatformDefaultBackend();
         if (Debugger.IsAttached && backend == GraphicsBackend.OpenGL)
         {
@@ -100,6 +102,36 @@ public static partial class Program
         }
 
         _window.DragDrop += evt => { OpenFile(evt.File); };
+        _window.KeyDown += evt =>
+        {
+            if ((evt.Modifiers & ModifierKeys.Control) > 0)
+            {
+                switch (evt.Key)
+                {
+                    case Key.O:
+                        PromptOpen();
+                        break;
+                    case Key.W:
+                        CloseAssetAndScene();
+                        break;
+                    case Key.S:
+                        if (currentScene is null)
+                        {
+                            break;
+                        }
+                        if ((evt.Modifiers & ModifierKeys.Shift) > 0)
+                        {
+                            PromptSaveCurrentScene();
+                        }
+                        else
+                        {
+                            SaveCurrentScene();
+                        }
+
+                        break;
+                }
+            }
+        };
 
         var stopwatch = Stopwatch.StartNew();
         // Main application loop
@@ -125,11 +157,18 @@ public static partial class Program
             _cl.End();
             gd.SubmitCommands(_cl);
             gd.SwapBuffers(gd.MainSwapchain);
+            
             foreach (var task in callAfterFrame)
             {
                 task.SetResult();
             }
             callAfterFrame.Clear();
+
+            foreach (var action in defferedActions)
+            {
+                action?.Invoke();
+            }
+            defferedActions.Clear();
         }
 
         Settings.Save();
@@ -198,7 +237,10 @@ public static partial class Program
         ImGui.End();
         ImGui.PopStyleVar();
         ImGui.PopStyleVar();
-        ImGui.ShowDemoWindow();
+        if (showDemoWindow)
+        {
+            ImGui.ShowDemoWindow();
+        }
     }
 
     public static void OpenErrorModal(Exception e, string message)
@@ -256,7 +298,7 @@ public static partial class Program
 
     static void MenuBar()
     {
-        if (ImGui.BeginMainMenuBar()) // TODO: keyboard shortcuts
+        if (ImGui.BeginMainMenuBar())
         {
             if (ImGui.BeginMenu("File"))
             {
@@ -297,6 +339,13 @@ public static partial class Program
             {
                 ImGui.MenuItem("Hide Field Descriptions", null, ref Settings.Editing.HideFieldDescriptions);
                 ImGui.MenuItem("Hide Nested Hmx::Object Fields", null, ref Settings.Editing.HideNestedHMXObjectFields);
+                if (ImGui.MenuItem("VSync", null, gd.MainSwapchain.SyncToVerticalBlank))
+                {
+                    gd.MainSwapchain.SyncToVerticalBlank = !gd.MainSwapchain.SyncToVerticalBlank;
+                }
+
+                ImGui.MenuItem("ImGui Demo Window", null, ref showDemoWindow);
+                
                 ImGui.EndMenu();
             }
 
