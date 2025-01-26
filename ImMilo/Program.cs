@@ -327,7 +327,14 @@ public static partial class Program
     {
         try
         {
-            currentScene.Save(null, null, 2064U, Endian.LittleEndian, currentScene.endian);
+            var compression = currentScene.compressionType;
+            if (currentScene.dirMeta.platform == DirectoryMeta.Platform.PS3)
+            {
+                // Apparently PS3 milos don't save correctly compressed, so we'll do this hack.
+                // TODO: Find a better way to do this.
+                compression = MiloFile.Type.Uncompressed;
+            }
+            currentScene.Save(null, compression, 2064U, Endian.LittleEndian, currentScene.endian);
         }
         catch (Exception e)
         {
