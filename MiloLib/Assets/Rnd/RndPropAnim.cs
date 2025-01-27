@@ -305,6 +305,21 @@ namespace MiloLib.Assets.Rnd
 
             base.Write(writer, false, parent, entry);
 
+            anim.Write(writer);
+
+            if (revision == 12)
+                writer.WriteBoolean(unkBool);
+
+            writer.WriteUInt32((uint)propKeys.Count);
+
+            foreach (PropKey propKey in propKeys)
+            {
+                propKey.Write(writer, revision);
+            }
+
+            if (revision >= 13)
+                writer.WriteBoolean(unkBool2);
+
             if (standalone)
                 writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
         }
