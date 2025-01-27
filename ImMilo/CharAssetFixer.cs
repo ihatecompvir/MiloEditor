@@ -29,7 +29,7 @@ public static class CharAssetFixer
         }
         
         var entry = DirectoryMeta.Entry.CreateDirtyAssetFromBytes("Group", "translucent.grp", templateBytes);
-        entry.dirty = false;
+        entry.dirty = false; // this is probably stupid, whatever!
         dir.entries.Add(entry);
 
         var groupObj = new RndGroup().Read(new EndianReader(new MemoryStream(templateBytes.ToArray()), Endian.BigEndian), false, dir, entry);
@@ -39,7 +39,12 @@ public static class CharAssetFixer
 
     public static void FixCharAsset(MiloFile file, string newPath)
     {
+        var objDir = (ObjectDir)file.dirMeta.directory;
         var dir = file.dirMeta;
+        if (objDir.inlineSubDirs.Count > 0)
+        {
+            dir = objDir.inlineSubDirs[0];
+        }
         if (dir.directory is Character character)
         {
             RndGroup? transGroup = null;
