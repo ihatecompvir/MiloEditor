@@ -327,11 +327,6 @@ public static partial class Program
                     NavigateObject(Settings.Editing, false);
                 }
 
-                if (ImGui.MenuItem("Fix Instrument Folder"))
-                {
-                    InstrumentFixer.PromptInstrumentFix();
-                }
-
                 ImGui.EndMenu();
             }
 
@@ -346,6 +341,20 @@ public static partial class Program
 
                 ImGui.MenuItem("ImGui Demo Window", null, ref showDemoWindow);
                 
+                ImGui.EndMenu();
+            }
+
+            if (ImGui.BeginMenu("Utilities"))
+            {
+                if (ImGui.MenuItem("Fix Instrument Folder"))
+                {
+                    CharAssetFixer.PromptInstrumentFix();
+                }
+
+                if (ImGui.MenuItem("Fix Character Asset Folder"))
+                {
+                    CharAssetFixer.PromptCharAssetFix();
+                }
                 ImGui.EndMenu();
             }
 

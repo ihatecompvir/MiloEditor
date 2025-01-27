@@ -44,5 +44,9 @@
         <EmbeddedResource Include="ImGuiUtils\Shaders\SPIR-V\imgui-vertex.spv" LogicalName="imgui-vertex.spv" />
         <EmbeddedResource Include="ImGuiUtils\Shaders\SPIR-V\imgui-frag.spv" LogicalName="imgui-frag.spv" />
     </ItemGroup>
+    
+    <ItemGroup>
+        <EmbeddedResource Include="translucentGroupTemplate" LogicalName="translucentGroupTemplate" />
+    </ItemGroup>
 
 </Project>
