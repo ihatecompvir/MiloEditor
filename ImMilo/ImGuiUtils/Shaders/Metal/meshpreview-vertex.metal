@@ -19,7 +19,7 @@ struct VS_in
     float3 in_position [[attribute(0)]];
 };
 
-vertex VS_out VS(VS_in in [[stage_in]], constant ProjectionMatrixBuffer& _16 [[buffer(0)]])
+vertex VS_out VS(VS_in in [[stage_in]], constant ProjectionMatrixBuffer& _16 [[buffer(1)]])
 {
     VS_out out = {};
     out.gl_Position = (_16.projection_matrix * _16.model_matrix) * float4(in.in_position, 1.0);

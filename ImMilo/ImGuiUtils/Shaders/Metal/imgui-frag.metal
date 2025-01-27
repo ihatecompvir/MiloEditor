@@ -14,7 +14,7 @@ struct FS_in
     float2 texCoord [[user(locn1)]];
 };
 
-fragment FS_out FS(FS_in in [[stage_in]], texture2d<float> FontTexture [[texture(0)]], sampler FontSampler [[sampler(0)]])
+fragment FS_out FS(FS_in in [[stage_in]], texture2d<float> FontTexture [[texture(0)]], sampler FontSampler [[sampler(1)]])
 {
     FS_out out = {};
     out.outputColor = in.color * FontTexture.sample(FontSampler, in.texCoord);
