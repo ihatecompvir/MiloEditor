@@ -3,14 +3,14 @@
 
 using namespace metal;
 
-struct main0_out
+struct FS_out
 {
     float4 outputColor [[color(0)]];
 };
 
-fragment main0_out main0()
+fragment FS_out FS()
 {
-    main0_out out = {};
+    FS_out out = {};
     out.outputColor = float4(1.0, 0.0, 0.0, 1.0);
     return out;
 }
