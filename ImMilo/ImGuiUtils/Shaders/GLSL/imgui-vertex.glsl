@@ -3,7 +3,7 @@
 #extension GL_ARB_shading_language_420pack : require
 #endif
 
-layout(binding = 1, std140) uniform ProjectionMatrixBuffer
+layout(binding = 0, std140) uniform ProjectionMatrixBuffer
 {
     mat4 projection_matrix;
 } _16;

@@ -37,6 +37,12 @@ convert_metal() {
   fi
   echo "Compiling $filename, entry point: $2, stage: $stage"
   spirv-cross --msl $1 --rename-entry-point "main" $2 $stage --msl-version 302000 --msl-decoration-binding --output "../Metal/$filename.metal"
+  
+  # I have to do a manual patch to the metal files, so do it before compilation
+  if [[ -f "../Metal/$filename.metal.patch" ]]; then
+    patch "../Metal/$filename.metal" "../Metal/$filename.metal.patch"
+  fi
+  
   # If you have the Metal Developer Tools you can set METAL_TOOLS to the bin/ directory and it will compile the metallibs for you
   if [[ -v METAL_TOOLS ]]; then
     METAL_EXEC="$METAL_TOOLS/metal.exe"
