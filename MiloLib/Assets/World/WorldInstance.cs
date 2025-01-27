@@ -80,33 +80,41 @@ namespace MiloLib.Assets.World
 
             public void Write(EndianWriter writer, DirectoryMeta parent, DirectoryMeta.Entry? entry, uint revision)
             {
-                writer.WriteBlock(new byte[13]);
-
-                anim.Write(writer);
-                draw.Write(writer, false, true);
-                trans.Write(writer, false, true);
-
-                Symbol.Write(writer, environ);
-                Symbol.Write(writer, unkSym);
-
-                writer.WriteUInt32(stringTableCount);
-                writer.WriteUInt32(stringTableSize);
-
-                writer.WriteUInt32((uint)perObjs.Count);
-
-                for (int i = 0; i < objectCount; i++)
+                if (entry.isProxy)
                 {
-                    Symbol.Write(writer, perObjs[i].type);
-                    Symbol.Write(writer, perObjs[i].name);
-                }
+                    writer.WriteBlock(new byte[13]);
 
-                for (int i = 0; i < objectCount; i++)
-                {
-                    switch (perObjs[i].type.value)
+                    anim.Write(writer);
+                    draw.Write(writer, false, true);
+                    trans.Write(writer, false, true);
+
+                    Symbol.Write(writer, environ);
+                    Symbol.Write(writer, unkSym);
+                    if (revision > 1)
                     {
-                        case "Mesh":
-                            ((RndMesh)perObjs[i].obj).Write(writer, false, parent, perObjs[i]);
-                            break;
+                        if (revision > 2)
+                        {
+                            writer.WriteUInt32(stringTableCount);
+                            writer.WriteUInt32(stringTableSize);
+                        }
+
+                        writer.WriteUInt32((uint)perObjs.Count);
+
+                        for (int i = 0; i < objectCount; i++)
+                        {
+                            Symbol.Write(writer, perObjs[i].type);
+                            Symbol.Write(writer, perObjs[i].name);
+                        }
+
+                        for (int i = 0; i < objectCount; i++)
+                        {
+                            switch (perObjs[i].type.value)
+                            {
+                                case "Mesh":
+                                    ((RndMesh)perObjs[i].obj).Write(writer, false, parent, perObjs[i]);
+                                    break;
+                            }
+                        }
                     }
                 }
 

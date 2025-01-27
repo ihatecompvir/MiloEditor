@@ -10,12 +10,14 @@ namespace MiloLib.Classes
         public float x;
         public float y;
         public float z;
+        public float w;
 
         public Vector4()
         {
             this.x = 0.0f;
             this.y = 0.0f;
             this.z = 0.0f;
+            this.w = 0.0f;
         }
 
         public Vector4(float x, float y, float z)
@@ -23,6 +25,7 @@ namespace MiloLib.Classes
             this.x = x;
             this.y = y;
             this.z = z;
+            this.w = 0.0f;
         }
 
         /// <summary>
@@ -35,6 +38,7 @@ namespace MiloLib.Classes
             x = reader.ReadFloat();
             y = reader.ReadFloat();
             z = reader.ReadFloat();
+            w = reader.ReadFloat();
             return this;
         }
 
@@ -47,11 +51,12 @@ namespace MiloLib.Classes
             writer.WriteFloat(x);
             writer.WriteFloat(y);
             writer.WriteFloat(z);
+            writer.WriteFloat(w);
         }
 
         public override string ToString()
         {
-            return $"({x}, {y})";
+            return $"({x}, {y}, {z}, {w})";
         }
     }
 }

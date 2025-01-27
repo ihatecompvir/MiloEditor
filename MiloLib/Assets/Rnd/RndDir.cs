@@ -110,7 +110,7 @@ namespace MiloLib.Assets.Rnd
             else
             {
                 Symbol.Write(writer, environ);
-                if (revision >= 10)
+                if (revision > 2 && revision != 9)
                     Symbol.Write(writer, testEvent);
             }
 

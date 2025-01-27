@@ -122,7 +122,7 @@ namespace MiloLib.Assets.Rnd
                     newVert.y = reader.ReadFloat();
                     newVert.z = reader.ReadFloat();
 
-                    if (meshVersion == 34 || meshVersion == 33)
+                    if (meshVersion == 34)
                         newVert.w = reader.ReadFloat();
 
 
@@ -180,7 +180,7 @@ namespace MiloLib.Assets.Rnd
                         newVert.ny = reader.ReadFloat();
                         newVert.nz = reader.ReadFloat();
 
-                        if (meshVersion == 34 || meshVersion == 33)
+                        if (meshVersion == 34)
                             newVert.nw = reader.ReadFloat();
 
                         if (meshVersion >= 38)

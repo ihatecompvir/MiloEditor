@@ -45,10 +45,10 @@ namespace MiloLib.Assets.UI
         public bool canEndWorld;
 
         [Name("Test Event"), MinVersion(2), MaxVersion(2)]
-        public Symbol testEvent;
+        public Symbol testEvent = new(0, "");
 
         [MinVersion(2)]
-        public Symbol unknownSymbol;
+        public Symbol unknownSymbol = new(0, "");
 
         public PanelDir(ushort revision, ushort altRevision = 0) : base(revision, altRevision)
         {
@@ -80,6 +80,10 @@ namespace MiloLib.Assets.UI
             if (revision == 2)
             {
                 testEvent = Symbol.Read(reader);
+                if (standalone)
+                {
+                    if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");
+                }
                 return this;
             }
             else if (revision <= 7)

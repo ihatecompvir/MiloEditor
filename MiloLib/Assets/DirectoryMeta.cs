@@ -1008,6 +1008,14 @@ namespace MiloLib.Assets
                     Debug.WriteLine("Reading entry PollAnim " + entry.name.value);
                     entry.obj = new RndPollAnim().Read(reader, true, this, entry);
                     break;
+                case "PostProc":
+                    Debug.WriteLine("Reading entry PostProc " + entry.name.value);
+                    entry.obj = new RndPostProc().Read(reader, true, this, entry);
+                    break;
+                case "PropAnim":
+                    Debug.WriteLine("Reading entry PropAnim " + entry.name.value);
+                    entry.obj = new RndPropAnim().Read(reader, true, this, entry);
+                    break;
                 case "RandomGroupSeq":
                     Debug.WriteLine("Reading entry RandomGroupSeq " + entry.name.value);
                     entry.obj = new RandomGroupSeq().Read(reader, true, this, entry);
@@ -1427,6 +1435,12 @@ namespace MiloLib.Assets
                     break;
                 case "PollAnim":
                     ((RndPollAnim)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "PostProc":
+                    ((RndPostProc)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "PropAnim":
+                    ((RndPropAnim)entry.obj).Write(writer, true, this, entry);
                     break;
                 case "RandomGroupSeq":
                     ((RandomGroupSeq)entry.obj).Write(writer, true, this, entry);
