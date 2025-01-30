@@ -35,6 +35,37 @@ namespace MiloLib.Assets
             Undef = 0x25
         }
 
+        public struct DTBArrayParent
+        {
+            private ushort childCount;
+            public uint id;
+
+            public List<DTBNode> children;
+
+            public void Read(EndianReader reader)
+            {
+                childCount = reader.ReadUInt16();
+                id = reader.ReadUInt32();
+                children = new List<DTBNode>(childCount);
+                for (int i = 0; i < childCount; i++)
+                {
+                    DTBNode node = new DTBNode();
+                    node.Read(reader);
+                    children.Add(node);
+                }
+            }
+
+            public void Write(EndianWriter writer)
+            {
+                writer.WriteUInt16((ushort)children.Count);
+                writer.WriteUInt32(id);
+                foreach (DTBNode node in children)
+                {
+                    node.Write(writer);
+                }
+            }
+        }
+
         public struct DTBNode
         {
             public NodeType type;
@@ -70,7 +101,7 @@ namespace MiloLib.Assets
                     case NodeType.Array:
                     case NodeType.Command:
                     case NodeType.Property:
-                        DTBParent parent = new DTBParent();
+                        DTBArrayParent parent = new DTBArrayParent();
                         parent.Read(reader);
                         value = parent;
                         break;
@@ -109,7 +140,7 @@ namespace MiloLib.Assets
                     case NodeType.Array:
                     case NodeType.Command:
                     case NodeType.Property:
-                        ((DTBParent)value).Write(writer);
+                        ((DTBArrayParent)value).Write(writer);
                         break;
                 }
             }

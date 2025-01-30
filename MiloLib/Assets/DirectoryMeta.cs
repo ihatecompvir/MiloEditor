@@ -33,6 +33,26 @@ namespace MiloLib.Assets
         }
         public class Entry
         {
+            public class EntryOperationEventArgs : EventArgs
+            {
+                public EndianReader? Reader { get; }
+                public EndianWriter? Writer { get; }
+                public Entry Entry { get; }
+
+
+                public EntryOperationEventArgs(EndianReader reader, Entry entry)
+                {
+                    Reader = reader;
+                    Entry = entry;
+                }
+                public EntryOperationEventArgs(EndianWriter writer, Entry entry)
+                {
+                    Writer = writer;
+                    Entry = entry;
+                }
+
+            }
+
             /// <summary>
             /// The type of the object, i.e. "Object", "RndDir", etc.
             /// </summary>
@@ -91,6 +111,32 @@ namespace MiloLib.Assets
                 entry.objBytes = bytes;
                 entry.dirty = true;
                 return entry;
+            }
+
+            public event EventHandler<EntryOperationEventArgs> BeforeRead;
+            public event EventHandler<EntryOperationEventArgs> AfterRead;
+            public event EventHandler<EntryOperationEventArgs> BeforeWrite;
+            public event EventHandler<EntryOperationEventArgs> AfterWrite;
+
+
+            internal void OnBeforeRead(EndianReader reader)
+            {
+                BeforeRead?.Invoke(this, new EntryOperationEventArgs(reader, this));
+            }
+
+            internal void OnAfterRead(EndianReader reader)
+            {
+                AfterRead?.Invoke(this, new EntryOperationEventArgs(reader, this));
+            }
+
+            internal void OnBeforeWrite(EndianWriter writer)
+            {
+                BeforeWrite?.Invoke(this, new EntryOperationEventArgs(writer, this));
+            }
+
+            internal void OnAfterWrite(EndianWriter writer)
+            {
+                AfterWrite?.Invoke(this, new EntryOperationEventArgs(writer, this));
             }
         }
 
@@ -516,6 +562,8 @@ namespace MiloLib.Assets
 
         public void ReadEntry(EndianReader reader, DirectoryMeta.Entry entry)
         {
+            entry.OnBeforeRead(reader);
+
             switch (entry.type.value)
             {
                 //////////
@@ -1132,11 +1180,16 @@ namespace MiloLib.Assets
                     Debug.WriteLine("Found ending of file, new position: " + reader.BaseStream.Position);
                     break;
             }
+
+            entry.OnAfterRead(reader);
         }
 
         public void WriteEntry(EndianWriter writer, DirectoryMeta.Entry entry)
         {
             // handle dirty assets
+
+            entry.OnBeforeWrite(writer);
+
             if (entry.dirty)
             {
                 writer.WriteBlock(entry.objBytes.ToArray());
@@ -1523,6 +1576,8 @@ namespace MiloLib.Assets
                     writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
                     break;
             }
+
+            entry.OnAfterWrite(writer);
         }
 
         public static DirectoryMeta New(string type, string name, uint sceneRevision, ushort rootDirRevision)
