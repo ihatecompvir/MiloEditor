@@ -161,6 +161,106 @@ public partial class Program
             }
         }
     }
+    
+
+    private class NewMiloPrompt : Prompt<MiloFile?>
+    {
+        
+        // directory type name, and then a tuple of the directory revision name and the revision number
+        private static readonly List<(string, List<(string, uint)>)> DirectoryTypes = new()
+        {
+            ("ObjectDir", [("GH2", 16), ("GH2 360", 17), ("TBRB / GDRB", 22), ("RB3 / DC1", 27), ("DC2", 28)]),
+            ("RndDir", [("GH2", 8), ("GH2 360", 9), ("TBRB / GDRB / RB3 / DC1 / DC2", 10)]),
+            ("Character", [("GH2", 9), ("GH2 360", 10), ("TBRB / GDRB", 15), ("RB3 / DC1 / DC2", 18)]),
+            ("PanelDir", [("GH2 / GH2 360", 2), ("TBRB / GDRB", 7), ("RB3 / DC1", 8)])
+        };
+        private static readonly Dictionary<string, uint> MiloSceneRevisions = new()
+        {
+            { "FreQuency", 6 },
+            { "GH1", 10 },
+            { "GH2 PS2", 24 },
+            { "GH2 360 / RB1 / L:RB / GDRB / TBRB", 25 },
+            { "RB3", 28 },
+            { "DC1", 31 },
+            { "DC2 / RBB / DC3", 32 },
+        };
+
+        private string[] dirTypeNames;
+        private string[] revisionNames;
+
+        private int curDirTypeIndex = 0;
+        private int curDirRevisionIndex = 0;
+        private int curSceneRevisionIndex = 0;
+
+        private string newName = "";
+        
+        public NewMiloPrompt()
+        {
+            Title = "New Milo Scene";
+            
+            var tmpTypeNames = new List<string>();
+            foreach (var dirType in DirectoryTypes)
+            {
+                tmpTypeNames.Add(dirType.Item1);
+            }
+            dirTypeNames = tmpTypeNames.ToArray();
+            
+            var tmpRevisionNames = new List<string>();
+            foreach (var revision in MiloSceneRevisions)
+            {
+                tmpRevisionNames.Add($"{revision.Key} ({revision.Value})");
+            }
+            revisionNames = tmpRevisionNames.ToArray();
+        }
+        
+        public override void Show()
+        {
+            if (BeginModal())
+            {
+                ImGui.Combo("Scene Version", ref curSceneRevisionIndex, revisionNames, revisionNames.Length);
+                
+                if (MiloSceneRevisions.Values.ToArray()[curSceneRevisionIndex] <= 10)
+                {
+                    curDirTypeIndex = 0;
+                    ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 0.5f);
+                    ImGui.LabelText("Directory Type", "ObjectDir");
+                    ImGui.PopStyleVar();
+                }
+                else
+                {
+                    if (ImGui.Combo("Directory Type", ref curDirTypeIndex, dirTypeNames, dirTypeNames.Length))
+                    {
+                        curDirRevisionIndex = 0;
+                    }
+                }
+
+                string[] dirRevisionNames = new string[DirectoryTypes[curDirTypeIndex].Item2.Count];
+                for (int i = 0; i < dirRevisionNames.Length; i++)
+                {
+                    var rev = DirectoryTypes[curDirTypeIndex].Item2[i];
+                    dirRevisionNames[i] = $"{rev.Item1} ({rev.Item2})";
+                }
+                
+                ImGui.Combo("Directory Revision", ref curDirRevisionIndex, dirRevisionNames, dirRevisionNames.Length);
+
+                ImGui.InputText("Directory Name", ref newName, 128);
+                
+                ImGui.Separator();
+                if (ImGui.Button("OK"))
+                {
+                    var meta = DirectoryMeta.New(DirectoryTypes[curDirTypeIndex].Item1, newName, MiloSceneRevisions.Values.ToArray()[curSceneRevisionIndex], (ushort)DirectoryTypes[curDirTypeIndex].Item2[curDirRevisionIndex].Item2);
+                    Complete(new MiloFile(meta));
+                }
+                ImGui.SameLine();
+                if (ImGui.Button("Cancel"))
+                {
+                    Complete(null);
+                }
+                
+                ImGui.EndPopup();
+            }
+        }
+    }
 
     private class TextPrompt : Prompt<string?>
     {
@@ -218,6 +318,15 @@ public partial class Program
     public static async void ShowNotifyPrompt(string message, string title)
     {
         await ShowGenericPrompt(new NotifyPrompt(message, title));
+    }
+    
+    /// <summary>
+    /// Shows a new file prompt, creating a MiloFile to be loaded.
+    /// </summary>
+    /// <returns>A Milo scene according to the parameters specified by the user, or null if canceled</returns>
+    public static async Task<MiloFile?> ShowNewFilePrompt()
+    {
+        return await ShowGenericPrompt(new NewMiloPrompt());
     }
 
     /// <summary>

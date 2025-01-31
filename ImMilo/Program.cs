@@ -108,6 +108,9 @@ public static partial class Program
             {
                 switch (evt.Key)
                 {
+                    case Key.N:
+                        PromptNew();
+                        break;
                     case Key.O:
                         PromptOpen();
                         break;
@@ -296,13 +299,28 @@ public static partial class Program
         }
     }
 
+    static async void PromptNew()
+    {
+        var file = await ShowNewFilePrompt();
+        if (file != null)
+        {
+            CloseAssetAndScene();
+            currentScene = file;
+        }
+    }
+
     static void MenuBar()
     {
         if (ImGui.BeginMainMenuBar())
         {
             if (ImGui.BeginMenu("File"))
             {
-                if (ImGui.MenuItem("Open", "Ctrl+O"))
+                if (ImGui.MenuItem("New...", "Ctrl+N"))
+                {
+                    PromptNew();
+                }
+                
+                if (ImGui.MenuItem("Open...", "Ctrl+O"))
                 {
                     PromptOpen();
                 }
