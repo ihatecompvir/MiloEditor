@@ -31,8 +31,10 @@
             dirTypeLabel = new Label();
             compressionTypeDropdown = new ComboBox();
             continueButton = new Button();
-            label2 = new Label();
+            bodyEndianLabel = new Label();
             bodyEndianDropdown = new ComboBox();
+            platformDropdown = new ComboBox();
+            platformLabel = new Label();
             SuspendLayout();
             // 
             // dirTypeLabel
@@ -57,7 +59,7 @@
             // continueButton
             // 
             continueButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            continueButton.Location = new Point(12, 66);
+            continueButton.Location = new Point(12, 100);
             continueButton.Name = "continueButton";
             continueButton.Size = new Size(308, 23);
             continueButton.TabIndex = 6;
@@ -65,14 +67,14 @@
             continueButton.UseVisualStyleBackColor = true;
             continueButton.Click += button1_Click;
             // 
-            // label2
+            // bodyEndianLabel
             // 
-            label2.AutoSize = true;
-            label2.Location = new Point(12, 38);
-            label2.Name = "label2";
-            label2.Size = new Size(73, 15);
-            label2.TabIndex = 7;
-            label2.Text = "Body Endian";
+            bodyEndianLabel.AutoSize = true;
+            bodyEndianLabel.Location = new Point(12, 38);
+            bodyEndianLabel.Name = "bodyEndianLabel";
+            bodyEndianLabel.Size = new Size(73, 15);
+            bodyEndianLabel.TabIndex = 7;
+            bodyEndianLabel.Text = "Body Endian";
             // 
             // bodyEndianDropdown
             // 
@@ -84,13 +86,34 @@
             bodyEndianDropdown.TabIndex = 8;
             bodyEndianDropdown.SelectedIndexChanged += bodyEndianDropdown_SelectedIndexChanged;
             // 
+            // platformDropdown
+            // 
+            platformDropdown.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            platformDropdown.FormattingEnabled = true;
+            platformDropdown.Location = new Point(126, 64);
+            platformDropdown.Name = "platformDropdown";
+            platformDropdown.Size = new Size(194, 23);
+            platformDropdown.TabIndex = 10;
+            platformDropdown.SelectedIndexChanged += comboBox1_SelectedIndexChanged;
+            // 
+            // platformLabel
+            // 
+            platformLabel.AutoSize = true;
+            platformLabel.Location = new Point(12, 67);
+            platformLabel.Name = "platformLabel";
+            platformLabel.Size = new Size(53, 15);
+            platformLabel.TabIndex = 9;
+            platformLabel.Text = "Platform";
+            // 
             // MiloSaveOptionsForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(332, 101);
+            ClientSize = new Size(332, 135);
+            Controls.Add(platformDropdown);
+            Controls.Add(platformLabel);
             Controls.Add(bodyEndianDropdown);
-            Controls.Add(label2);
+            Controls.Add(bodyEndianLabel);
             Controls.Add(continueButton);
             Controls.Add(compressionTypeDropdown);
             Controls.Add(dirTypeLabel);
@@ -109,7 +132,9 @@
         private Label dirTypeLabel;
         private ComboBox compressionTypeDropdown;
         private Button continueButton;
-        private Label label2;
+        private Label bodyEndianLabel;
         private ComboBox bodyEndianDropdown;
+        private ComboBox platformDropdown;
+        private Label platformLabel;
     }
 }

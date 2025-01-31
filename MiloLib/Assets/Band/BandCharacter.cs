@@ -7,11 +7,12 @@ namespace MiloLib.Assets.Band
     [Name("BandCharacter"), Description("Band Character")]
     public class BandCharacter : Character
     {
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
 
         public int playFlags;
 
+        [Name("Tempo"), Description("song tempo")]
         public Symbol tempo = new(0, "");
 
         public uint unkInt1;
@@ -19,12 +20,15 @@ namespace MiloLib.Assets.Band
         public Symbol unkSymbol = new(0, "");
         public Symbol unkSymbol2 = new(0, "");
 
+        [Name("Drum Venue"), Description("venue type for drums"), MinVersion(7)]
         public Symbol drumVenue = new(0, "");
 
         public bool unknownBool;
 
-        public Symbol mInstrumentType = new(0, "");
+        [Name("Instrument Type"), Description("character's current instrument"), MinVersion(8)]
+        public Symbol instrumentType = new(0, "");
 
+        [Name("Test Prefab"), Description("prefab to copy from or to"), MinVersion(2)]
         public BandCharDesc testPrefab = new();
 
         public BandCharacter(ushort revision, ushort altRevision = 0) : base(revision, altRevision)
@@ -83,7 +87,7 @@ namespace MiloLib.Assets.Band
 
             if (revision > 7)
             {
-                mInstrumentType = Symbol.Read(reader);
+                instrumentType = Symbol.Read(reader);
             }
 
             if (standalone)
@@ -139,7 +143,7 @@ namespace MiloLib.Assets.Band
 
             if (revision > 7)
             {
-                Symbol.Write(writer, mInstrumentType);
+                Symbol.Write(writer, instrumentType);
             }
 
             if (standalone)

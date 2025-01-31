@@ -8,8 +8,8 @@ namespace MiloLib.Assets.UI
     [Name("UILabelDir"), Description("Top-level resource object for UILabels")]
     public class UILabelDir : RndDir
     {
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
 
         [Name("Text Object")]
         public Symbol textObject = new(0, "");

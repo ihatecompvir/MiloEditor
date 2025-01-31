@@ -101,8 +101,8 @@ namespace MiloLib.Assets.Char
         }
 
 
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
 
         private uint hidesCount;
         public List<Hide> hides = new();

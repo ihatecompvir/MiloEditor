@@ -7,8 +7,8 @@ namespace MiloLib.Assets
     [Name("UnisonIcon"), Description("player feedback in a unison phrase")]
     public class UnisonIcon : RndDir
     {
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
 
         public UnisonIcon(ushort revision, ushort altRevision = 0) : base(revision, altRevision)
         {

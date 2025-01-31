@@ -264,8 +264,14 @@ namespace MiloLib.Assets
                                     reader.ReadBoolean();
                                 }
                             }
-                            inlinedSubDir.Read(reader);
-                            inlineSubDirs.Add(inlinedSubDir);
+                            if (referenceTypes[0] == ReferenceType.kInlineCachedShared && referenceTypesAlt[0] == ReferenceType.kInlineCached)
+                            {
+                            }
+                            else
+                            {
+                                inlinedSubDir.Read(reader);
+                                inlineSubDirs.Add(inlinedSubDir);
+                            }
                         }
 
                     }
@@ -307,12 +313,7 @@ namespace MiloLib.Assets
             }
             else
             {
-                objFields.hasTree = reader.ReadBoolean();
-
-                if (objFields.hasTree)
-                {
-                    objFields.root.Read(reader);
-                }
+                objFields.root.Read(reader);
 
                 objFields.note = Symbol.Read(reader);
             }
@@ -465,17 +466,9 @@ namespace MiloLib.Assets
             }
             else
             {
-                writer.WriteBoolean(objFields.hasTree);
+                objFields.root.Write(writer);
 
-                if (objFields.hasTree)
-                {
-                    objFields.root.Write(writer);
-                }
-
-                if (revision >= 25)
-                {
-                    Symbol.Write(writer, objFields.note);
-                }
+                Symbol.Write(writer, objFields.note);
             }
 
             if (standalone)

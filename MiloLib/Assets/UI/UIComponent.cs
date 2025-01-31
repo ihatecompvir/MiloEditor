@@ -7,8 +7,8 @@ namespace MiloLib.Assets.UI
     [Name("UIComponent"), Description("Base class of all UI components, defines navigation and component state")]
     public class UIComponent : Object
     {
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
 
         public RndTrans trans = new();
         public RndDrawable draw = new();

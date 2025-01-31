@@ -7,8 +7,8 @@ namespace MiloLib.Assets.Ham
     [Name("SkeletonClip"), Description("An animated clip of a skeleton playable in milo")]
     public class SkeletonClip : Object
     {
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
 
         public RndAnimatable anim = new();
 

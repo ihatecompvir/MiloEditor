@@ -4,7 +4,7 @@ using MiloLib.Utils;
 
 namespace MiloLib.Assets
 {
-    [Name("StreakMeterDir"), Description("")]
+    [Name("StreakMeterDir"), Description("streak meter for band tracks")]
     public class StreakMeterDir : RndDir
     {
         private ushort altRevision;

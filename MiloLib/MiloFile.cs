@@ -5,6 +5,7 @@ using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 using ICSharpCode.SharpZipLib.GZip;
 using System.IO;
 using System.Reflection.PortableExecutable;
+using System.Linq;
 using MiloLib.Classes;
 
 namespace MiloLib
@@ -28,40 +29,33 @@ namespace MiloLib
             /// <summary>
             /// no compression, root dir starts at startOffset
             /// </summary>
-            [Name("Uncompressed")]
             Uncompressed = 0xCABEDEAF,
 
             /// <summary>
             /// zlib compressed, without uncompressed size before the start of blocks
             /// </summary>
-            [Name("ZLib (AntiGrav to GDRB)")]
             CompressedZlib = 0xCBBEDEAF,
 
             /// <summary>
             /// normal gzip
             /// </summary>
-            [Name("GZip (Amplitude and earlier)")]
             CompressedGzip = 0xCCBEDEAF,
 
             /// <summary>
             /// zlib compressed, with uncompressed size before the start of blocks
             /// </summary>
-            [Name("ZLib Alternate (RB3 and later)")]
             CompressedZlibAlt = 0xCDBEDEAF,
         }
 
         /// <summary>
         /// The path to the Milo file.
         /// </summary>
-        public string? filePath
-        {
-            get;
-        }
+        private string? filePath;
 
         /// <summary>
         /// The Milo's compression type.
         /// </summary>
-        public Type compressionType { get; }
+        private Type compressionType;
 
         /// <summary>
         /// The offset to the start of the root asset.

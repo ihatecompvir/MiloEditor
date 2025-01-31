@@ -7,8 +7,8 @@ namespace MiloLib.Assets.Synth
     [Name("GroupSeq"), Description("A sequence which plays other sequences.  Abstract base class.")]
     public class GroupSeq : Object
     {
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
 
         [Name("Sequence"), Description("The sequence to play"), MinVersion(2)]
         public Sfx.Sequence seq = new();

@@ -45,6 +45,15 @@ class Program
                 RenameCommand(args[1], args[2], args[3], renameDirectory);
                 break;
 
+            case "uncompress":
+                if (args.Length < 2)
+                {
+                    Console.WriteLine("Usage: MiloUtil uncompress <filePath>");
+                    return;
+                }
+                UncompressCommand(args[1]);
+                break;
+
             case "extract":
                 if (args.Length < 3)
                 {
@@ -153,6 +162,22 @@ class Program
             Console.WriteLine($"Located in directory: {directory}");
         }
         // Logic for renaming an asset
+    }
+
+    static void UncompressCommand(string filePath)
+    {
+        MiloFile compressedFile = new MiloFile(filePath);
+
+        // try to save, catch any errors
+        try
+        {
+            compressedFile.Save(filePath, MiloFile.Type.Uncompressed);
+            Console.WriteLine("Milo at " + filePath + " is now uncompressed!");
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine("Error saving uncompressed Milo file: " + e.Message);
+        }
     }
 
     static void ExtractCommand(string filePath, string asset, string outputPath = null, string directory = null)
@@ -277,6 +302,7 @@ class Program
         Console.WriteLine("  add <filePath> <asset> [--directory <directory>]  Adds a new asset into a Milo scene");
         Console.WriteLine("  rename <filePath> <oldName> <newName> [--directory <directory>]  Renames an asset in a Milo scene");
         Console.WriteLine("  extract <filePath> <asset> <outputPath> [--directory <directory>]  Extracts an asset from a Milo scene");
+        Console.WriteLine("  uncompress <filePath>          Opens a Milo scene and resaves it as uncompressed.");
         Console.WriteLine();
         Console.WriteLine("Options:");
         Console.WriteLine("  --directory <directory>        Specify the directory inside the Milo scene (default: the root directory)");

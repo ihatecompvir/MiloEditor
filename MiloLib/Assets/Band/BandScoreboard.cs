@@ -8,8 +8,8 @@ namespace MiloLib.Assets.Band
     [Name("BandScoreboard"), Description("Scoreboard HUD element including stars")]
     public class BandScoreboard : RndDir
     {
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
 
         [Name("Star Display"), Description("Star display proxy object.")]
         public Symbol starDisplay = new(0, "");

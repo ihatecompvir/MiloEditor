@@ -3,7 +3,7 @@ using MiloLib.Utils;
 
 namespace MiloLib.Assets.Band
 {
-    [Name("BandConfiguration"), Description("")]
+    [Name("BandConfiguration"), Description("Band Configuration, sits in each venue and stores xfms per target per play mode")]
     public class BandConfiguration : Object
     {
         private Dictionary<Game.MiloGame, uint> gameRevisions = new Dictionary<Game.MiloGame, uint>

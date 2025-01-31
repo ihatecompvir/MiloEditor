@@ -17,8 +17,8 @@ namespace MiloLib.Assets.Band
             { Game.MiloGame.RockBand3, 3 },
         };
 
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
 
         [Name("Part 2 Instrument"), Description("Who should sing the vocal part2?")]
         public Symbol part2Instrument = new(0, "");

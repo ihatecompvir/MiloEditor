@@ -35,6 +35,37 @@ namespace MiloLib.Assets
             Undef = 0x25
         }
 
+        public struct DTBArrayParent
+        {
+            private ushort childCount;
+            public uint id;
+
+            public List<DTBNode> children;
+
+            public void Read(EndianReader reader)
+            {
+                childCount = reader.ReadUInt16();
+                id = reader.ReadUInt32();
+                children = new List<DTBNode>(childCount);
+                for (int i = 0; i < childCount; i++)
+                {
+                    DTBNode node = new DTBNode();
+                    node.Read(reader);
+                    children.Add(node);
+                }
+            }
+
+            public void Write(EndianWriter writer)
+            {
+                writer.WriteUInt16((ushort)children.Count);
+                writer.WriteUInt32(id);
+                foreach (DTBNode node in children)
+                {
+                    node.Write(writer);
+                }
+            }
+        }
+
         public struct DTBNode
         {
             public NodeType type;
@@ -70,7 +101,7 @@ namespace MiloLib.Assets
                     case NodeType.Array:
                     case NodeType.Command:
                     case NodeType.Property:
-                        DTBParent parent = new DTBParent();
+                        DTBArrayParent parent = new DTBArrayParent();
                         parent.Read(reader);
                         value = parent;
                         break;
@@ -109,7 +140,7 @@ namespace MiloLib.Assets
                     case NodeType.Array:
                     case NodeType.Command:
                     case NodeType.Property:
-                        ((DTBParent)value).Write(writer);
+                        ((DTBArrayParent)value).Write(writer);
                         break;
                 }
             }
@@ -121,12 +152,17 @@ namespace MiloLib.Assets
 
         public struct DTBParent
         {
+            [Name("Has Any TypeProps"), Description("Whether or not the object contains any TypeProps.")]
+            public bool hasTree;
+
             private ushort childCount;
             public uint id;
             public List<DTBNode> children;
 
             public void Read(EndianReader reader)
             {
+                hasTree = reader.ReadBoolean();
+                if (!hasTree) return;
                 childCount = reader.ReadUInt16();
                 id = reader.ReadUInt32();
                 children = new List<DTBNode>(childCount);
@@ -139,6 +175,8 @@ namespace MiloLib.Assets
             }
             public void Write(EndianWriter writer)
             {
+                writer.WriteBoolean(hasTree);
+                if (!hasTree) return;
                 writer.WriteUInt16((ushort)children.Count);
                 writer.WriteUInt32(id);
                 foreach (DTBNode node in children)
@@ -186,9 +224,6 @@ namespace MiloLib.Assets
         [Name("Type"), Description("The subtype of the object. Not the same as the asset type.")]
         public Symbol type = new Symbol(0, "");
 
-        [Name("Has Any TypeProps"), Description("Whether or not the object contains any TypeProps.")]
-        public bool hasTree;
-
         [Name("Root Node"), Description("Root node of the DTB tree")]
         public DTBParent root;
 
@@ -210,13 +245,7 @@ namespace MiloLib.Assets
             else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
 
             type = Symbol.Read(reader);
-            hasTree = reader.ReadBoolean();
-
-            if (hasTree)
-            {
-                root = new DTBParent();
-                root.Read(reader);
-            }
+            root.Read(reader);
 
             if (revision > 0)
             {
@@ -230,12 +259,7 @@ namespace MiloLib.Assets
         {
             writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
             Symbol.Write(writer, type);
-            writer.WriteByte(hasTree ? (byte)1 : (byte)0);
-
-            if (hasTree)
-            {
-                root.Write(writer);
-            }
+            root.Write(writer);
 
             // write note
             if (revision > 0)

@@ -7,8 +7,8 @@ namespace MiloLib.Assets
     [Name("EndingBonusDir"), Description("BRE/unison phrase popup")]
     public class EndingBonusDir : RndDir
     {
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
 
         public EndingBonusDir(ushort revision, ushort altRevision = 0) : base(revision, altRevision)
         {

@@ -131,7 +131,7 @@ namespace MiloLib.Assets.Rnd
 
                 if (revision < 16)
                     Symbol.Write(writer, environ);
-                if (revision > 13)
+                if (revision > 12)
                     Symbol.Write(writer, drawOnly);
             }
 

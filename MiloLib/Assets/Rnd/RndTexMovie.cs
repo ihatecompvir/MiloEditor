@@ -62,8 +62,8 @@ namespace MiloLib.Assets.Rnd
             }
         }
 
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
 
         public RndDrawable draw = new();
         public Object obj = new();

@@ -6,8 +6,8 @@ namespace MiloLib.Assets.Rnd
     [Name("Set"), Description("A group of objects to propagate animation and messages")]
     public class RndSet : Object
     {
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
 
         private uint setObjectsCount;
         public List<Symbol> setObjects = new();

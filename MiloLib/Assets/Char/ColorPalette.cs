@@ -26,8 +26,8 @@ namespace MiloLib.Assets
             { Game.MiloGame.DanceCentral3, 1 }
         };
 
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
 
         private uint colorCount;
 

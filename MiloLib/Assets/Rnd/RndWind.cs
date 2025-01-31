@@ -6,8 +6,8 @@ namespace MiloLib.Assets.Rnd
     [Name("Wind"), Description("Object representing blowing wind, CharHair and Fur can point at them.")]
     public class RndWind : Object
     {
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
 
         [Name("Prevailing"), Description("Prevailing wind in inches/sec, along each world space axis, adds to random component, 1 mph == 17 inches/sec")]
         public Vector3 prevailing = new();

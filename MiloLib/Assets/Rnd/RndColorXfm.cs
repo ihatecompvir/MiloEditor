@@ -13,15 +13,17 @@ namespace MiloLib.Assets.Rnd
         private ushort altRevision;
         private ushort revision;
 
-        public HmxColor3 color1 = new HmxColor3();
-        public HmxColor3 color2 = new HmxColor3();
-        public HmxColor3 color3 = new HmxColor3();
-        public HmxColor3 color4 = new HmxColor3();
+        public Matrix colorTransform = new();
 
+        [Name("Lightness"), Description("Lightness: -100 to 100, 0.0 is neutral")]
         public float lightness;
+        [Name("Saturation"), Description("Saturation: -100 to 100, 0.0 is neutral")]
         public float saturation;
+        [Name("Hue"), Description("Hue: -180 to 180, 0.0 is neutral")]
         public float hue;
+        [Name("Brightness"), Description("Brightness: -100 to 100, 0.0 is neutral")]
         public float brightness;
+        [Name("Contrast"), Description("Contrast: -100 to 100, 0.0 is neutral")]
         public float contrast;
 
         public HmxColor4 levelInLo = new HmxColor4();
@@ -39,10 +41,7 @@ namespace MiloLib.Assets.Rnd
             {
                 return this;
             }
-            color1 = color1.Read(reader);
-            color2 = color2.Read(reader);
-            color3 = color3.Read(reader);
-            color4 = color4.Read(reader);
+            colorTransform = colorTransform.Read(reader);
 
             lightness = reader.ReadFloat();
             saturation = reader.ReadFloat();
@@ -61,10 +60,7 @@ namespace MiloLib.Assets.Rnd
         {
             writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
 
-            color1.Write(writer);
-            color2.Write(writer);
-            color3.Write(writer);
-            color4.Write(writer);
+            colorTransform.Write(writer);
 
             writer.WriteFloat(lightness);
             writer.WriteFloat(saturation);

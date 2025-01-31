@@ -34,6 +34,26 @@ namespace MiloLib.Assets
         }
         public class Entry
         {
+            public class EntryOperationEventArgs : EventArgs
+            {
+                public EndianReader? Reader { get; }
+                public EndianWriter? Writer { get; }
+                public Entry Entry { get; }
+
+
+                public EntryOperationEventArgs(EndianReader reader, Entry entry)
+                {
+                    Reader = reader;
+                    Entry = entry;
+                }
+                public EntryOperationEventArgs(EndianWriter writer, Entry entry)
+                {
+                    Writer = writer;
+                    Entry = entry;
+                }
+
+            }
+
             /// <summary>
             /// The type of the object, i.e. "Object", "RndDir", etc.
             /// </summary>
@@ -92,6 +112,32 @@ namespace MiloLib.Assets
                 entry.objBytes = bytes;
                 entry.dirty = true;
                 return entry;
+            }
+
+            public event EventHandler<EntryOperationEventArgs> BeforeRead;
+            public event EventHandler<EntryOperationEventArgs> AfterRead;
+            public event EventHandler<EntryOperationEventArgs> BeforeWrite;
+            public event EventHandler<EntryOperationEventArgs> AfterWrite;
+
+
+            internal void OnBeforeRead(EndianReader reader)
+            {
+                BeforeRead?.Invoke(this, new EntryOperationEventArgs(reader, this));
+            }
+
+            internal void OnAfterRead(EndianReader reader)
+            {
+                AfterRead?.Invoke(this, new EntryOperationEventArgs(reader, this));
+            }
+
+            internal void OnBeforeWrite(EndianWriter writer)
+            {
+                BeforeWrite?.Invoke(this, new EntryOperationEventArgs(writer, this));
+            }
+
+            internal void OnAfterWrite(EndianWriter writer)
+            {
+                AfterWrite?.Invoke(this, new EntryOperationEventArgs(writer, this));
             }
         }
 
@@ -517,6 +563,8 @@ namespace MiloLib.Assets
 
         public void ReadEntry(EndianReader reader, DirectoryMeta.Entry entry)
         {
+            entry.OnBeforeRead(reader);
+
             switch (entry.type.value)
             {
                 //////////
@@ -950,10 +998,10 @@ namespace MiloLib.Assets
                     Debug.WriteLine("Reading entry Environ " + entry.name.value);
                     entry.obj = new RndEnviron().Read(reader, true, this, entry);
                     break;
-                //case "EventTrigger":
-                //    Debug.WriteLine("Reading entry EventTrigger " + entry.name.value);
-                //    entry.obj = new EventTrigger().Read(reader, true, this, entry);
-                //    break;
+                case "EventTrigger":
+                    Debug.WriteLine("Reading entry EventTrigger " + entry.name.value);
+                    entry.obj = new EventTrigger().Read(reader, true, this, entry);
+                    break;
                 case "FileMerger":
                     Debug.WriteLine("Reading entry FileMerger " + entry.name.value);
                     entry.obj = new FileMerger().Read(reader, true, this, entry);
@@ -1008,6 +1056,14 @@ namespace MiloLib.Assets
                 case "PollAnim":
                     Debug.WriteLine("Reading entry PollAnim " + entry.name.value);
                     entry.obj = new RndPollAnim().Read(reader, true, this, entry);
+                    break;
+                case "PostProc":
+                    Debug.WriteLine("Reading entry PostProc " + entry.name.value);
+                    entry.obj = new RndPostProc().Read(reader, true, this, entry);
+                    break;
+                case "PropAnim":
+                    Debug.WriteLine("Reading entry PropAnim " + entry.name.value);
+                    entry.obj = new RndPropAnim().Read(reader, true, this, entry);
                     break;
                 case "RandomGroupSeq":
                     Debug.WriteLine("Reading entry RandomGroupSeq " + entry.name.value);
@@ -1073,6 +1129,10 @@ namespace MiloLib.Assets
                     Debug.WriteLine("Reading entry UIList " + entry.name.value);
                     entry.obj = new UIList().Read(reader, true, this, entry);
                     break;
+                case "UITrigger":
+                    Debug.WriteLine("Reading entry UITrigger " + entry.name.value);
+                    entry.obj = new UITrigger().Read(reader, true, this, entry);
+                    break;
                 case "Wind":
                     Debug.WriteLine("Reading entry Wind " + entry.name.value);
                     entry.obj = new RndWind().Read(reader, true, this, entry);
@@ -1121,11 +1181,16 @@ namespace MiloLib.Assets
                     Debug.WriteLine("Found ending of file, new position: " + reader.BaseStream.Position);
                     break;
             }
+
+            entry.OnAfterRead(reader);
         }
 
         public void WriteEntry(EndianWriter writer, DirectoryMeta.Entry entry)
         {
             // handle dirty assets
+
+            entry.OnBeforeWrite(writer);
+
             if (entry.dirty)
             {
                 writer.WriteBlock(entry.objBytes.ToArray());
@@ -1425,6 +1490,12 @@ namespace MiloLib.Assets
                 case "PollAnim":
                     ((RndPollAnim)entry.obj).Write(writer, true, this, entry);
                     break;
+                case "PostProc":
+                    ((RndPostProc)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "PropAnim":
+                    ((RndPropAnim)entry.obj).Write(writer, true, this, entry);
+                    break;
                 case "RandomGroupSeq":
                     ((RandomGroupSeq)entry.obj).Write(writer, true, this, entry);
                     break;
@@ -1476,6 +1547,9 @@ namespace MiloLib.Assets
                 case "UIList":
                     ((UIList)entry.obj).Write(writer, true, this, entry);
                     break;
+                case "UITrigger":
+                    ((UITrigger)entry.obj).Write(writer, true, this, entry);
+                    break;
                 case "Wind":
                     ((RndWind)entry.obj).Write(writer, true, this, entry);
                     break;
@@ -1503,6 +1577,8 @@ namespace MiloLib.Assets
                     writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
                     break;
             }
+
+            entry.OnAfterWrite(writer);
         }
 
         public static DirectoryMeta New(string type, string name, uint sceneRevision, ushort rootDirRevision)

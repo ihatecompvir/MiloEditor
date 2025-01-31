@@ -41,8 +41,8 @@ namespace MiloLib.Assets
             }
         }
 
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
 
         [Name("Send"), Description("Effect chain to use"), MinVersion(4), MaxVersion(8)]
         public Symbol sendObj;
@@ -198,8 +198,8 @@ namespace MiloLib.Assets
 
         public class Sequence : Object
         {
-            public ushort altRevision;
-            public ushort revision;
+            private ushort altRevision;
+            private ushort revision;
             public float avgVol;
             public float volSpread;
             public float avgTranspose;
@@ -307,8 +307,8 @@ namespace MiloLib.Assets
 
     public class FaderGroup
     {
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
         private int fadersCount;
         [Name("Faders"), Description("Faders affecting this sound effect")]
         public List<Symbol> faders = new List<Symbol>();
@@ -345,8 +345,8 @@ namespace MiloLib.Assets
 
     public class ADSR
     {
-        public ushort altRevision;
-        public ushort revision;
+        private ushort altRevision;
+        private ushort revision;
         [Name("Sustain Level"), Description("Level of sustain volume (0-1)")]
         public float sustainLevel;
         [Name("Release Rate"), Description("Duration of release in seconds")]

@@ -63,7 +63,7 @@ namespace MiloLib.Assets.Ham
         private ushort revision;
 
         // TODO: add propanim template
-        // public PropAnim propAnim;
+        // public RndPropAnim propAnim;
 
         public uint unk;
 
@@ -94,7 +94,7 @@ namespace MiloLib.Assets.Ham
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
             else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
-            // propAnim = PropAnim.Read(reader);
+            // propAnim = RndPropAnim.Read(reader);
 
             unk = reader.ReadUInt32();
             tex = Symbol.Read(reader);
