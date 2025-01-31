@@ -50,12 +50,12 @@ namespace MiloLib
         /// <summary>
         /// The path to the Milo file.
         /// </summary>
-        private string? filePath;
+        public string? filePath { get; }
 
         /// <summary>
         /// The Milo's compression type.
         /// </summary>
-        private Type compressionType;
+        public Type compressionType { get; }
 
         /// <summary>
         /// The offset to the start of the root asset.
