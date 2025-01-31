@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using IconFonts;
 using ImGuiNET;
@@ -50,6 +51,9 @@ public static partial class Program
         "*.milo_ps2", "*.milo_xbox", "*.milo_ps3", "*.milo_wii", "*.milo_pc", "*.rnd", "*.rnd_ps2",
         "*.rnd_xbox", "*.rnd_gc", "*.kr"
     ]);
+
+    private static bool ShowAboutWindow;
+    private static nint? MiloTexture;
 
     public static bool NoSettingsReload => viewingObject is Settings;
 
@@ -244,6 +248,7 @@ public static partial class Program
         {
             ImGui.ShowDemoWindow();
         }
+        DrawAboutWindow();
     }
 
     public static void OpenErrorModal(Exception e, string message)
@@ -251,6 +256,65 @@ public static partial class Program
         errorModalException = e;
         errorModalOpen = true;
         errorModalMessage = message;
+    }
+
+    static void DrawAboutWindow()
+    {
+        if (ShowAboutWindow)
+        {
+
+            if (MiloTexture is null)
+            {
+                var assembly = Assembly.GetExecutingAssembly();
+                var str = assembly.GetManifestResourceStream("milo.png");
+
+                var tex = Util.QuickCreateTexture(str);
+                MiloTexture = controller.GetOrCreateImGuiBinding(gd.ResourceFactory, tex);
+            }
+            
+            
+            ImGui.Begin("About", ref ShowAboutWindow, ImGuiWindowFlags.AlwaysAutoResize);
+            ImGui.PushFont(Util.bigFont);
+            ImGui.Text("ImMilo");
+            ImGui.PopFont();
+            ImGui.TextDisabled("An editor for Milo scenes");
+            if (ImGui.TextLink("GitHub Repo"))
+            {
+                Util.OpenBrowser("https://github.com/ihatecompvir/MiloEditor");
+            }
+            if (ImGui.TextLink("MiloHax"))
+            {
+                Util.OpenBrowser("https://milohax.org/");
+            }
+            ImGui.SetCursorPosX(ImGui.GetCursorPosX()+(ImGui.GetContentRegionAvail().X/2f-64f));
+            ImGui.Image(MiloTexture.Value, new Vector2(128, 128));
+            ImGui.SeparatorText("Credits");
+
+            // Name, contribution, url
+            List<(string, string, string)> credits = new()
+            {
+                ( "ihatecompvir", "The bulk of the Milo saving and loading logic, original MiloEditor", "https://github.com/ihatecompvir" ),
+                ( "Sulfrix", "ImGui user interface", "https://github.com/Sulfrix" ),
+                ( "PikminGuts92 (Cisco)", "Creating the 010 Editor templates, Mackiloha, and Grim that have all been a gigantic help in understanding Milo scenes", "https://github.com/PikminGuts92" ),
+                ( "RB3 Decomp team and contributors", "Decompiling the game into clean, human readable source code, making it significantly easer to write MiloLib", "https://github.com/DarkRTA/rb3" )
+            };
+
+            foreach (var credit in credits)
+            {
+                var (name, contribution, url) = credit;
+                if (ImGui.TextLink(name))
+                {
+                    Util.OpenBrowser(url);
+                }
+
+                //ImGui.SameLine();
+                ImGui.PushTextWrapPos(256);
+                ImGui.Text($"{contribution}");
+                ImGui.PopTextWrapPos();
+            }
+            
+            ImGui.End();
+        }
     }
 
     static void DrawErrorModal()
@@ -373,6 +437,16 @@ public static partial class Program
                 {
                     CharAssetFixer.PromptCharAssetFix();
                 }
+                ImGui.EndMenu();
+            }
+
+            if (ImGui.BeginMenu("Help"))
+            {
+                if (ImGui.MenuItem("About..."))
+                {
+                    ShowAboutWindow = true;
+                }
+                
                 ImGui.EndMenu();
             }
 

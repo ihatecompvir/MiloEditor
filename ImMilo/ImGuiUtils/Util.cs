@@ -1,4 +1,6 @@
+using System.Diagnostics;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using BigGustave;
 using ImGuiNET;
 using MiloLib.Assets;
@@ -13,6 +15,7 @@ public static class Util
     private static Dictionary<string, char> IconCodePoints = new();
     public static ImFontPtr mainFont;
     public static ImFontPtr iconFont;
+    public static ImFontPtr bigFont;
 
     public static char GetIconCodePoint()
     {
@@ -79,25 +82,31 @@ public static class Util
         if (!assetIcons.TryGetValue(iconID, out nint icon))
         {
             var iconStream = Icons.GetMiloIconStream(Icons.GetIconAssetPath(typeName));
-            var png = Png.Open(iconStream);
-            // TODO: find a library that can just spit out a RGBA32 stream instead of this silliness
-            int[] data = new int[png.Width * png.Height];
-            for (int y = 0; y < png.Height; y++)
-            {
-                for (int x = 0; x < png.Width; x++)
-                {
-                    var pixel = png.GetPixel(x, y);
-                    byte[] pixelArray = [pixel.R, pixel.G, pixel.B, pixel.A];
-                    data[x + y * png.Width] = BitConverter.ToInt32(pixelArray, 0);
-                }
-            }
-            var texture = Program.gd.ResourceFactory.CreateTexture(TextureDescription.Texture2D((uint)png.Width, (uint)png.Height, 1, 1, PixelFormat.R8_G8_B8_A8_UNorm, TextureUsage.Sampled));
-            Program.gd.UpdateTexture(texture, data, 0, 0, 0, (uint)png.Width, (uint)png.Height, 1, 0, 0);
+            var texture = QuickCreateTexture(iconStream);
             icon = Program.controller.GetOrCreateImGuiBinding(Program.gd.ResourceFactory, texture);
             assetIcons.Add(iconID, icon);
         }
 
         return icon;
+    }
+
+    public static Texture QuickCreateTexture(Stream pngStream)
+    {
+        var png = Png.Open(pngStream);
+        // TODO: find a library that can just spit out a RGBA32 stream instead of this silliness
+        int[] data = new int[png.Width * png.Height];
+        for (int y = 0; y < png.Height; y++)
+        {
+            for (int x = 0; x < png.Width; x++)
+            {
+                var pixel = png.GetPixel(x, y);
+                byte[] pixelArray = [pixel.R, pixel.G, pixel.B, pixel.A];
+                data[x + y * png.Width] = BitConverter.ToInt32(pixelArray, 0);
+            }
+        }
+        var texture = Program.gd.ResourceFactory.CreateTexture(TextureDescription.Texture2D((uint)png.Width, (uint)png.Height, 1, 1, PixelFormat.R8_G8_B8_A8_UNorm, TextureUsage.Sampled));
+        Program.gd.UpdateTexture(texture, data, 0, 0, 0, (uint)png.Width, (uint)png.Height, 1, 0, 0);
+        return texture;
     }
 
     public static void ClearIconCache()
@@ -157,5 +166,34 @@ public static class Util
         const int puaStart = 0xE000;
         var iconSize = Settings.Loaded.fontSettings.IconSize;
         io.Fonts.AddCustomRectFontGlyph(font, (ushort)puaStart, iconSize, iconSize, iconSize + 5);
+    }
+
+    public static void OpenBrowser(string url)
+    {
+        try
+        {
+            Process.Start(url);
+        }
+        catch
+        {
+            // hack because of this: https://github.com/dotnet/corefx/issues/10361
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                url = url.Replace("&", "^&");
+                Process.Start(new ProcessStartInfo("cmd", $"/c start {url}") { CreateNoWindow = true });
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                Process.Start("xdg-open", url);
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                Process.Start("open", url);
+            }
+            else
+            {
+                throw;
+            }
+        }
     }
 }

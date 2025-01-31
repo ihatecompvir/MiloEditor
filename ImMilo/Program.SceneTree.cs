@@ -234,6 +234,55 @@ public partial class Program
         }
     }
 
+    class AddSubDirPrompt : Prompt<(string, string)?>
+    {
+        private string newName = "";
+        private static readonly List<string> Types = ["ObjectDir", "WorldDir", "RndDir", "PanelDir"];
+        private int curType = 0;
+        
+        public AddSubDirPrompt()
+        {
+            Title = "Add Inlined Subdirectory";
+        }
+
+        public override void Show()
+        {
+            if (BeginModal())
+            {
+                ImGui.InputText("Name", ref newName, 32);
+                ImGui.Combo("Type", ref curType, Types.ToArray(), Types.Count);
+                
+                ImGui.Separator();
+                if (ImGui.Button("OK"))
+                {
+                    Complete((newName, Types[curType]));
+                }
+                ImGui.SameLine();
+                if (ImGui.Button("Cancel"))
+                {
+                    Complete(null);
+                }
+                ImGui.EndPopup();
+            }
+        }
+    }
+
+    static async void PromptAddSubdir(DirectoryMeta dirEntry)
+    {
+        ObjectDir dir = (ObjectDir)dirEntry.directory;
+        
+        var promptInput = await ShowGenericPrompt(new AddSubDirPrompt());
+        if (promptInput != null)
+        {
+            var (newName, newType) = promptInput.Value;
+            var newDir = DirectoryMeta.New(newType, newName, 27, 25); // this is how it's done in MiloEditor
+            dir.inlineSubDirs.Add(newDir);
+            dir.inlineSubDirNames.Add($"{newName}.milo");
+            dir.referenceTypes.Add(ObjectDir.ReferenceType.kInlineCached);
+            dir.referenceTypesAlt.Add(ObjectDir.ReferenceType.kInlineCached);
+        }
+    }
+
     static void DirNode(DirectoryMeta dir, ref int iterId, int id = 0, bool root = false, DirectoryMeta parent = null,
         bool inlined = false, DirectoryMeta.Entry? thisEntry = null, bool useEntryContextMenu = false)
     {
@@ -369,7 +418,11 @@ public partial class Program
                 {
                     PromptExportDirectory(dir);
                 }
-                ImGui.MenuItem(FontAwesome5.PlusSquare + "  Add Inlined Directory", "", false, false);
+
+                if (ImGui.MenuItem(FontAwesome5.PlusSquare + "  Add Inlined Directory"))
+                {
+                    PromptAddSubdir(dir);
+                }
                 ImGui.Separator();
                 if (ImGui.MenuItem(FontAwesome5.FileImport + "  Import Asset"))
                 {

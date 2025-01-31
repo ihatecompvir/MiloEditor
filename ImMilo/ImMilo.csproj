@@ -6,6 +6,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <ApplicationIcon>Assets/milo.ico</ApplicationIcon>
     </PropertyGroup>
 
     <ItemGroup>
@@ -24,6 +25,9 @@
     </ItemGroup>
 
     <ItemGroup>
+        <EmbeddedResource Include="Assets\translucentGroupTemplate">
+          <LogicalName>translucentGroupTemplate</LogicalName>
+        </EmbeddedResource>
         <EmbeddedResource Include="ImGuiUtils\Fonts\NotoSans-Regular.ttf" LogicalName="UIFont" />
         <EmbeddedResource Include="ImGuiUtils\Fonts\fontawesome.ttf" LogicalName="IconFontOutline" />
         <EmbeddedResource Include="ImGuiUtils\Fonts\fontawesome-solid.ttf" LogicalName="IconFont" />
@@ -43,10 +47,7 @@
         <EmbeddedResource Include="ImGuiUtils\Shaders\SPIR-V\meshpreview-vertex.spv" LogicalName="meshpreview-vertex.spv"/>
         <EmbeddedResource Include="ImGuiUtils\Shaders\SPIR-V\imgui-vertex.spv" LogicalName="imgui-vertex.spv" />
         <EmbeddedResource Include="ImGuiUtils\Shaders\SPIR-V\imgui-frag.spv" LogicalName="imgui-frag.spv" />
-    </ItemGroup>
-    
-    <ItemGroup>
-        <EmbeddedResource Include="translucentGroupTemplate" LogicalName="translucentGroupTemplate" />
+        <EmbeddedResource Include="Assets\milo.png" LogicalName="milo.png" />
     </ItemGroup>
 
 </Project>
