@@ -92,7 +92,8 @@ public class ImGuiController : IDisposable
         }
         var iconSize = Settings.Loaded.fontSettings.IconSize;
         font = CreateFontFromSettings(fontSize, confPtr);
-        var bigFont = CreateFontFromSettings(fontSize*1.5f, confPtr);
+        var regularConf = *confPtr.NativePtr; //Copy 
+        ImFontConfigPtr regularConfPtr = &regularConf;
 
         confPtr.MergeMode = true;
         confPtr.PixelSnapH = false;
@@ -129,7 +130,7 @@ public class ImGuiController : IDisposable
         Util.CreateIconGlyph(iconFontPtr);
         Util.iconFont = iconFontPtr;
         Util.mainFont = font;
-        Util.bigFont = bigFont;
+        Util.bigFont = CreateFontFromSettings(fontSize*1.5f, regularConfPtr);
         
         io.Fonts.Build();
         RecreateFontDeviceTexture(_gd);
