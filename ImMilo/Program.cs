@@ -296,7 +296,8 @@ public static partial class Program
                 ( "ihatecompvir", "The bulk of the Milo saving and loading logic, original MiloEditor", "https://github.com/ihatecompvir" ),
                 ( "Sulfrix", "ImGui user interface", "https://github.com/Sulfrix" ),
                 ( "PikminGuts92 (Cisco)", "Creating the 010 Editor templates, Mackiloha, and Grim that have all been a gigantic help in understanding Milo scenes", "https://github.com/PikminGuts92" ),
-                ( "RB3 Decomp team and contributors", "Decompiling the game into clean, human readable source code, making it significantly easer to write MiloLib", "https://github.com/DarkRTA/rb3" )
+                ( "RB3 Decomp team and contributors", "Decompiling the game into clean, human readable source code, making it significantly easer to write MiloLib", "https://github.com/DarkRTA/rb3" ),
+                ( "Dear ImGui", "The UI library used here", "https://github.com/ocornut/imgui")
             };
 
             foreach (var credit in credits)
