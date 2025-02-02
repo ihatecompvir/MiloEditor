@@ -468,6 +468,26 @@ public class EditorPanel
                 break;
             case IEnumerable collection:
             {
+                int? length = null;
+                IList? list = null;
+                if (collection is IList _list)
+                {
+                    list = _list;
+                    length = list.Count;
+                }
+
+                Type collectionType = null;
+                if (field.FieldType.GetGenericArguments().Length > 0)
+                {
+                    collectionType = field.FieldType.GetGenericArguments().First();
+                    ImGui.Text("List: " + collectionType.Name);
+                    if (length != null)
+                    {
+                        ImGui.Text(length.Value + " entries");
+                    }
+                }
+                var collectionButtonSize = new Vector2(ImGui.GetFrameHeight(), ImGui.GetFrameHeight());
+                
                 //ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
                 ImGui.BeginChild("values##" + field.GetHashCode(), new Vector2(0, 50),
                     ImGuiChildFlags.Borders | ImGuiChildFlags.ResizeY);
@@ -476,21 +496,50 @@ public class EditorPanel
                 {
                     i++;
                     ImGui.PushID(i);
-                    if (ImGui.CollapsingHeader(value.ToString() + "###" + i))
+                    if (list != null)
                     {
-                        ImGui.Indent();
+                        if (ImGui.Button(FontAwesome5.Minus + "##" + i, collectionButtonSize))
+                        {
+                            var lambda = () =>
+                            {
+                                list.Remove(value);
+                            };
+                            Program.defferedActions.Add(lambda);
+                        }
+                    }
+                    ImGui.SameLine();
+                    if (ImGui.TreeNode(value.ToString() + "###" + i))
+                    {
+                        //ImGui.Indent();
                         if (ImGui.Button("Full View"))
                         {
                             Program.NavigateObject(value, true);
                         }
 
                         Draw(value, i, false);
-                        ImGui.Unindent();
+                        //ImGui.Unindent();
+                        ImGui.TreePop();
                     }
 
                     ImGui.PopID();
                 }
 
+                if (collectionType != null)
+                {
+                    if (ImGui.Button(FontAwesome5.Plus, collectionButtonSize))
+                    {
+                        var constructor = collectionType.GetConstructor([]);
+                        if (constructor == null)
+                        {
+                            Program.ShowNotifyPrompt("Cannot create new object in list; object has no parameterless constructor.", "Error");
+                        }
+                        else
+                        {
+                            var obj = constructor.Invoke([]);
+                            list?.Add(obj);
+                        }
+                    }
+                }
                 ImGui.EndChild();
                 //ImGui.PopStyleVar();
                 break;
