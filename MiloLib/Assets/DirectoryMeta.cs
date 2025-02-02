@@ -29,6 +29,7 @@ namespace MiloLib.Assets
             PS3,
             Wii,
             Xbox,
+            [Name("PC or iPod")]
             PC_or_iPod
         }
         public class Entry

@@ -1,0 +1,11 @@
+--- ../Metal/imgui-vertex.metal	2025-01-26 23:50:24.411200825 -0600
++++ ./imgui-vertex.metal.alt	2025-01-26 23:51:58.125951800 -0600
+@@ -22,7 +22,7 @@
+     float4 in_color [[attribute(2)]];
+ };
+ 
+-vertex VS_out VS(VS_in in [[stage_in]], constant ProjectionMatrixBuffer& _16 [[buffer(0)]])
++vertex VS_out VS(VS_in in [[stage_in]], constant ProjectionMatrixBuffer& _16 [[buffer(1)]])
+ {
+     VS_out out = {};
+     out.gl_Position = _16.projection_matrix * float4(in.in_position, 0.0, 1.0);
