@@ -488,8 +488,9 @@ public class EditorPanel
                 }
                 var collectionButtonSize = new Vector2(ImGui.GetFrameHeight(), ImGui.GetFrameHeight());
                 
+                
                 //ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
-                ImGui.BeginChild("values##" + field.GetHashCode(), new Vector2(0, 50),
+                ImGui.BeginChild("values##" + field.GetHashCode(), new Vector2(0, 125),
                     ImGuiChildFlags.Borders | ImGuiChildFlags.ResizeY);
                 var i = 0;
                 foreach (var value in collection)
@@ -547,7 +548,9 @@ public class EditorPanel
                         }
                     }
                 }
+
                 ImGui.EndChild();
+
                 //ImGui.PopStyleVar();
                 break;
             }
