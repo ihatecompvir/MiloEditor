@@ -76,6 +76,7 @@ public static partial class Program
     private static nint? MiloTexture;
 
     public static bool NoSettingsReload => viewingObject is Settings;
+    private static Dictionary<ImGuiMouseCursor, SDL_Cursor> cursorCache = new();
 
     static void Main(string[] args)
     {
@@ -261,6 +262,7 @@ public static partial class Program
         DrawErrorModal();
         UIContent();
         ProcessPrompts();
+        
         ImGui.End();
         ImGui.PopStyleVar();
         ImGui.PopStyleVar();
@@ -269,6 +271,27 @@ public static partial class Program
             ImGui.ShowDemoWindow();
         }
         DrawAboutWindow();
+        UpdateMouseCursor();
+    }
+
+    private static void UpdateMouseCursor()
+    {
+        var cursor = ImGui.GetMouseCursor();
+        if (!cursorCache.TryGetValue(cursor, out var sdlCursor))
+        {
+            sdlCursor = cursor switch
+            {
+                ImGuiMouseCursor.Hand => Sdl2Native.SDL_CreateSystemCursor(SDL_SystemCursor.Hand),
+                ImGuiMouseCursor.ResizeAll => Sdl2Native.SDL_CreateSystemCursor(SDL_SystemCursor.SizeAll),
+                ImGuiMouseCursor.TextInput => Sdl2Native.SDL_CreateSystemCursor(SDL_SystemCursor.IBeam),
+                ImGuiMouseCursor.ResizeNS => Sdl2Native.SDL_CreateSystemCursor(SDL_SystemCursor.SizeNS),
+                ImGuiMouseCursor.ResizeEW => Sdl2Native.SDL_CreateSystemCursor(SDL_SystemCursor.SizeWE),
+                ImGuiMouseCursor.NotAllowed => Sdl2Native.SDL_CreateSystemCursor(SDL_SystemCursor.No),
+                _ => Sdl2Native.SDL_CreateSystemCursor(SDL_SystemCursor.Arrow)
+            };
+            cursorCache[cursor] = sdlCursor;
+        }
+        Sdl2Native.SDL_SetCursor(sdlCursor);
     }
 
     public static void OpenErrorModal(Exception e, string message)
