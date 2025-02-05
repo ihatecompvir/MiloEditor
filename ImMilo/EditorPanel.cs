@@ -535,8 +535,15 @@ public class EditorPanel
                         }
                         else
                         {
-                            var obj = constructor.Invoke([]);
-                            list?.Add(obj);
+                            try
+                            {
+                                var obj = constructor.Invoke([]);
+                                list?.Add(obj);
+                            }
+                            catch (Exception e)
+                            {
+                                Program.OpenErrorModal(e, "Cannot create new object in list");
+                            }
                         }
                     }
                 }
