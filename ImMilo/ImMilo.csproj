@@ -14,9 +14,9 @@
       <PackageReference Include="ImGui.NET" Version="1.91.6.1" />
       <PackageReference Include="Pfim" Version="0.11.3" />
       <PackageReference Include="TinyDialogsNet" Version="2.0.0" />
-      <PackageReference Include="Veldrid" Version="4.9.0" />
-      <PackageReference Include="Veldrid.SDL2" Version="4.9.0" />
-      <PackageReference Include="Veldrid.StartupUtilities" Version="4.9.0" />
+      <PackageReference Include="Veldrid" Version="4.9.1-g38696572e9" />
+      <PackageReference Include="Veldrid.SDL2" Version="4.9.1-g38696572e9" />
+      <PackageReference Include="Veldrid.StartupUtilities" Version="4.9.1-g38696572e9" />
     </ItemGroup>
 
     <ItemGroup>
