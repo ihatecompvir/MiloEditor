@@ -43,6 +43,7 @@ public partial class Program
 
     static async void MergeDirectory(DirectoryMeta dirEntry, string path)
     {
+        bool? alreadyExistsOverride = null;
         MiloFile externalMiloScene = new MiloFile(path);
         ObjectDir dir = (ObjectDir)dirEntry.directory;
 
@@ -58,7 +59,36 @@ public partial class Program
 
                 if (mergeEntry.name.value == currentEntry.name.value)
                 {
-                    if (await ShowConfirmPrompt($"An entry with the name {currentEntry.name.value} already exists. Do you want to overwrite it?"))
+                    bool shouldOverwrite = false;
+                    if (alreadyExistsOverride == null)
+                    {
+                        var promptInput =
+                            await ShowChoosePrompt(
+                                $"An entry with the name {currentEntry.name.value} already exists. Do you want to overwrite it?",
+                                "Merge Conflict", "Yes", "No", "Yes to All", "No to All");
+                        switch (promptInput)
+                        {
+                            case "Yes":
+                                shouldOverwrite = true;
+                                break;
+                            case "No":
+                                shouldOverwrite = false;
+                                break;
+                            case "Yes to All":
+                                shouldOverwrite = true;
+                                alreadyExistsOverride = true;
+                                break;
+                            case "No to All":
+                                shouldOverwrite = false;
+                                alreadyExistsOverride = false;
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        shouldOverwrite = alreadyExistsOverride.Value;
+                    }
+                    if (shouldOverwrite)
                     {
                         dirEntry.entries[i].obj = mergeEntry.obj;
                     }
