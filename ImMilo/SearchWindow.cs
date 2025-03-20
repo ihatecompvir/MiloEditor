@@ -12,8 +12,10 @@ public class SearchWindow
 {
     public String Query = "";
     private String Name;
-    public MiloFile? targetScene;
+    public MiloFile? TargetScene;
     public List<SearchResult> Results = new();
+
+    public bool DoFocus = false;
 
     public SearchWindow(String name)
     {
@@ -30,18 +32,28 @@ public class SearchWindow
         }
     }
 
-    public void Draw()
+    public void Draw(bool popup = false)
     {
+        if (DoFocus)
+        {
+            DoFocus = false;
+            ImGui.SetKeyboardFocusHere();
+        }
         if (ImGui.InputText("##" + Name, ref Query, 1000))
         {
             UpdateQuery();
         }
-        DrawResults();
+        DrawResults(popup);
     }
 
-    private void DrawResults()
+    private void DrawResults(bool popup = false)
     {
-        ImGui.BeginChild("Results", ImGui.GetContentRegionAvail(), ImGuiChildFlags.Borders);
+        var size = ImGui.GetContentRegionAvail();
+        if (popup)
+        {
+            size.Y = ImGui.GetFontSize() * 20;
+        }
+        ImGui.BeginChild("Results", size, ImGuiChildFlags.Borders);
         for(int i = 0; i < Results.Count; i++)
         {
             var result = Results[i];
@@ -82,7 +94,7 @@ public class SearchWindow
         {
             return;
         }
-        SearchDirectory(targetScene.dirMeta, ref Results, new List<SearchBreadcrumb>());
+        SearchDirectory(TargetScene.dirMeta, ref Results, new List<SearchBreadcrumb>());
     }
 
     public abstract class SearchBreadcrumb

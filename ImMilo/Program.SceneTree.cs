@@ -20,6 +20,8 @@ public partial class Program
 
     private static string PopupFlag = "";
 
+    private static SearchWindow FindRefsSearch = new("Find References");
+
     static bool BeginPopupModalDirNode(string label, ImGuiWindowFlags flags)
     {
         if (PopupFlag == label)
@@ -313,6 +315,30 @@ public partial class Program
         }
     }
 
+    static void FindReferencesMenu(string target)
+    {
+        if (ImGui.BeginMenu(FontAwesome5.Search + "  Find References"))
+        {
+            if (ImGui.IsWindowAppearing())
+            {
+                FindRefsSearch.TargetScene = currentScene;
+                FindRefsSearch.Query = target;
+                FindRefsSearch.UpdateQuery();
+            }
+
+            if (ImGui.TextLink("Open in Search Window"))
+            {
+                mainSearchWindowOpen = true;
+                mainSearchWindow.TargetScene = currentScene;
+                mainSearchWindow.Query = target;
+                mainSearchWindow.Results = new List<SearchWindow.SearchResult>(FindRefsSearch.Results);
+                ImGui.CloseCurrentPopup();
+            }
+            FindRefsSearch.Draw(true);
+            ImGui.EndMenu();
+        }
+    }
+
     static void DirNode(DirectoryMeta dir, ref int iterId, int id = 0, bool root = false, DirectoryMeta parent = null,
         bool inlined = false, DirectoryMeta.Entry? thisEntry = null, bool useEntryContextMenu = false)
     {
@@ -460,6 +486,9 @@ public partial class Program
                 }
 
                 ImGui.MenuItem(FontAwesome5.PlusCircle + "  New Asset", "", false, false);
+                
+                FindReferencesMenu(dir.name);
+                
                 ImGui.PopFont();
                 ImGui.EndPopup();
             }
@@ -539,6 +568,8 @@ public partial class Program
                         }
                     }
                 }
+                
+                FindReferencesMenu(entry.name);
                 ImGui.PopFont();
                 ImGui.EndPopup();
             }

@@ -161,6 +161,9 @@ public static partial class Program
                         }
 
                         break;
+                    case Key.F:
+                        FocusSearchWindow();
+                        break;
                 }
             }
         };
@@ -275,7 +278,7 @@ public static partial class Program
             ImGui.ShowDemoWindow();
         }
         DrawAboutWindow();
-        mainSearchWindow.targetScene = currentScene;
+        mainSearchWindow.TargetScene = currentScene;
         mainSearchWindow.DrawWindow(ref mainSearchWindowOpen);
         UpdateMouseCursor();
     }
@@ -479,7 +482,7 @@ public static partial class Program
             {
                 if (ImGui.MenuItem("Search", "Ctrl+F", mainSearchWindowOpen))
                 {
-                    mainSearchWindowOpen = true;
+                    FocusSearchWindow();
                 }
                 ImGui.EndMenu();
             }
@@ -524,6 +527,12 @@ public static partial class Program
 
             ImGui.EndMainMenuBar();
         }
+    }
+
+    public static void FocusSearchWindow()
+    {
+        mainSearchWindowOpen = true;
+        mainSearchWindow.DoFocus = true;
     }
 
     private static async void PromptSaveCurrentScene()
