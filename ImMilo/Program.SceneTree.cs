@@ -328,10 +328,10 @@ public partial class Program
 
             if (ImGui.TextLink("Open in Search Window"))
             {
-                mainSearchWindowOpen = true;
-                mainSearchWindow.TargetScene = currentScene;
-                mainSearchWindow.Query = target;
-                mainSearchWindow.Results = new List<SearchWindow.SearchResult>(FindRefsSearch.Results);
+                SearchWindow.mainWindowOpen = true;
+                SearchWindow.mainWindow.TargetScene = currentScene;
+                SearchWindow.mainWindow.Query = target;
+                SearchWindow.mainWindow.Results = new List<SearchWindow.SearchResult>(FindRefsSearch.Results);
                 ImGui.CloseCurrentPopup();
             }
             FindRefsSearch.Draw(true);

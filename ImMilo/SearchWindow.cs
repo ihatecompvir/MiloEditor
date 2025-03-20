@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Diagnostics;
 using System.Reflection;
 using System.Text;
 using IconFonts;
@@ -14,6 +15,10 @@ public class SearchWindow
     private String Name;
     public MiloFile? TargetScene;
     public List<SearchResult> Results = new();
+    public Mutex ResultsMutex = new();
+    
+    private Task? SearchTask;
+    private CancellationTokenSource? SearchCancelTokenSource;
 
     public bool DoFocus = false;
 
@@ -54,13 +59,38 @@ public class SearchWindow
             size.Y = ImGui.GetFontSize() * 20;
         }
         ImGui.BeginChild("Results", size, ImGuiChildFlags.Borders);
-        for(int i = 0; i < Results.Count; i++)
+        if (IsSearching())
         {
-            var result = Results[i];
-            if (ImGui.Selectable(result.ToString() + "##" + i))
+            ImGui.TextDisabled("Searching...");
+        }
+        else
+        {
+            if (Results.Count == 0 && Query.Length > 0)
             {
-                result.Result.Navigate();
+                ImGui.TextDisabled("No results found.");
             }
+
+            ResultsMutex.WaitOne();
+            for(int i = 0; i < Results.Count; i++)
+            {
+                var result = Results[i];
+                if (ImGui.Selectable(result.ToString() + "##" + i))
+                {
+                    result.Result.Navigate();
+                }
+
+                if (i >= Settings.Editing.maxSearchResults)
+                {
+                    ImGui.TextDisabled($"Truncated to {Settings.Editing.maxSearchResults} results.");
+                    ImGui.SameLine();
+                    if (ImGui.TextLink("Adjust Limit"))
+                    {
+                        Program.NavigateObject(Settings.Editing);
+                    }
+                    break;
+                }
+            }
+            ResultsMutex.ReleaseMutex();
         }
         ImGui.EndChild();
     }
@@ -87,14 +117,72 @@ public class SearchWindow
         }
     }
 
-    public void UpdateQuery()
+    public async void UpdateQuery()
     {
+        if (IsSearching())
+        {
+            SearchCancelTokenSource?.Cancel();
+            try
+            {
+                await SearchTask!;
+            } catch (OperationCanceledException) {}
+        }
+        
+        // Wait on the mutex to ensure the UI is finished drawing the results list before modifying it
+        ResultsMutex.WaitOne();
+        ResultsMutex.ReleaseMutex();
         Results.Clear();
         if (Query.Length == 0)
         {
             return;
         }
-        SearchDirectory(TargetScene.dirMeta, ref Results, new List<SearchBreadcrumb>());
+
+        if (TargetScene == null)
+        {
+            return;
+        }
+        SearchTask = PerformSearch();
+    }
+
+    public bool IsSearching()
+    {
+        if (SearchTask == null)
+        {
+            return false;
+        }
+        return SearchTask.Status == TaskStatus.Running || SearchTask.Status == TaskStatus.WaitingForActivation || SearchTask.Status == TaskStatus.WaitingToRun;
+    }
+
+    private async Task PerformSearch()
+    {
+        if (IsSearching())
+        {
+            Console.WriteLine("Search overlap");
+        }
+        SearchCancelTokenSource = new CancellationTokenSource();
+        
+        var task = Task.Run(() =>
+        {
+            SearchCancelTokenSource?.Token.ThrowIfCancellationRequested();
+            SearchDirectory(TargetScene.dirMeta, ref Results, new List<SearchBreadcrumb>());
+        });
+
+        try
+        {
+            await task;
+        }
+        catch (OperationCanceledException e)
+        {
+            // Wait on the mutex to ensure the UI is finished drawing the results list before modifying it
+            ResultsMutex.WaitOne();
+            ResultsMutex.ReleaseMutex();
+            Results.Clear();
+        }
+        finally
+        {
+            SearchCancelTokenSource?.Dispose();
+        }
+
     }
 
     public abstract class SearchBreadcrumb
@@ -272,6 +360,7 @@ public class SearchWindow
 
     public void SearchDirectory(DirectoryMeta dir, ref List<SearchResult> results, List<SearchBreadcrumb> breadcrumbs, bool inline = false)
     {
+        SearchCancelTokenSource?.Token.ThrowIfCancellationRequested();
         if (inline)
         {
             breadcrumbs = CopyAndAdd(breadcrumbs, new InlineDirBreadcrumb(dir));
@@ -294,6 +383,7 @@ public class SearchWindow
         // Scan directory children
         for (int i = 0; i < dir.entries.Count; i++)
         {
+            SearchCancelTokenSource?.Token.ThrowIfCancellationRequested();
             var entry = dir.entries[i];
 
             if (entry.dir != null)
@@ -327,6 +417,7 @@ public class SearchWindow
 
     public void SearchObject(object obj, ref List<SearchResult> results, List<SearchBreadcrumb> breadcrumbs)
     {
+        SearchCancelTokenSource?.Token.ThrowIfCancellationRequested();
         if (obj == null)
         {
             return;
@@ -343,6 +434,7 @@ public class SearchWindow
 
         foreach (var field in fields)
         {
+            SearchCancelTokenSource?.Token.ThrowIfCancellationRequested();
             // Hack: Don't iterate through inline subdirs through the reference, rather do it through a dedicated method.
             if (field.Name == "inlineSubDirs")
             {
@@ -385,5 +477,13 @@ public class SearchWindow
             }
         }
     }
-    
+
+    public static SearchWindow mainWindow = new("Search Scene");
+    public static bool mainWindowOpen;
+
+    public static void FocusMainWindow()
+    {
+        mainWindowOpen = true;
+        mainWindow.DoFocus = true;
+    }
 }

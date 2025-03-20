@@ -100,6 +100,9 @@ public class Settings
 
     [Name("Compact Scene Tree")]
     public bool compactScreneTree = false;
+
+    [Name("Maximum Search Results"), Description("Maximum amount of results that can be shown in search panels before truncating results.")]
+    public int maxSearchResults = 300;
     
     /// <summary>
     /// The instance of Settings that is edited by the user.
@@ -157,7 +160,8 @@ public class Settings
                (this.HideFieldDescriptions == other.HideFieldDescriptions) &&
                (this.HideNestedHMXObjectFields == other.HideNestedHMXObjectFields) &&
                (this.compactScreneTree == other.compactScreneTree) &&
-               (this.fontSettings == other.fontSettings);
+               (this.fontSettings == other.fontSettings) &&
+               (this.maxSearchResults == other.maxSearchResults);
     }
     
     public static bool operator ==(Settings lhs, Settings rhs)

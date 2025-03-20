@@ -66,9 +66,6 @@ public static partial class Program
     public static List<Action> defferedActions = new();
     public static bool showDemoWindow = false;
 
-    public static SearchWindow mainSearchWindow = new("Search Scene");
-    public static bool mainSearchWindowOpen;
-    
     public static readonly FileFilter MiloFileFilter = new FileFilter("Milo Scenes",
     [
         "*.milo_ps2", "*.milo_xbox", "*.milo_ps3", "*.milo_wii", "*.milo_pc", "*.rnd", "*.rnd_ps2",
@@ -162,7 +159,7 @@ public static partial class Program
 
                         break;
                     case Key.F:
-                        FocusSearchWindow();
+                        SearchWindow.FocusMainWindow();
                         break;
                 }
             }
@@ -278,8 +275,8 @@ public static partial class Program
             ImGui.ShowDemoWindow();
         }
         DrawAboutWindow();
-        mainSearchWindow.TargetScene = currentScene;
-        mainSearchWindow.DrawWindow(ref mainSearchWindowOpen);
+        SearchWindow.mainWindow.TargetScene = currentScene;
+        SearchWindow.mainWindow.DrawWindow(ref SearchWindow.mainWindowOpen);
         UpdateMouseCursor();
     }
 
@@ -480,9 +477,9 @@ public static partial class Program
 
             if (ImGui.BeginMenu("Edit"))
             {
-                if (ImGui.MenuItem("Search", "Ctrl+F", mainSearchWindowOpen))
+                if (ImGui.MenuItem("Search", "Ctrl+F", SearchWindow.mainWindowOpen))
                 {
-                    FocusSearchWindow();
+                    SearchWindow.FocusMainWindow();
                 }
                 ImGui.EndMenu();
             }
@@ -527,12 +524,6 @@ public static partial class Program
 
             ImGui.EndMainMenuBar();
         }
-    }
-
-    public static void FocusSearchWindow()
-    {
-        mainSearchWindowOpen = true;
-        mainSearchWindow.DoFocus = true;
     }
 
     private static async void PromptSaveCurrentScene()
