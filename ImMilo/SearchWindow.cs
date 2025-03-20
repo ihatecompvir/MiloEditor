@@ -140,6 +140,13 @@ public class SearchWindow
         }
     }
 
+    public class InlineDirBreadcrumb : DirectoryBreadcrumb
+    {
+        public InlineDirBreadcrumb(DirectoryMeta meta) : base(meta) {}
+
+        public override string Delimiter => "\\";
+    }
+
     public class EntryBreadcrumb : SearchBreadcrumb<DirectoryMeta.Entry>
     {
         public EntryBreadcrumb(DirectoryMeta.Entry entry)
@@ -259,9 +266,17 @@ public class SearchWindow
         return copy;
     }
 
-    public void SearchDirectory(DirectoryMeta dir, ref List<SearchResult> results, List<SearchBreadcrumb> breadcrumbs)
+    public void SearchDirectory(DirectoryMeta dir, ref List<SearchResult> results, List<SearchBreadcrumb> breadcrumbs, bool inline = false)
     {
-        breadcrumbs = CopyAndAdd(breadcrumbs, new DirectoryBreadcrumb(dir));
+        if (inline)
+        {
+            breadcrumbs = CopyAndAdd(breadcrumbs, new InlineDirBreadcrumb(dir));
+        }
+        else
+        {
+            breadcrumbs = CopyAndAdd(breadcrumbs, new DirectoryBreadcrumb(dir));
+        }
+        
 
         if (ObjectMatches(dir))
         {
@@ -291,6 +306,18 @@ public class SearchWindow
                 SearchObject(entry.obj, ref results, entryBreadcrumb);
             }
         }
+
+        if (dir.directory is ObjectDir objDir)
+        {
+            // Scan inline subdirs
+            for (int i = 0; i < objDir.inlineSubDirs.Count; i++)
+            {
+                var entry = objDir.inlineSubDirs[i];
+
+                SearchDirectory(entry, ref results, breadcrumbs, true);
+            }
+        }
+        
         
     }
 
@@ -312,6 +339,11 @@ public class SearchWindow
 
         foreach (var field in fields)
         {
+            // Hack: Don't iterate through inline subdirs through the reference, rather do it through a dedicated method.
+            if (field.Name == "inlineSubDirs")
+            {
+                continue;
+            }
             var fieldValue = field.GetValue(obj);
             switch (fieldValue)
             {
