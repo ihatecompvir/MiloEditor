@@ -103,6 +103,9 @@ public class Settings
 
     [Name("Maximum Search Results"), Description("Maximum amount of results that can be shown in search panels before truncating results.")]
     public int maxSearchResults = 300;
+
+    [Name("Hyper Search"), Description("Makes searching leverage more threads. Increases search speed at the cost of stability and result ordering.")]
+    public bool fastSearch = false;
     
     /// <summary>
     /// The instance of Settings that is edited by the user.
@@ -161,7 +164,8 @@ public class Settings
                (this.HideNestedHMXObjectFields == other.HideNestedHMXObjectFields) &&
                (this.compactScreneTree == other.compactScreneTree) &&
                (this.fontSettings == other.fontSettings) &&
-               (this.maxSearchResults == other.maxSearchResults);
+               (this.maxSearchResults == other.maxSearchResults) &&
+               (this.fastSearch == other.fastSearch);
     }
     
     public static bool operator ==(Settings lhs, Settings rhs)

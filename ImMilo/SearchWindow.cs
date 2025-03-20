@@ -388,7 +388,14 @@ public class SearchWindow
 
             if (entry.dir != null)
             {
-                SearchDirectory(entry.dir, ref results, breadcrumbs);
+                if (Settings.Editing.fastSearch)
+                {
+                    Task.Run(() => SearchDirectory(entry.dir, ref Results, breadcrumbs));
+                }
+                else
+                {
+                    SearchDirectory(entry.dir, ref results, breadcrumbs);
+                }
             }
             else
             {

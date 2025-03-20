@@ -574,6 +574,7 @@ public static partial class Program
         viewingObject = null;
         currentScene = null;
         BitmapEditor.Dispose();
+        SearchWindow.mainWindow.Results.Clear();
     }
 
     private static void PromptOpen()
