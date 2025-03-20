@@ -66,6 +66,9 @@ public static partial class Program
     public static List<Action> defferedActions = new();
     public static bool showDemoWindow = false;
 
+    public static SearchWindow mainSearchWindow = new("Search Scene");
+    public static bool mainSearchWindowOpen;
+    
     public static readonly FileFilter MiloFileFilter = new FileFilter("Milo Scenes",
     [
         "*.milo_ps2", "*.milo_xbox", "*.milo_ps3", "*.milo_wii", "*.milo_pc", "*.rnd", "*.rnd_ps2",
@@ -98,6 +101,7 @@ public static partial class Program
 
         Console.WriteLine(backend);
         // Create window, GraphicsDevice, and all resources necessary for the demo.
+        Sdl2Native.SDL_SetHint("SDL_HINT_VIDEO_DRIVER", "wayland");
         VeldridStartup.CreateWindowAndGraphicsDevice(
             new WindowCreateInfo(50, 50, 1280, 720, WindowState.Normal, "ImMilo"),
             new GraphicsDeviceOptions(graphicsDebug, null, true, ResourceBindingModel.Improved, true, true),
@@ -271,6 +275,8 @@ public static partial class Program
             ImGui.ShowDemoWindow();
         }
         DrawAboutWindow();
+        mainSearchWindow.targetScene = currentScene;
+        mainSearchWindow.DrawWindow(ref mainSearchWindowOpen);
         UpdateMouseCursor();
     }
 
@@ -299,6 +305,10 @@ public static partial class Program
         errorModalException = e;
         errorModalOpen = true;
         errorModalMessage = message;
+        if (Debugger.IsAttached)
+        {
+            throw e;
+        }
     }
 
     static void DrawAboutWindow()
@@ -394,17 +404,26 @@ public static partial class Program
 
     static void OpenFile(string path)
     {
-        try
+        if (Debugger.IsAttached)
         {
             currentScene = new MiloFile(path);
             viewingObject = null;
         }
-        catch (Exception e)
+        else
         {
-            OpenErrorModal(e, "Error occurred while loading file:");
-            currentScene = null;
-            Console.WriteLine(e.Message);
+            try
+            {
+                currentScene = new MiloFile(path);
+                viewingObject = null;
+            }
+            catch (Exception e)
+            {
+                OpenErrorModal(e, "Error occurred while loading file:");
+                currentScene = null;
+                Console.WriteLine(e.Message);
+            }
         }
+        
     }
 
     static async void PromptNew()
@@ -453,6 +472,15 @@ public static partial class Program
                     NavigateObject(Settings.Editing, false);
                 }
 
+                ImGui.EndMenu();
+            }
+
+            if (ImGui.BeginMenu("Edit"))
+            {
+                if (ImGui.MenuItem("Search", "Ctrl+F", mainSearchWindowOpen))
+                {
+                    mainSearchWindowOpen = true;
+                }
                 ImGui.EndMenu();
             }
 
@@ -569,6 +597,10 @@ public static partial class Program
     /// <param name="breadcrumb">Whether or not to lay "breadcrumbs", which allows for easy navigation to the parent object</param>
     public static void NavigateObject(object toView, bool breadcrumb = false)
     {
+        if (toView == null)
+        {
+            return;
+        }
         Console.WriteLine("Navigating to " + toView.GetType().Name);
         viewingObject = toView;
         if (breadcrumb)

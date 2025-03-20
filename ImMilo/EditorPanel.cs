@@ -38,7 +38,7 @@ public class EditorPanel
         return enumValues;
     }
 
-    private static List<FieldInfo> GetCachedFields(Type type)
+    public static List<FieldInfo> GetCachedFields(Type type)
     {
         if (!_fieldCache.TryGetValue(type, out List<FieldInfo> fields))
         {
