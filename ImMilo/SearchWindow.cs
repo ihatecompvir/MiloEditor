@@ -130,6 +130,10 @@ public class SearchWindow
         
         public override string ToString()
         {
+            if (Target == Program.currentScene.dirMeta)
+            {
+                return "root";
+            }
             return Target.name.value;
         }
 

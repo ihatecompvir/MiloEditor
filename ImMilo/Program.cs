@@ -30,13 +30,13 @@ public static partial class Program
     private static readonly Vector3 ClearColor = new(0.45f, 0.55f, 0.6f);
 
     private static MiloFile? _currentScene;
-    private static MiloFile? currentScene
+    public static MiloFile? currentScene
     {
         get
         {
             return _currentScene;
         }
-        set
+        private set
         {
             _currentScene = value;
             if (value != null)
