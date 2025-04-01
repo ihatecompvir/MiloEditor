@@ -488,6 +488,7 @@ public static partial class Program
             {
                 ImGui.MenuItem("Hide Field Descriptions", null, ref Settings.Editing.HideFieldDescriptions);
                 ImGui.MenuItem("Hide Nested Hmx::Object Fields", null, ref Settings.Editing.HideNestedHMXObjectFields);
+                ImGui.MenuItem("Nerd Names", null, ref Settings.Editing.NerdNames);
                 if (ImGui.MenuItem("VSync", null, gd.MainSwapchain.SyncToVerticalBlank))
                 {
                     gd.MainSwapchain.SyncToVerticalBlank = !gd.MainSwapchain.SyncToVerticalBlank;

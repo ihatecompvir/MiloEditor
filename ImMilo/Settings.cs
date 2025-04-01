@@ -98,14 +98,18 @@ public class Settings
     [Name("Hide Nested Hmx::Object Fields"), Description("Hides the \"Object Fields\" area if an object is nested in another. Typically these fields are redundant and only matter for the parent object.")]
     public bool HideNestedHMXObjectFields = true;
 
+    [Name("Nerd Names"),
+     Description("Uses variable names instead of the nice easy to read names. Helpful for searching, script use, etc.")]
+    public bool NerdNames = false;
+
     [Name("Compact Scene Tree")]
-    public bool compactScreneTree = false;
+    public bool CompactSceneTree = false;
 
     [Name("Maximum Search Results"), Description("Maximum amount of results that can be shown in search panels before truncating results.")]
-    public int maxSearchResults = 300;
+    public int MaxSearchResults = 300;
 
     [Name("Hyper Search"), Description("Makes searching leverage more threads. Increases search speed at the cost of stability and result ordering.")]
-    public bool fastSearch = false;
+    public bool FastSearch = false;
     
     /// <summary>
     /// The instance of Settings that is edited by the user.
@@ -162,10 +166,11 @@ public class Settings
                (this.useTheme == other.useTheme) &&
                (this.HideFieldDescriptions == other.HideFieldDescriptions) &&
                (this.HideNestedHMXObjectFields == other.HideNestedHMXObjectFields) &&
-               (this.compactScreneTree == other.compactScreneTree) &&
+               (this.NerdNames == other.NerdNames) &&
+               (this.CompactSceneTree == other.CompactSceneTree) &&
                (this.fontSettings == other.fontSettings) &&
-               (this.maxSearchResults == other.maxSearchResults) &&
-               (this.fastSearch == other.fastSearch);
+               (this.MaxSearchResults == other.MaxSearchResults) &&
+               (this.FastSearch == other.FastSearch);
     }
     
     public static bool operator ==(Settings lhs, Settings rhs)

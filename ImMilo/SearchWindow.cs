@@ -6,6 +6,9 @@ using IconFonts;
 using ImGuiNET;
 using MiloLib;
 using MiloLib.Assets;
+using MiloLib.Classes;
+using Pfim;
+using Util = ImMilo.ImGuiUtils.Util;
 
 namespace ImMilo;
 
@@ -20,6 +23,18 @@ public class SearchWindow
     private Task? SearchTask;
     private CancellationTokenSource? SearchCancelTokenSource;
 
+    public enum SearchType
+    {
+        Contains,
+        Exact,
+        Regex
+    }
+
+    public SearchType Type = SearchType.Contains;
+    public bool EnableEntries = true;
+    public bool EnableDirectories = true;
+    public bool EnableFields = true;
+    
     public bool DoFocus = false;
 
     public SearchWindow(String name)
@@ -47,6 +62,35 @@ public class SearchWindow
         if (ImGui.InputText("##" + Name, ref Query, 1000))
         {
             UpdateQuery();
+        }
+
+        if (!popup)
+        {
+            var refresh = false;
+            var searchTypes = Enum.GetValues(typeof(SearchType)).Cast<SearchType>();
+
+            foreach (var type in searchTypes)
+            {
+                if (ImGui.RadioButton(type.ToString(), Type == type))
+                {
+                    Type = type;
+                }
+
+                if (type != searchTypes.Last())
+                {
+                    ImGui.SameLine();
+                }
+            }
+
+            refresh |= ImGui.Checkbox("Entries", ref EnableEntries);
+            ImGui.SameLine();
+            refresh |= ImGui.Checkbox("Directories", ref EnableDirectories);
+            ImGui.SameLine();
+            refresh |= ImGui.Checkbox("Fields", ref EnableFields);
+            if (refresh)
+            {
+                UpdateQuery();
+            }
         }
         DrawResults(popup);
     }
@@ -79,9 +123,27 @@ public class SearchWindow
                     result.Result.Navigate();
                 }
 
-                if (i >= Settings.Editing.maxSearchResults)
+                if (ImGui.BeginPopupContextItem(result.ToString() + "##" + i))
                 {
-                    ImGui.TextDisabled($"Truncated to {Settings.Editing.maxSearchResults} results.");
+                    for (int j = 1; j < result.Breadcrumbs.Count; j++)
+                    {
+                        var breadcrumb = result.Breadcrumbs[j];
+                        if (breadcrumb is ListItemBreadcrumb)
+                        {
+                            continue;
+                        }
+
+                        if (ImGui.MenuItem( breadcrumb.Delimiter + breadcrumb.ToString() + "##" + i))
+                        {
+                            breadcrumb.Navigate();
+                        }
+                    }
+                    ImGui.EndPopup();
+                }
+
+                if (i >= Settings.Editing.MaxSearchResults)
+                {
+                    ImGui.TextDisabled($"Truncated to {Settings.Editing.MaxSearchResults} results.");
                     ImGui.SameLine();
                     if (ImGui.TextLink("Adjust Limit"))
                     {
@@ -97,7 +159,17 @@ public class SearchWindow
 
     public bool MatchesQuery(String operand)
     {
-        return operand.Contains(Query);
+        switch (Type)
+        {
+            case SearchType.Contains:
+                return operand.Contains(Query);
+            case SearchType.Exact:
+                return operand == Query;
+            case SearchType.Regex:
+                return System.Text.RegularExpressions.Regex.IsMatch(operand, Query);
+        }
+
+        throw new InvalidOperationException("Tried to use a search type that does not exist.");
     }
 
     public bool ObjectMatches(object operand)
@@ -109,15 +181,15 @@ public class SearchWindow
             case String stringValue:
                 return MatchesQuery(stringValue);
             case DirectoryMeta directoryValue:
-                return MatchesQuery(directoryValue.name);
+                return EnableDirectories && MatchesQuery(directoryValue.name);
             case DirectoryMeta.Entry entryValue:
-                return MatchesQuery(entryValue.name);
+                return EnableEntries && MatchesQuery(entryValue.name);
             default:
                 return false;
         }
     }
 
-    public async void UpdateQuery()
+    public async Task UpdateQuery()
     {
         if (IsSearching())
         {
@@ -142,6 +214,7 @@ public class SearchWindow
             return;
         }
         SearchTask = PerformSearch();
+        await SearchTask;
     }
 
     public bool IsSearching()
@@ -388,7 +461,7 @@ public class SearchWindow
 
             if (entry.dir != null)
             {
-                if (Settings.Editing.fastSearch)
+                if (Settings.Editing.FastSearch)
                 {
                     Task.Run(() => SearchDirectory(entry.dir, ref Results, breadcrumbs));
                 }
@@ -424,6 +497,8 @@ public class SearchWindow
 
     public void SearchObject(object obj, ref List<SearchResult> results, List<SearchBreadcrumb> breadcrumbs)
     {
+        if (!EnableFields)
+            return;
         SearchCancelTokenSource?.Token.ThrowIfCancellationRequested();
         if (obj == null)
         {

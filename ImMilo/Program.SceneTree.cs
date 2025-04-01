@@ -20,7 +20,12 @@ public partial class Program
 
     private static string PopupFlag = "";
 
-    private static SearchWindow FindRefsSearch = new("Find References");
+    private static SearchWindow FindRefsSearch = new("Find References")
+    {
+        EnableDirectories = false,
+        EnableEntries = false,
+        Type = SearchWindow.SearchType.Exact
+    };
 
     static bool BeginPopupModalDirNode(string label, ImGuiWindowFlags flags)
     {
@@ -47,6 +52,28 @@ public partial class Program
     {
         bool? alreadyExistsOverride = null;
         MiloFile externalMiloScene = new MiloFile(path);
+        if (await ShowConfirmPrompt("Would you like to fix parentObj references in this merge? (If unsure, click Yes)"))
+        {
+            var searcher = new SearchWindow("Ref Fixer")
+            {
+                TargetScene = externalMiloScene,
+                Query = externalMiloScene.dirMeta.name
+            };
+
+            await searcher.UpdateQuery();
+
+            foreach (var result in searcher.Results)
+            {
+                if (result.Result is SearchWindow.FieldBreadcrumb fieldBreadcrumb)
+                {
+                    if (fieldBreadcrumb.Target.Name == "target" || fieldBreadcrumb.Target.Name == "parentObj")
+                    {
+                        // Update all the references to the new directory's name
+                        fieldBreadcrumb.Target.SetValue(fieldBreadcrumb.Parent, dirEntry.name);
+                    }
+                }
+            }
+        }
         ObjectDir dir = (ObjectDir)dirEntry.directory;
 
         // Iterate through entries in the external scene to be merged
@@ -332,6 +359,10 @@ public partial class Program
                 SearchWindow.mainWindow.TargetScene = currentScene;
                 SearchWindow.mainWindow.Query = target;
                 SearchWindow.mainWindow.Results = new List<SearchWindow.SearchResult>(FindRefsSearch.Results);
+                SearchWindow.mainWindow.EnableDirectories = false;
+                SearchWindow.mainWindow.EnableEntries = false;
+                SearchWindow.mainWindow.EnableFields = true;
+                SearchWindow.mainWindow.Type = SearchWindow.SearchType.Exact;
                 ImGui.CloseCurrentPopup();
             }
             FindRefsSearch.Draw(true);
@@ -342,7 +373,7 @@ public partial class Program
     static void DirNode(DirectoryMeta dir, ref int iterId, int id = 0, bool root = false, DirectoryMeta parent = null,
         bool inlined = false, DirectoryMeta.Entry? thisEntry = null, bool useEntryContextMenu = false)
     {
-        if (Settings.Editing.compactScreneTree)
+        if (Settings.Editing.CompactSceneTree)
         {
             ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(ImGui.GetStyle().ItemSpacing.X, 0f));
         }
@@ -731,7 +762,7 @@ public partial class Program
         }
 
         ImGui.PopID();
-        if (Settings.Editing.compactScreneTree)
+        if (Settings.Editing.CompactSceneTree)
         {
             ImGui.PopStyleVar();
         }
