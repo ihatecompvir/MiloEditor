@@ -307,6 +307,7 @@ namespace MiloLib.Assets.Rnd
             {
                 if (revision < 5)
                 {
+                    colorKeysCount1 = (uint)colorKeys1.Count;
                     writer.WriteUInt32(colorKeysCount1);
                     foreach (ColorKey colorKey in colorKeys1)
                     {
@@ -315,12 +316,14 @@ namespace MiloLib.Assets.Rnd
                 }
                 if (revision < 3)
                 {
+                    colorKeysCount2 = (uint)colorKeys2.Count;
                     writer.WriteUInt32(colorKeysCount2);
                     foreach (ColorKey colorKey in colorKeys2)
                     {
                         colorKey.Write(writer);
                     }
                 }
+                colorKeysCount = (uint)colorKeys.Count;
                 writer.WriteUInt32(colorKeysCount);
                 foreach (ColorKey colorKey in colorKeys)
                 {
@@ -329,13 +332,15 @@ namespace MiloLib.Assets.Rnd
 
                 if (revision < 4)
                 {
+                    colorKeysCount3 = (uint)colorKeys3.Count;
                     writer.WriteUInt32(colorKeysCount3);
                     foreach (ColorKey colorKey in colorKeys3)
                     {
                         colorKey.Write(writer);
                     }
                 }
-
+                
+                alphaKeysCount = (uint)alphaKeys.Count;
                 writer.WriteUInt32(alphaKeysCount);
                 foreach (FloatKey alphaKey in alphaKeys)
                 {
@@ -345,24 +350,28 @@ namespace MiloLib.Assets.Rnd
 
             if (revision > 6)
             {
+                transKeysCount = (uint)transKeys.Count;
                 writer.WriteUInt32(transKeysCount);
                 foreach (Vec3Key transKey in transKeys)
                 {
                     transKey.Write(writer);
                 }
 
+                scaleKeysCount = (uint)scaleKeys.Count;
                 writer.WriteUInt32(scaleKeysCount);
                 foreach (Vec3Key scaleKey in scaleKeys)
                 {
                     scaleKey.Write(writer);
                 }
 
+                rotKeysCount = (uint)rotKeys.Count;
                 writer.WriteUInt32(rotKeysCount);
                 foreach (Vec3Key rotKey in rotKeys)
                 {
                     rotKey.Write(writer);
                 }
 
+                texKeysCount = (uint)texKeys.Count;
                 writer.WriteUInt32(texKeysCount);
                 foreach (SymbolKey texKey in texKeys)
                 {

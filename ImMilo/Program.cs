@@ -30,13 +30,13 @@ public static partial class Program
     private static readonly Vector3 ClearColor = new(0.45f, 0.55f, 0.6f);
 
     private static MiloFile? _currentScene;
-    private static MiloFile? currentScene
+    public static MiloFile? currentScene
     {
         get
         {
             return _currentScene;
         }
-        set
+        private set
         {
             _currentScene = value;
             if (value != null)
@@ -98,6 +98,7 @@ public static partial class Program
 
         Console.WriteLine(backend);
         // Create window, GraphicsDevice, and all resources necessary for the demo.
+        Sdl2Native.SDL_SetHint("SDL_HINT_VIDEO_DRIVER", "wayland");
         VeldridStartup.CreateWindowAndGraphicsDevice(
             new WindowCreateInfo(50, 50, 1280, 720, WindowState.Normal, "ImMilo"),
             new GraphicsDeviceOptions(graphicsDebug, null, true, ResourceBindingModel.Improved, true, true),
@@ -156,6 +157,9 @@ public static partial class Program
                             SaveCurrentScene();
                         }
 
+                        break;
+                    case Key.F:
+                        SearchWindow.FocusMainWindow();
                         break;
                 }
             }
@@ -271,6 +275,8 @@ public static partial class Program
             ImGui.ShowDemoWindow();
         }
         DrawAboutWindow();
+        SearchWindow.mainWindow.TargetScene = currentScene;
+        SearchWindow.mainWindow.DrawWindow(ref SearchWindow.mainWindowOpen);
         UpdateMouseCursor();
     }
 
@@ -299,6 +305,10 @@ public static partial class Program
         errorModalException = e;
         errorModalOpen = true;
         errorModalMessage = message;
+        if (Debugger.IsAttached)
+        {
+            throw e;
+        }
     }
 
     static void DrawAboutWindow()
@@ -394,17 +404,26 @@ public static partial class Program
 
     static void OpenFile(string path)
     {
-        try
+        if (Debugger.IsAttached)
         {
             currentScene = new MiloFile(path);
             viewingObject = null;
         }
-        catch (Exception e)
+        else
         {
-            OpenErrorModal(e, "Error occurred while loading file:");
-            currentScene = null;
-            Console.WriteLine(e.Message);
+            try
+            {
+                currentScene = new MiloFile(path);
+                viewingObject = null;
+            }
+            catch (Exception e)
+            {
+                OpenErrorModal(e, "Error occurred while loading file:");
+                currentScene = null;
+                Console.WriteLine(e.Message);
+            }
         }
+        
     }
 
     static async void PromptNew()
@@ -456,10 +475,20 @@ public static partial class Program
                 ImGui.EndMenu();
             }
 
+            if (ImGui.BeginMenu("Edit"))
+            {
+                if (ImGui.MenuItem("Search", "Ctrl+F", SearchWindow.mainWindowOpen))
+                {
+                    SearchWindow.FocusMainWindow();
+                }
+                ImGui.EndMenu();
+            }
+
             if (ImGui.BeginMenu("View"))
             {
                 ImGui.MenuItem("Hide Field Descriptions", null, ref Settings.Editing.HideFieldDescriptions);
                 ImGui.MenuItem("Hide Nested Hmx::Object Fields", null, ref Settings.Editing.HideNestedHMXObjectFields);
+                ImGui.MenuItem("Nerd Names", null, ref Settings.Editing.NerdNames);
                 if (ImGui.MenuItem("VSync", null, gd.MainSwapchain.SyncToVerticalBlank))
                 {
                     gd.MainSwapchain.SyncToVerticalBlank = !gd.MainSwapchain.SyncToVerticalBlank;
@@ -546,6 +575,7 @@ public static partial class Program
         viewingObject = null;
         currentScene = null;
         BitmapEditor.Dispose();
+        SearchWindow.mainWindow.Results.Clear();
     }
 
     private static void PromptOpen()
@@ -569,6 +599,10 @@ public static partial class Program
     /// <param name="breadcrumb">Whether or not to lay "breadcrumbs", which allows for easy navigation to the parent object</param>
     public static void NavigateObject(object toView, bool breadcrumb = false)
     {
+        if (toView == null)
+        {
+            return;
+        }
         Console.WriteLine("Navigating to " + toView.GetType().Name);
         viewingObject = toView;
         if (breadcrumb)

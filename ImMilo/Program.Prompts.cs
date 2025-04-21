@@ -85,6 +85,40 @@ public partial class Program
         }
     }
 
+    private class ChoosePrompt : Prompt<string>
+    {
+        public string[] options;
+
+        public ChoosePrompt(string message, string title, params string[] options)
+        {
+            Message = message;
+            Title = title;
+            this.options = options;
+        }
+        
+        public override void Show()
+        {
+            if (BeginModal())
+            {
+                ImGui.Text(Message);
+
+                for (int i = 0; i < options.Length; i++)
+                {
+                    if (ImGui.Button(options[i]))
+                    {
+                        Complete(options[i]);
+                    }
+
+                    if (i < options.Length - 1)
+                    {
+                        ImGui.SameLine();
+                    }
+                }
+                ImGui.EndPopup();
+            }
+        }
+    }
+
     private class NotifyPrompt : Prompt<bool>
     {
         public NotifyPrompt(string message, string title)
@@ -337,6 +371,18 @@ public partial class Program
     public static async Task<bool> ShowConfirmPrompt(string message)
     {
         return await ShowGenericPrompt(new ConfirmPrompt(message));
+    }
+    
+    /// <summary>
+    /// Shows a choice prompt, asking the user to answer from a list of strings.
+    /// </summary>
+    /// <param name="message">The question to ask the user.</param>
+    /// <param name="title">The title of the prompt.</param>
+    /// <param name="options">The choices the user can pick from.</param>
+    /// <returns>The exact string the user chose.</returns>
+    public static async Task<string> ShowChoosePrompt(string message, string title, params string[] options)
+    {
+        return await ShowGenericPrompt(new ChoosePrompt(message, title, options));
     }
 
     /// <summary>

@@ -74,6 +74,11 @@ namespace MiloLib.Assets.Rnd
         public SignedCompressedVec4 tangents { get; set; } = new SignedCompressedVec4();
         public UnsignedCompressedVec4 weights { get; set; } = new UnsignedCompressedVec4();
 
+        public override string ToString()
+        {
+            return $"<{x}, {y}, {z}>";
+        }
+
         public class SignedCompressedVec4
         {
             public uint origValue { get; set; }

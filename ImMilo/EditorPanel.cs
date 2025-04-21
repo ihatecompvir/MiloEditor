@@ -5,10 +5,12 @@ using IconFonts;
 using ImGuiNET;
 using ImMilo.ImGuiUtils;
 using MiloLib.Assets;
+using MiloLib.Assets.Rnd;
 using MiloLib.Classes;
 using Veldrid;
 using Object = MiloLib.Assets.Object;
 using Vector2 = System.Numerics.Vector2;
+using Vector3 = System.Numerics.Vector3;
 
 namespace ImMilo;
 
@@ -38,7 +40,7 @@ public class EditorPanel
         return enumValues;
     }
 
-    private static List<FieldInfo> GetCachedFields(Type type)
+    public static List<FieldInfo> GetCachedFields(Type type)
     {
         if (!_fieldCache.TryGetValue(type, out List<FieldInfo> fields))
         {
@@ -65,7 +67,7 @@ public class EditorPanel
         return fields;
     }
 
-    private static NameAttribute GetCachedNameAttribute(Type type)
+    public static NameAttribute? GetCachedNameAttribute(Type type)
     {
         if (!_nameAttributeCache.TryGetValue(type, out NameAttribute attribute))
         {
@@ -249,7 +251,14 @@ public class EditorPanel
                 ImGui.TableNextRow();
 
                 ImGui.TableSetColumnIndex(0);
-                ImGui.TextWrapped(displayName);
+                if (Settings.Editing.NerdNames)
+                {
+                    ImGui.TextWrapped(field.Name);
+                }
+                else
+                {
+                    ImGui.TextWrapped(displayName);
+                }
                 if (description != null)
                 {
                     if (Settings.Editing.HideFieldDescriptions)
@@ -465,6 +474,24 @@ public class EditorPanel
                     }
                 }
 
+                break;
+            case List<Vertex> verticesValue:
+                //var buttonSize = new Vector2(ImGui.GetFrameHeight(), ImGui.GetFrameHeight());
+                ImGui.BeginChild("vertices##" + field.GetHashCode(), new Vector2(0, 100f),
+                    ImGuiChildFlags.Borders | ImGuiChildFlags.ResizeY);
+                for (int i = 0; i < verticesValue.Count; i++)
+                {
+                    var vertex = verticesValue[i];
+                    var vertPos = new Vector3(vertex.x, vertex.y, vertex.z);
+                    var changed = ImGui.InputFloat3(i.ToString(), ref vertPos);
+                    if (changed)
+                    {
+                        vertex.x = vertPos.X;
+                        vertex.y = vertPos.Y;
+                        vertex.z = vertPos.Z;
+                    }
+                }
+                ImGui.EndChild();
                 break;
             case IEnumerable collection:
             {
