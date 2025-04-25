@@ -277,6 +277,14 @@ namespace MiloLib.Assets.Char
                 }
 
             }
+
+            public static CharacterTesting New(ushort revision, ushort altRevision)
+            {
+                CharacterTesting characterTesting = new CharacterTesting();
+                characterTesting.revision = revision;
+                characterTesting.altRevision = altRevision;
+                return characterTesting;
+            }
         }
 
         private ushort altRevision;
@@ -358,7 +366,11 @@ namespace MiloLib.Assets.Char
                     sphereBase = Symbol.Read(reader);
 
                 if (revision <= 9)
+                {
+                    if (standalone)
+                        if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");
                     return this;
+                }
 
                 if (revision > 10)
                 {
@@ -423,7 +435,11 @@ namespace MiloLib.Assets.Char
                     Symbol.Write(writer, sphereBase);
 
                 if (revision <= 9)
+                {
+                    if (standalone)
+                        writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
                     return;
+                }
 
                 if (revision > 10)
                     bounding.Write(writer);
@@ -447,6 +463,14 @@ namespace MiloLib.Assets.Char
 
             if (standalone)
                 writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
+        }
+
+        public static Character New(ushort revision, ushort altRevision)
+        {
+            Character character = new Character(revision, altRevision);
+            character.revision = revision;
+            character.altRevision = altRevision;
+            return character;
         }
 
 

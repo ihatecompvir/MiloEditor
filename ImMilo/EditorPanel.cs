@@ -77,7 +77,7 @@ public class EditorPanel
 
         return attribute;
     }
-    
+
     private static NameAttribute? GetCachedNameAttribute(MemberInfo mInfo)
     {
         if (!_enumMemberNameCache.TryGetValue(mInfo, out NameAttribute attribute))
@@ -240,8 +240,14 @@ public class EditorPanel
 
             foreach (var field in fields)
             {
+                // check if the field has the HideInInspector attribute
+                if (field.GetCustomAttribute<HideInInspector>() != null)
+                {
+                    continue;
+                }
+
                 ImGui.PushID(subID);
-                
+
                 var nameAttr = field.GetCustomAttribute<NameAttribute>();
                 var descriptionAttr = field.GetCustomAttribute<DescriptionAttribute>();
 
@@ -279,10 +285,10 @@ public class EditorPanel
                         ImGui.TextWrapped(description);
                         ImGui.PopStyleVar();
                     }
-                }   
+                }
 
                 ImGui.TableSetColumnIndex(1);
-                
+
                 ValueEditor(field, obj, drawLabels, id);
                 id++;
                 subID++;
@@ -389,7 +395,7 @@ public class EditorPanel
                             var lambda = () =>
                             {
                                 symbolsValue.Remove(symbol);
-                                symbolsValue.Insert(index-1, symbol);
+                                symbolsValue.Insert(index - 1, symbol);
                             };
                             Program.defferedActions.Add(lambda);
                         }
@@ -399,7 +405,7 @@ public class EditorPanel
                         ImGui.InvisibleButton("disableup##" + i, buttonSize);
                     }
                     ImGui.SameLine();
-                    if (i < symbolsValue.Count-1)
+                    if (i < symbolsValue.Count - 1)
                     {
                         if (ImGui.Button(FontAwesome5.ArrowDown + "##" + i, buttonSize))
                         {
@@ -407,7 +413,7 @@ public class EditorPanel
                             var lambda = () =>
                             {
                                 symbolsValue.Remove(symbol);
-                                symbolsValue.Insert(index+1, symbol);
+                                symbolsValue.Insert(index + 1, symbol);
                             };
                             Program.defferedActions.Add(lambda);
                         }
@@ -418,7 +424,7 @@ public class EditorPanel
                     }
                     ImGui.SameLine();
                     ImGui.PopStyleVar();
-                    
+
                     if (ImGui.InputText("##" + i, ref stringValue, 128))
                     {
                         var symbolValue = new Symbol((uint)stringValue.Length, stringValue);
@@ -494,93 +500,93 @@ public class EditorPanel
                 ImGui.EndChild();
                 break;
             case IEnumerable collection:
-            {
-                int? length = null;
-                IList? list = null;
-                if (collection is IList _list)
                 {
-                    list = _list;
-                    length = list.Count;
-                }
-
-                Type collectionType = null;
-                if (field.FieldType.GetGenericArguments().Length > 0)
-                {
-                    collectionType = field.FieldType.GetGenericArguments().First();
-                    ImGui.Text("List: " + collectionType.Name);
-                    if (length != null)
+                    int? length = null;
+                    IList? list = null;
+                    if (collection is IList _list)
                     {
-                        ImGui.Text(length.Value + " entries");
-                    }
-                }
-                var collectionButtonSize = new Vector2(ImGui.GetFrameHeight(), ImGui.GetFrameHeight());
-                
-                
-                //ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
-                ImGui.BeginChild("values##" + field.GetHashCode(), new Vector2(0, 125),
-                    ImGuiChildFlags.Borders | ImGuiChildFlags.ResizeY);
-                var i = 0;
-                foreach (var value in collection)
-                {
-                    i++;
-                    ImGui.PushID(i);
-                    if (list != null)
-                    {
-                        if (ImGui.Button(FontAwesome5.Minus + "##" + i, collectionButtonSize))
-                        {
-                            var lambda = () =>
-                            {
-                                list.Remove(value);
-                            };
-                            Program.defferedActions.Add(lambda);
-                        }
-                    }
-                    ImGui.SameLine();
-                    if (ImGui.TreeNode(value.ToString() + "###" + i))
-                    {
-                        //ImGui.Indent();
-                        if (ImGui.Button("Full View"))
-                        {
-                            Program.NavigateObject(value, true);
-                        }
-
-                        Draw(value, i, false);
-                        //ImGui.Unindent();
-                        ImGui.TreePop();
+                        list = _list;
+                        length = list.Count;
                     }
 
-                    ImGui.PopID();
-                }
-
-                if (collectionType != null)
-                {
-                    if (ImGui.Button(FontAwesome5.Plus, collectionButtonSize))
+                    Type collectionType = null;
+                    if (field.FieldType.GetGenericArguments().Length > 0)
                     {
-                        var constructor = collectionType.GetConstructor([]);
-                        if (constructor == null)
+                        collectionType = field.FieldType.GetGenericArguments().First();
+                        ImGui.Text("List: " + collectionType.Name);
+                        if (length != null)
                         {
-                            Program.ShowNotifyPrompt("Cannot create new object in list; object has no parameterless constructor.", "Error");
+                            ImGui.Text(length.Value + " entries");
                         }
-                        else
+                    }
+                    var collectionButtonSize = new Vector2(ImGui.GetFrameHeight(), ImGui.GetFrameHeight());
+
+
+                    //ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
+                    ImGui.BeginChild("values##" + field.GetHashCode(), new Vector2(0, 125),
+                        ImGuiChildFlags.Borders | ImGuiChildFlags.ResizeY);
+                    var i = 0;
+                    foreach (var value in collection)
+                    {
+                        i++;
+                        ImGui.PushID(i);
+                        if (list != null)
                         {
-                            try
+                            if (ImGui.Button(FontAwesome5.Minus + "##" + i, collectionButtonSize))
                             {
-                                var obj = constructor.Invoke([]);
-                                list?.Add(obj);
-                            }
-                            catch (Exception e)
-                            {
-                                Program.OpenErrorModal(e, "Cannot create new object in list");
+                                var lambda = () =>
+                                {
+                                    list.Remove(value);
+                                };
+                                Program.defferedActions.Add(lambda);
                             }
                         }
+                        ImGui.SameLine();
+                        if (ImGui.TreeNode(value.ToString() + "###" + i))
+                        {
+                            //ImGui.Indent();
+                            if (ImGui.Button("Full View"))
+                            {
+                                Program.NavigateObject(value, true);
+                            }
+
+                            Draw(value, i, false);
+                            //ImGui.Unindent();
+                            ImGui.TreePop();
+                        }
+
+                        ImGui.PopID();
                     }
+
+                    if (collectionType != null)
+                    {
+                        if (ImGui.Button(FontAwesome5.Plus, collectionButtonSize))
+                        {
+                            var constructor = collectionType.GetConstructor([]);
+                            if (constructor == null)
+                            {
+                                Program.ShowNotifyPrompt("Cannot create new object in list; object has no parameterless constructor.", "Error");
+                            }
+                            else
+                            {
+                                try
+                                {
+                                    var obj = constructor.Invoke([]);
+                                    list?.Add(obj);
+                                }
+                                catch (Exception e)
+                                {
+                                    Program.OpenErrorModal(e, "Cannot create new object in list");
+                                }
+                            }
+                        }
+                    }
+
+                    ImGui.EndChild();
+
+                    //ImGui.PopStyleVar();
+                    break;
                 }
-
-                ImGui.EndChild();
-
-                //ImGui.PopStyleVar();
-                break;
-            }
             case bool boolValue:
                 if (ImGui.Checkbox("", ref boolValue))
                 {
@@ -604,12 +610,12 @@ public class EditorPanel
                     matrixValue.m21 = row1.Y;
                     matrixValue.m31 = row1.Z;
                     matrixValue.m41 = row1.W;
-                    
+
                     matrixValue.m12 = row2.X;
                     matrixValue.m22 = row2.Y;
                     matrixValue.m32 = row2.Z;
                     matrixValue.m42 = row2.W;
-                    
+
                     matrixValue.m13 = row3.X;
                     matrixValue.m23 = row3.Y;
                     matrixValue.m33 = row3.Z;
@@ -618,32 +624,32 @@ public class EditorPanel
                 }
                 break;
             case HmxColor3 colorValue:
-            {
-                var tempVec = new System.Numerics.Vector3(colorValue.r, colorValue.g, colorValue.b);
-                if (ImGui.ColorEdit3("##color3", ref tempVec, ImGuiColorEditFlags.Float))
                 {
-                    colorValue.r = tempVec.X;
-                    colorValue.g = tempVec.Y;
-                    colorValue.b = tempVec.Z;
-                    field.SetValue(parent, colorValue);
-                }
+                    var tempVec = new System.Numerics.Vector3(colorValue.r, colorValue.g, colorValue.b);
+                    if (ImGui.ColorEdit3("##color3", ref tempVec, ImGuiColorEditFlags.Float))
+                    {
+                        colorValue.r = tempVec.X;
+                        colorValue.g = tempVec.Y;
+                        colorValue.b = tempVec.Z;
+                        field.SetValue(parent, colorValue);
+                    }
 
-                break;
-            }
+                    break;
+                }
             case HmxColor4 colorValue:
-            {
-                var tempVec = new System.Numerics.Vector4(colorValue.r, colorValue.g, colorValue.b, colorValue.a);
-                if (ImGui.ColorEdit4("##color3", ref tempVec, ImGuiColorEditFlags.Float))
                 {
-                    colorValue.r = tempVec.X;
-                    colorValue.g = tempVec.Y;
-                    colorValue.b = tempVec.Z;
-                    colorValue.a = tempVec.W;
-                    field.SetValue(parent, colorValue);
-                }
+                    var tempVec = new System.Numerics.Vector4(colorValue.r, colorValue.g, colorValue.b, colorValue.a);
+                    if (ImGui.ColorEdit4("##color3", ref tempVec, ImGuiColorEditFlags.Float))
+                    {
+                        colorValue.r = tempVec.X;
+                        colorValue.g = tempVec.Y;
+                        colorValue.b = tempVec.Z;
+                        colorValue.a = tempVec.W;
+                        field.SetValue(parent, colorValue);
+                    }
 
-                break;
-            }
+                    break;
+                }
             case object primitiveValue when field.FieldType.IsPrimitive:
                 DrawPrimitiveEdit(parent, primitiveValue, field);
                 ImGui.SameLine();

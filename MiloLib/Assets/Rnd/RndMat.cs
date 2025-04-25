@@ -267,7 +267,7 @@ namespace MiloLib.Assets.Rnd
         public float refractStrength;
 
         [Name("Refract Normal Map"), Description("This is a normal map used to distort the screen under the material. If none is specified, the regular normal map will be used.")]
-        public Symbol refractNormalMap;
+        public Symbol refractNormalMap = new Symbol(0, "");
 
         public byte unkbool;
 
@@ -683,6 +683,14 @@ namespace MiloLib.Assets.Rnd
             {
                 writer.WriteUInt32(writer.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD);
             }
+        }
+
+        public static RndMat New(ushort revision, ushort altRevision)
+        {
+            RndMat rndMat = new RndMat();
+            rndMat.revision = revision;
+            rndMat.altRevision = altRevision;
+            return rndMat;
         }
 
     }

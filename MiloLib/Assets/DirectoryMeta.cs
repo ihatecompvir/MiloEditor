@@ -278,6 +278,12 @@ namespace MiloLib.Assets
                     character.Read(reader, true, this, new Entry(type, name, character));
                     directory = character;
                     break;
+                case "CompositeCharacter":
+                    Debug.WriteLine("Reading CompositeCharacter " + name.value);
+                    CompositeCharacter compositeCharacter = new CompositeCharacter(0);
+                    compositeCharacter.Read(reader, true, this, new Entry(type, name, compositeCharacter));
+                    directory = compositeCharacter;
+                    break;
                 case "UILabelDir":
                     Debug.WriteLine("Reading UILabelDir " + name.value);
                     UILabelDir uiLabelDir = new UILabelDir(0);
@@ -481,6 +487,9 @@ namespace MiloLib.Assets
                 case "CharClipSet":
                     ((CharClipSet)directory).Write(writer, true, this, new Entry(type, name, directory));
                     break;
+                case "CompositeCharacter":
+                    ((CompositeCharacter)directory).Write(writer, true, this, new Entry(type, name, directory));
+                    break;
                 case "UILabelDir":
                     ((UILabelDir)directory).Write(writer, true, this, new Entry(type, name, directory));
                     break;
@@ -651,6 +660,16 @@ namespace MiloLib.Assets
                     // this is unhinged, why'd they do it like this?
                     reader.ReadUInt32();
                     entry.obj = new ObjectDir(0).Read(reader, true, this, entry);
+
+                    dir = new DirectoryMeta();
+                    dir.platform = platform;
+                    dir.Read(reader);
+                    entry.dir = dir;
+                    break;
+                case "CompositeCharacter":
+                    Debug.WriteLine("Reading entry CompositeCharacter " + entry.name.value);
+                    entry.isProxy = true;
+                    entry.obj = new CompositeCharacter(0).Read(reader, true, this, entry);
 
                     dir = new DirectoryMeta();
                     dir.platform = platform;
@@ -1113,6 +1132,10 @@ namespace MiloLib.Assets
                     Debug.WriteLine("Reading entry TransProxy " + entry.name.value);
                     entry.obj = new RndTransProxy().Read(reader, true, this, entry);
                     break;
+                case "UIButton":
+                    Debug.WriteLine("Reading entry UIButton" + entry.name.value);
+                    entry.obj = new UIButton().Read(reader, true, this, entry);
+                    break;
                 case "UIColor":
                     Debug.WriteLine("Reading entry UIColor" + entry.name.value);
                     entry.obj = new UIColor().Read(reader, true, this, entry);
@@ -1231,6 +1254,11 @@ namespace MiloLib.Assets
                 case "CharClipSet":
                     writer.WriteUInt32(0x18);
                     ((ObjectDir)entry.obj).Write(writer, true, this, entry);
+                    entry.isProxy = false;
+                    entry.dir.Write(writer);
+                    break;
+                case "CompositeCharacter":
+                    ((CompositeCharacter)entry.obj).Write(writer, true, this, entry);
                     entry.isProxy = false;
                     entry.dir.Write(writer);
                     break;
@@ -1531,6 +1559,9 @@ namespace MiloLib.Assets
                     break;
                 case "TransProxy":
                     ((RndTransProxy)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "UIButton":
+                    ((UIButton)entry.obj).Write(writer, true, this, entry);
                     break;
                 case "UIColor":
                     ((UIColor)entry.obj).Write(writer, true, this, entry);

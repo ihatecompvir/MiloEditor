@@ -145,5 +145,41 @@ namespace MiloLib.Assets.Rnd
                 writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
             }
         }
+
+        public static RndTrans New(ushort revision, ushort altRevision)
+        {
+            RndTrans trans = new RndTrans();
+            trans.revision = revision;
+            trans.altRevision = altRevision;
+
+            trans.localXfm = new Matrix();
+            trans.localXfm.m11 = 1.0f;
+            trans.localXfm.m12 = 0.0f;
+            trans.localXfm.m13 = 0.0f;
+            trans.localXfm.m21 = 0.0f;
+            trans.localXfm.m22 = 1.0f;
+            trans.localXfm.m23 = 0.0f;
+            trans.localXfm.m31 = 0.0f;
+            trans.localXfm.m32 = 0.0f;
+            trans.localXfm.m33 = 1.0f;
+            trans.localXfm.m41 = 0.0f;
+            trans.localXfm.m42 = 0.0f;
+            trans.localXfm.m43 = 0.0f;
+
+            trans.worldXfm = new Matrix();
+            trans.worldXfm.m11 = 1.0f;
+            trans.worldXfm.m12 = 0.0f;
+            trans.worldXfm.m13 = 0.0f;
+            trans.worldXfm.m21 = 0.0f;
+            trans.worldXfm.m22 = 1.0f;
+            trans.worldXfm.m23 = 0.0f;
+            trans.worldXfm.m31 = 0.0f;
+            trans.worldXfm.m32 = 0.0f;
+            trans.worldXfm.m33 = 1.0f;
+            trans.worldXfm.m41 = 0.0f;
+            trans.worldXfm.m42 = 0.0f;
+            trans.worldXfm.m43 = 0.0f;
+            return trans;
+        }
     }
 }

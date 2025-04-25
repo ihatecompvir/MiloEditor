@@ -23,7 +23,7 @@ public static class MeshEditor
     private static CommandList? commandList;
     private static Matrix4x4 modelMatrix = Matrix4x4.Identity;
     private static Matrix4x4 projectionMatrix = Matrix4x4.Identity;
-    
+
     private static DeviceBuffer? vertexBuffer;
     private static DeviceBuffer? indexBuffer;
     private static DeviceBuffer? matrixBuffer;
@@ -45,7 +45,7 @@ public static class MeshEditor
     private static Vector2 prevMousePos;
 
     private static Exception previewError;
-    
+
     [StructLayout(LayoutKind.Sequential)]
     public struct PackedVertex
     {
@@ -74,7 +74,7 @@ public static class MeshEditor
         vertexBuffer =
             factory.CreateBuffer(new BufferDescription(100000, BufferUsage.VertexBuffer | BufferUsage.Dynamic));
         vertexBuffer.Name = "Mesh Preview Vertex Buffer";
-        indexBuffer = 
+        indexBuffer =
             factory.CreateBuffer(new BufferDescription(2000, BufferUsage.IndexBuffer | BufferUsage.Dynamic));
         indexBuffer.Name = "Mesh Preview Index Buffer";
 
@@ -84,7 +84,7 @@ public static class MeshEditor
 
         byte[] vertexShaderBytes =
             controller.LoadEmbeddedShaderCode(factory, "meshpreview-vertex", ShaderStages.Vertex);
-        byte[] fragmentShaderBytes = 
+        byte[] fragmentShaderBytes =
             controller.LoadEmbeddedShaderCode(factory, "meshpreview-frag", ShaderStages.Fragment);
         vertexShader = factory.CreateShader(new ShaderDescription(ShaderStages.Vertex, vertexShaderBytes,
             gd.BackendType == GraphicsBackend.Metal ? "VS" : "main"));
@@ -161,14 +161,14 @@ public static class MeshEditor
             gd.DisposeWhenIdle(vertexBuffer);
             vertexBuffer = gd.ResourceFactory.CreateBuffer(new BufferDescription((uint)(totalVBSize * 1.5f), BufferUsage.Dynamic | BufferUsage.VertexBuffer));
         }
-        
+
         uint totalIBSize = (uint)(faces.Count * Unsafe.SizeOf<PackedFace>());
         if (totalIBSize > indexBuffer.SizeInBytes)
         {
             gd.DisposeWhenIdle(indexBuffer);
             indexBuffer = gd.ResourceFactory.CreateBuffer(new BufferDescription((uint)(totalIBSize * 1.5f), BufferUsage.Dynamic | BufferUsage.IndexBuffer));
         }
-        
+
         commandList.UpdateBuffer(vertexBuffer, 0, vertices.ToArray());
         commandList.UpdateBuffer(indexBuffer, 0, faces.ToArray());
     }
@@ -207,12 +207,12 @@ public static class MeshEditor
 
     public static void Draw(RndMesh mesh)
     {
-        
+
         if (ImGui.GetContentRegionAvail() != viewportSize)
         {
             CreateFramebuffer(ImGui.GetContentRegionAvail());
         }
-        
+
         if (!initialized)
         {
             try
@@ -223,7 +223,7 @@ public static class MeshEditor
             {
                 previewError = e;
             }
-            
+
             //projectionMatrix = Matrix4x4.CreateOrthographic(40, 40, 0.1f, 100);
             initialized = true;
         }
@@ -235,7 +235,7 @@ public static class MeshEditor
             ImGui.Text(previewError.Message);
             return;
         }
-        
+
         if (commandList == null)
         {
             throw new Exception("Command list is null");
@@ -248,10 +248,10 @@ public static class MeshEditor
         }
 
         var offset = new Vector3(0, 0, zoom);
-        
+
         projectionMatrix = Matrix4x4.CreateLookAt(offset, Vector3.Zero, Vector3.UnitY);
         projectionMatrix *= Matrix4x4.CreatePerspectiveFieldOfView(float.DegreesToRadians(75), viewportSize.X / viewportSize.Y, 0.1f, 10000f);
-        modelMatrix = Matrix4x4.CreateTranslation(-centerPos+modelOffset);
+        modelMatrix = Matrix4x4.CreateTranslation(-centerPos + modelOffset);
         modelMatrix *= modelRotation;
 
 
@@ -265,25 +265,25 @@ public static class MeshEditor
         commandList.SetIndexBuffer(indexBuffer, IndexFormat.UInt16);
         commandList.SetPipeline(pipeline);
         commandList.SetGraphicsResourceSet(0, mainResourceSet);
-        commandList.DrawIndexed((uint)faces.Count);
+        commandList.DrawIndexed((uint)faces.Count * 3);
         commandList.End();
         Program.gd.SubmitCommands(commandList);
-        
+
         ImGui.Image(viewportId, viewportSize);
         if (ImGui.IsItemHovered() && ImGui.IsMouseDown(ImGuiMouseButton.Left))
         {
-            var delta = (ImGui.GetMousePos() - prevMousePos)*0.02f;
+            var delta = (ImGui.GetMousePos() - prevMousePos) * 0.02f;
             modelRotation *= Matrix4x4.CreateRotationX(-delta.Y);
             modelRotation *= Matrix4x4.CreateRotationY(delta.X);
-        } 
+        }
         else if (ImGui.IsItemHovered() && ImGui.IsMouseDown(ImGuiMouseButton.Right))
         {
-            var delta = (ImGui.GetMousePos() - prevMousePos)*0.1f;
+            var delta = (ImGui.GetMousePos() - prevMousePos) * 0.1f;
 
             Matrix4x4.Invert(modelRotation, out var inverted);
-            
-            modelOffset += Vector3.TransformNormal(-Vector3.UnitX*delta.X, inverted);
-            modelOffset += Vector3.TransformNormal(-Vector3.UnitY*delta.Y, inverted);
+
+            modelOffset += Vector3.TransformNormal(-Vector3.UnitX * delta.X, inverted);
+            modelOffset += Vector3.TransformNormal(-Vector3.UnitY * delta.Y, inverted);
         }
 
         if (ImGui.IsItemHovered())

@@ -10,6 +10,13 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <None Remove="ImGuiUtils\Shaders\SPIR-V\meshpreview-lit-frag.glsl" />
+      <None Remove="ImGuiUtils\Shaders\SPIR-V\meshpreview-lit-frag.spv" />
+      <None Remove="ImGuiUtils\Shaders\SPIR-V\meshpreview-lit-vertex.glsl" />
+      <None Remove="ImGuiUtils\Shaders\SPIR-V\meshpreview-lit-vertex.spv" />
+    </ItemGroup>
+
+    <ItemGroup>
       <PackageReference Include="BigGustave" Version="1.0.6" />
       <PackageReference Include="ImGui.NET" Version="1.91.6.1" />
       <PackageReference Include="Pfim" Version="0.11.3" />
@@ -43,8 +50,8 @@
         <EmbeddedResource Include="ImGuiUtils\Shaders\Metal\imgui-frag.metallib" LogicalName="imgui-frag.metallib" />
         <EmbeddedResource Include="ImGuiUtils\Shaders\Metal\meshpreview-frag.metallib" LogicalName="meshpreview-frag.metallib" />
         <EmbeddedResource Include="ImGuiUtils\Shaders\Metal\meshpreview-vertex.metallib" LogicalName="meshpreview-vertex.metallib" />
-        <EmbeddedResource Include="ImGuiUtils\Shaders\SPIR-V\meshpreview-frag.spv" LogicalName="meshpreview-frag.spv"/>
-        <EmbeddedResource Include="ImGuiUtils\Shaders\SPIR-V\meshpreview-vertex.spv" LogicalName="meshpreview-vertex.spv"/>
+        <EmbeddedResource Include="ImGuiUtils\Shaders\SPIR-V\meshpreview-frag.spv" LogicalName="meshpreview-frag.spv" />
+        <EmbeddedResource Include="ImGuiUtils\Shaders\SPIR-V\meshpreview-vertex.spv" LogicalName="meshpreview-vertex.spv" />
         <EmbeddedResource Include="ImGuiUtils\Shaders\SPIR-V\imgui-vertex.spv" LogicalName="imgui-vertex.spv" />
         <EmbeddedResource Include="ImGuiUtils\Shaders\SPIR-V\imgui-frag.spv" LogicalName="imgui-frag.spv" />
         <EmbeddedResource Include="Assets\milo.png" LogicalName="milo.png" />

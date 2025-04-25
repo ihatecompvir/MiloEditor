@@ -143,5 +143,13 @@ namespace MiloLib.Assets.Rnd
             if (standalone)
                 writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
         }
+
+        public static RndDrawable New(ushort revision, ushort altRevision)
+        {
+            RndDrawable drawable = new RndDrawable();
+            drawable.revision = revision;
+            drawable.altRevision = altRevision;
+            return drawable;
+        }
     }
 }

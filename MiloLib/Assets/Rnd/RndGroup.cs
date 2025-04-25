@@ -170,5 +170,13 @@ namespace MiloLib.Assets.Rnd
                 writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
             }
         }
+
+        public static RndGroup New(ushort revision, ushort altRevision)
+        {
+            RndGroup rndGroup = new RndGroup();
+            rndGroup.revision = revision;
+            rndGroup.altRevision = altRevision;
+            return rndGroup;
+        }
     }
 }

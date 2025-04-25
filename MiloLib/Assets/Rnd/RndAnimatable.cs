@@ -148,5 +148,13 @@ namespace MiloLib.Assets.Rnd
                 Symbol.Write(writer, anim);
             }
         }
+
+        public static RndAnimatable New(ushort revision, ushort altRevision)
+        {
+            RndAnimatable anim = new RndAnimatable();
+            anim.revision = revision;
+            anim.altRevision = altRevision;
+            return anim;
+        }
     }
 }

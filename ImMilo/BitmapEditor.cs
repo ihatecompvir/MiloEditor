@@ -29,22 +29,77 @@ public static class BitmapEditor
         {
             Dispose();
         }
+
         curTexture = texture;
+        previewTexture = null;
+        previewTextureView = null;
+        texID = nint.Zero;
+        supportedEncoding = false;
+        encodingError = null;
+
+        if (texture == null || texture.bitmap == null)
+        {
+            encodingError = new ArgumentNullException(nameof(texture), "Provided texture or its bitmap is null.");
+            supportedEncoding = false;
+            return;
+        }
+
+
         try
         {
             if (texture.bitmap.encoding == RndBitmap.TextureEncoding.DXT1_BC1 ||
                 texture.bitmap.encoding == RndBitmap.TextureEncoding.DXT5_BC3 ||
                 texture.bitmap.encoding == RndBitmap.TextureEncoding.ATI2_BC5)
             {
-                using (var image = Pfimage.FromStream(new MemoryStream(texture.bitmap.ConvertToImage().ToArray())))
+                byte[] imageData = texture.bitmap.ConvertToImage().ToArray();
+                if (imageData == null || imageData.Length == 0)
                 {
+                    throw new NullReferenceException("ConvertToImage returned null or empty data.");
+                }
+
+                using (var ms = new MemoryStream(imageData))
+                using (var image = Pfimage.FromStream(ms))
+                {
+                    if (image == null)
+                    {
+                        throw new NullReferenceException("Pfimage.FromStream returned null.");
+                    }
+
                     image.Decompress();
+
+                    if (image.Format != Pfim.ImageFormat.Rgba32)
+                    {
+                        Console.WriteLine($"Warning: Decompressed to {image.Format}, expected Rgba32. Veldrid update might fail or look incorrect.");
+                    }
+
                     Console.WriteLine(image.Width + " x " + image.Height);
+
+                    if (image.Width <= 0 || image.Height <= 0)
+                    {
+                        Console.WriteLine($"Invalid image dimensions after decoding: {image.Width}x{image.Height}");
+                    }
+                    uint bytesPerPixel = (uint)image.BitsPerPixel / 8;
+                    if (bytesPerPixel == 0)
+                        Console.WriteLine($"Invalid BitsPerPixel ({image.BitsPerPixel}) from decoded image.");
+
+                    uint expectedDataSize = (uint)(image.Width * image.Height * bytesPerPixel);
+                    if (image.DataLen != expectedDataSize)
+                    {
+                        throw new Exception($"Decompressed image data length ({image.DataLen}) does not match expected size ({expectedDataSize}) for {image.Width}x{image.Height} @ {image.BitsPerPixel}bpp. Format was {image.Format}.");
+                    }
+
                     previewTexture = Program.gd.ResourceFactory.CreateTexture(TextureDescription.Texture2D(
-                        (uint)image.Width, (uint)image.Height, 1, 1, PixelFormat.B8_G8_R8_A8_UNorm,
+                        (uint)image.Width, (uint)image.Height, 1, 1,
+                        PixelFormat.B8_G8_R8_A8_UNorm,
                         TextureUsage.Sampled));
-                    Program.gd.UpdateTexture(previewTexture, image.Data, 0, 0, 0, (uint)image.Width, (uint)image.Height,
-                        1, 0, 0);
+
+                    Program.gd.UpdateTexture(
+                        previewTexture,
+                        image.Data,
+                        0, 0, 0,
+                        (uint)image.Width, (uint)image.Height, 1,
+                        0, 0);
+
                     previewTextureView = Program.gd.ResourceFactory.CreateTextureView(previewTexture);
                     texID = Program.controller.GetOrCreateImGuiBinding(Program.gd.ResourceFactory, previewTextureView);
                     supportedEncoding = true;
@@ -53,38 +108,72 @@ public static class BitmapEditor
             else
             {
                 supportedEncoding = false;
-                encodingError = null;
-                previewTexture = null;
-                previewTextureView = null;
             }
         }
         catch (Exception e)
         {
             supportedEncoding = false;
             encodingError = e;
+            try { previewTextureView?.Dispose(); } catch { }
+            try { previewTexture?.Dispose(); } catch { }
+            texID = nint.Zero;
         }
-        
     }
 
     public async static void Dispose()
     {
         // Vulkan was complaining that the texture was being destroyed while the TextureView was still accessing it.
         // Waiting until the end of the frame seems to have fixed it.
-        var view = previewTextureView;
-        var tex = previewTexture;
-        var tcs = new TaskCompletionSource();
-        Program.callAfterFrame.Add(tcs);
-        await tcs.Task;
-        if (previewTexture != null)
+        var viewToDispose = previewTextureView;
+        var textureToDispose = previewTexture;
+
+        if (viewToDispose == null && textureToDispose == null)
         {
-            view.Dispose();
-            tex.Dispose();
+            return;
+        }
+
+        previewTextureView = null;
+        previewTexture = null;
+        texID = nint.Zero;
+
+        var tcs = new TaskCompletionSource();
+        if (Program.callAfterFrame != null)
+        {
+            Program.callAfterFrame.Add(tcs);
+        }
+        else
+        {
+            try
+            {
+                viewToDispose?.Dispose();
+                textureToDispose?.Dispose();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error during immediate disposal fallback: {ex}");
+            }
+            return;
+        }
+
+
+        try
+        {
+            await tcs.Task;
+
+            viewToDispose?.Dispose();
+            textureToDispose?.Dispose();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error during delayed disposal: {ex}");
+            try { viewToDispose?.Dispose(); } catch { /* Ignored */ }
+            try { textureToDispose?.Dispose(); } catch { /* Ignored */ }
         }
     }
 
     public static Vector2 FitToRect(Vector2 child, Vector2 container)
     {
-        var scale = MathF.Min(container.X/child.X, container.Y/child.Y);
+        var scale = MathF.Min(container.X / child.X, container.Y / child.Y);
         return new Vector2(child.X * scale, child.Y * scale);
     }
 
@@ -122,7 +211,7 @@ public static class BitmapEditor
         }
         var windowSize = ImGui.GetContentRegionAvail();
         var imageSize = new Vector2(texture.width, texture.height);
-        var scaledSize = oneToOne ? imageSize : FitToRect(imageSize, windowSize)*zoom;
+        var scaledSize = oneToOne ? imageSize : FitToRect(imageSize, windowSize) * zoom;
         var centerPos = windowSize / 2f;
         var imagePos = centerPos - scaledSize / 2f;
         if (scaledSize.X > windowSize.X)
@@ -140,7 +229,7 @@ public static class BitmapEditor
         ImGui.SetCursorPos(imagePos);
         ImGui.Image(texID, scaledSize);
         ImGui.EndChild();
-        drawList.AddRectFilled(ImGui.GetWindowViewport().Pos, ImGui.GetWindowViewport().Pos+windowSize, 0x000000ff);
+        drawList.AddRectFilled(ImGui.GetWindowViewport().Pos, ImGui.GetWindowViewport().Pos + windowSize, 0x000000ff);
         ImGui.PopStyleVar();
     }
 
@@ -222,7 +311,7 @@ public static class BitmapEditor
                 curTexture.bitmap.bpl = (ushort)((curTexture.bitmap.bpp * curTexture.bitmap.width) / 8);
                 break;
         }
-        
+
         // Update the preview
         UpdateTexture(curTexture);
     }

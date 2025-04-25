@@ -55,13 +55,19 @@ namespace MiloLib.Assets.Rnd
 
             bpp = reader.ReadUInt32();
 
+            // lego gotta be special
+            if (parent.revision == 25 && revision == 11)
+            {
+                reader.ReadUInt32();
+            }
+
             externalPath = Symbol.Read(reader);
 
             if (revision >= 8)
                 indexFloat = reader.ReadFloat();
             index2 = reader.ReadUInt32();
 
-            if (revision >= 11)
+            if (revision >= 11 && parent.revision != 25)
                 optimizeForPS3 = reader.ReadBoolean();
 
             if (revision != 7)
@@ -158,6 +164,14 @@ namespace MiloLib.Assets.Rnd
                 writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
             }
 
+        }
+
+        public static RndTex New(ushort revision, ushort altRevision)
+        {
+            RndTex newRndTex = new RndTex();
+            newRndTex.revision = revision;
+            newRndTex.altRevision = altRevision;
+            return newRndTex;
         }
 
     }

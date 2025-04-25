@@ -51,7 +51,7 @@ namespace MiloLib.Assets.Rnd
 
             revision = reader.ReadByte();
 
-            if (revision != 1)
+            if (revision > 2)
             {
                 throw new UnsupportedAssetRevisionException("RndBitmap", revision);
             }
@@ -273,6 +273,13 @@ namespace MiloLib.Assets.Rnd
 
                 return stream.ToArray();
             }
+        }
+
+        public static RndBitmap New(byte revision, ushort altRevision)
+        {
+            RndBitmap bitmap = new RndBitmap();
+            bitmap.revision = revision;
+            return bitmap;
         }
 
 

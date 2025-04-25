@@ -3,6 +3,7 @@ using MiloLib.Utils;
 using System;
 using System.Numerics;
 using System.Reflection.PortableExecutable;
+using System.Xml.Linq;
 
 namespace MiloLib.Assets.Rnd
 {
@@ -92,7 +93,7 @@ namespace MiloLib.Assets.Rnd
 
             public void Write(EndianWriter writer, uint meshVersion)
             {
-                writer.WriteUInt32(count);
+                writer.WriteUInt32((uint)vertices.Count);
                 if (meshVersion >= 36)
                 {
                     writer.WriteBoolean(isNextGen);
@@ -164,6 +165,7 @@ namespace MiloLib.Assets.Rnd
 
                         newVert.u = reader.ReadFloat();
                         newVert.v = reader.ReadFloat();
+                        Console.WriteLine($"Vertex {i}: UV = {newVert.u}, {newVert.v}");
                     }
                     else if (meshVersion < 35 || isNextGen == false)
                     {
@@ -187,6 +189,7 @@ namespace MiloLib.Assets.Rnd
                         {
                             newVert.u = reader.ReadFloat();
                             newVert.v = reader.ReadFloat();
+                            Console.WriteLine($"Vertex {i}: UV = {newVert.u}, {newVert.v}");
 
                             newVert.weight0 = reader.ReadFloat();
                             newVert.weight1 = reader.ReadFloat();
@@ -202,9 +205,11 @@ namespace MiloLib.Assets.Rnd
 
                             newVert.u = reader.ReadFloat();
                             newVert.v = reader.ReadFloat();
+
+                            Console.WriteLine($"Vertex {i}: UV = {newVert.u}, {newVert.v}");
                         }
 
-                        if (meshVersion >= 34)
+                        if (meshVersion >= 33)
                         {
                             newVert.bone0 = reader.ReadUInt16();
                             newVert.bone1 = reader.ReadUInt16();
@@ -224,9 +229,11 @@ namespace MiloLib.Assets.Rnd
                                 newVert.tangent1 = reader.ReadFloat();
                                 newVert.tangent2 = reader.ReadFloat();
                                 newVert.tangent3 = reader.ReadFloat();
-
-                                newVert.unknown1 = reader.ReadFloat();
-                                newVert.unknown2 = reader.ReadFloat();
+                                if (meshVersion > 34)
+                                {
+                                    newVert.unknown1 = reader.ReadFloat();
+                                    newVert.unknown2 = reader.ReadFloat();
+                                }
                             }
                         }
                     }
@@ -305,7 +312,7 @@ namespace MiloLib.Assets.Rnd
                     writer.WriteFloat(vertex.z);
 
                     // Possible W
-                    if (meshVersion == 33 || meshVersion == 34)
+                    if (meshVersion == 34)
                         writer.WriteFloat(vertex.w);
 
                     if (meshVersion <= 10)
@@ -360,7 +367,7 @@ namespace MiloLib.Assets.Rnd
                         writer.WriteFloat(vertex.ny);
                         writer.WriteFloat(vertex.nz);
 
-                        if (meshVersion == 33 || meshVersion == 34)
+                        if (meshVersion == 34)
                             writer.WriteFloat(vertex.nw);
 
                         if (meshVersion >= 38)
@@ -384,7 +391,7 @@ namespace MiloLib.Assets.Rnd
                             writer.WriteFloat(vertex.v);
                         }
 
-                        if (meshVersion >= 34)
+                        if (meshVersion >= 33)
                         {
                             writer.WriteUInt16(vertex.bone0);
                             writer.WriteUInt16(vertex.bone1);
@@ -404,9 +411,11 @@ namespace MiloLib.Assets.Rnd
                                 writer.WriteFloat(vertex.tangent1);
                                 writer.WriteFloat(vertex.tangent2);
                                 writer.WriteFloat(vertex.tangent3);
-
-                                writer.WriteFloat(vertex.unknown1);
-                                writer.WriteFloat(vertex.unknown2);
+                                if (meshVersion > 34)
+                                {
+                                    writer.WriteFloat(vertex.unknown1);
+                                    writer.WriteFloat(vertex.unknown2);
+                                }
 
 
                             }
@@ -476,6 +485,47 @@ namespace MiloLib.Assets.Rnd
                 }
             }
         }
+
+        public class GroupSection
+        {
+            public List<int> sections = new();
+            public List<ushort> vertOffsets = new();
+
+            public GroupSection Read(EndianReader reader, uint meshRevision)
+            {
+                uint sectionCount = reader.ReadUInt32();
+                uint vertCount = reader.ReadUInt32();
+                for (int i = 0; i < sectionCount; i++)
+                {
+                    sections.Add(reader.ReadInt32());
+                }
+                for (int i = 0; i < vertCount; i++)
+                {
+                    vertOffsets.Add(reader.ReadUInt16());
+                }
+                return this;
+            }
+
+            public void Write(EndianWriter writer, uint meshRevision)
+            {
+                writer.WriteUInt32((uint)sections.Count);
+                writer.WriteUInt32((uint)vertOffsets.Count);
+                foreach (var section in sections)
+                {
+                    writer.WriteInt32(section);
+                }
+                foreach (var vert in vertOffsets)
+                {
+                    writer.WriteUInt16(vert);
+                }
+            }
+
+            public override string ToString()
+            {
+                return $"{sections.Count} sections, {vertOffsets.Count} vertOffsets";
+            }
+        }
+
         public enum Mutable : uint
         {
             kMutableNone = 0,
@@ -525,8 +575,10 @@ namespace MiloLib.Assets.Rnd
             }
         }
 
-        private ushort altRevision;
-        private ushort revision;
+        [HideInInspector]
+        public ushort altRevision;
+        [HideInInspector]
+        public ushort revision;
 
         public RndTrans trans = new();
         public RndDrawable draw = new();
@@ -558,6 +610,9 @@ namespace MiloLib.Assets.Rnd
 
         public bool keepMeshData;
         public bool hasAOCalculation;
+        public bool noQuant;
+
+        public bool unkBool3;
 
         public bool excludeFromSelfShadow;
 
@@ -571,6 +626,8 @@ namespace MiloLib.Assets.Rnd
         public float unkFloat;
 
         public MiloLib.Classes.Vector3 unknownVector3 = new();
+
+        public List<GroupSection> groupSections = new();
 
 
         public RndMesh Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
@@ -652,12 +709,31 @@ namespace MiloLib.Assets.Rnd
                 faces.Add(new Face().Read(reader));
             }
 
-            groupSizesCount = reader.ReadUInt32();
-            groupSizes = new List<byte>();
-            for (int i = 0; i < groupSizesCount; i++)
+            if (revision > 0x17)
             {
-                groupSizes.Add(reader.ReadByte());
+                groupSizesCount = reader.ReadUInt32();
+                groupSizes = new List<byte>();
+                for (int i = 0; i < groupSizesCount; i++)
+                {
+                    groupSizes.Add(reader.ReadByte());
+                }
             }
+            else if (revision > 0x15)
+            {
+                // todo
+            }
+            else if (revision > 0x10)
+            {
+                // todo double check this
+                groupSizesCount = reader.ReadUInt32();
+                groupSizes = new List<byte>();
+                for (int i = 0; i < groupSizesCount; i++)
+                {
+                    groupSizes.Add(reader.ReadByte());
+                }
+            }
+
+
 
             if (reader.ReadInt32() > 0)
             {
@@ -685,14 +761,57 @@ namespace MiloLib.Assets.Rnd
                 }
             }
 
+            if (altRevision > 5)
+            {
+                // todo: striper stuff
+            }
+
+            if (revision != 0 && revision < 4)
+            {
+                // todo
+                // std::vector<std::vector<unsigned short> > usvec;
+                // bs >> usvec;
+            }
+
+            if (revision == 0)
+            {
+                /*
+                bool bd4;
+                int ic0, ic4, ic8, icc;
+                bs >> bd4 >> ic0 >> ic4 >> ic8;
+                bs >> icc;
+                */
+            }
+
 
             if (revision > 34)
             {
                 keepMeshData = reader.ReadBoolean();
-                if (revision == 37)
-                    excludeFromSelfShadow = reader.ReadBoolean();
-                else if (revision >= 38)
-                    hasAOCalculation = reader.ReadBoolean();
+            }
+
+            if (revision > 0x25)
+            {
+                hasAOCalculation = reader.ReadBoolean();
+            }
+
+            if (altRevision > 1)
+            {
+                noQuant = reader.ReadBoolean();
+            }
+
+            if (altRevision > 3)
+            {
+                unkBool3 = reader.ReadBoolean();
+            }
+
+            // weird thing on last-gen, from Cisco's notes
+            if (groupSizesCount > 0 && groupSizes[0] > 0 && parent.revision < 25)
+            {
+                for (int i = 0; i < groupSizesCount; i++)
+                {
+                    GroupSection section = new GroupSection();
+                    groupSections.Add(section.Read(reader, revision));
+                }
             }
 
 
@@ -808,16 +927,35 @@ namespace MiloLib.Assets.Rnd
             }
 
             if (revision > 34)
-            {
                 writer.WriteBoolean(keepMeshData);
-                if (revision == 37)
-                    writer.WriteBoolean(excludeFromSelfShadow);
-                else if (revision >= 38)
-                    writer.WriteBoolean(hasAOCalculation);
+
+            if (revision > 0x25)
+                writer.WriteBoolean(hasAOCalculation);
+
+            if (altRevision > 1)
+                writer.WriteBoolean(noQuant);
+
+            if (altRevision > 3)
+                writer.WriteBoolean(unkBool3);
+
+            if (groupSizes.Count > 0 && groupSizes[0] > 0 && parent.revision < 25)
+            {
+                for (int i = 0; i < groupSizes.Count; i++)
+                {
+                    groupSections[i].Write(writer, revision);
+                }
             }
 
             if (standalone)
                 writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
+        }
+
+        public static RndMesh New(ushort revision, ushort altRevision, uint vertexCount, uint faceCount)
+        {
+            RndMesh newRndMesh = new RndMesh();
+            newRndMesh.revision = revision;
+            newRndMesh.altRevision = altRevision;
+            return newRndMesh;
         }
 
     }

@@ -47,7 +47,7 @@ public static partial class Program
             {
                 _window.Title = "ImMilo";
             }
-            
+
         }
     }
 
@@ -189,7 +189,7 @@ public static partial class Program
             _cl.End();
             gd.SubmitCommands(_cl);
             gd.SwapBuffers(gd.MainSwapchain);
-            
+
             foreach (var task in callAfterFrame)
             {
                 task.SetResult();
@@ -266,7 +266,7 @@ public static partial class Program
         DrawErrorModal();
         UIContent();
         ProcessPrompts();
-        
+
         ImGui.End();
         ImGui.PopStyleVar();
         ImGui.PopStyleVar();
@@ -324,8 +324,8 @@ public static partial class Program
                 var tex = Util.QuickCreateTexture(str);
                 MiloTexture = controller.GetOrCreateImGuiBinding(gd.ResourceFactory, tex);
             }
-            
-            
+
+
             ImGui.Begin("About", ref ShowAboutWindow, ImGuiWindowFlags.AlwaysAutoResize);
             ImGui.PushFont(Util.bigFont);
             ImGui.Text("ImMilo");
@@ -339,7 +339,7 @@ public static partial class Program
             {
                 Util.OpenBrowser("https://milohax.org/");
             }
-            ImGui.SetCursorPosX(ImGui.GetCursorPosX()+(ImGui.GetContentRegionAvail().X/2f-64f));
+            ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (ImGui.GetContentRegionAvail().X / 2f - 64f));
             ImGui.Image(MiloTexture.Value, new Vector2(128, 128));
             ImGui.SeparatorText("Credits");
 
@@ -366,7 +366,7 @@ public static partial class Program
                 ImGui.Text($"{contribution}");
                 ImGui.PopTextWrapPos();
             }
-            
+
             ImGui.End();
         }
     }
@@ -423,7 +423,7 @@ public static partial class Program
                 Console.WriteLine(e.Message);
             }
         }
-        
+
     }
 
     static async void PromptNew()
@@ -446,7 +446,7 @@ public static partial class Program
                 {
                     PromptNew();
                 }
-                
+
                 if (ImGui.MenuItem("Open...", "Ctrl+O"))
                 {
                     PromptOpen();
@@ -495,7 +495,7 @@ public static partial class Program
                 }
 
                 ImGui.MenuItem("ImGui Demo Window", null, ref showDemoWindow);
-                
+
                 ImGui.EndMenu();
             }
 
@@ -519,7 +519,7 @@ public static partial class Program
                 {
                     ShowAboutWindow = true;
                 }
-                
+
                 ImGui.EndMenu();
             }
 
@@ -535,7 +535,7 @@ public static partial class Program
             return;
         }
         var (canceled, path) = TinyDialogs.SaveFileDialog("Save Milo Scene", currentScene.filePath, MiloFileFilter);
-        
+
         if (!canceled)
         {
             try
@@ -624,20 +624,20 @@ public static partial class Program
         }
     }
 
-    
+
 
     public static void ImportAsset(DirectoryMeta dir, string path, string assetType)
     {
         // read the file into a byte array
         byte[] fileBytes = File.ReadAllBytes(path);
-                            
+
         // create a new entry
         DirectoryMeta.Entry entry = DirectoryMeta.Entry.CreateDirtyAssetFromBytes(assetType,
             Path.GetFileName(path), fileBytes.ToList<byte>());
 
         // add the entry to the parent dir
         dir.entries.Add(entry);
-        
+
         // use an EndianReader to read the bytes into an Object
         using (EndianReader reader =
                new EndianReader(new MemoryStream(fileBytes), Endian.BigEndian))
