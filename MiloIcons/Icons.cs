@@ -9,15 +9,16 @@ public static class Icons
 {
 
     private static Dictionary<string, string>? typeToAsset;
-    
+
     private static void MapAssetPaths()
     {
         // regex to convert from MainForm.cs -> this dictionary:
         // imageList\.Images\.Add\((".*?"), Image.FromFile\((".+?")\)\);
         // typeToAsset.Add($1, $2);
-        
+
         typeToAsset = new Dictionary<string, string>();
         typeToAsset.Add("default", "Images/default.png");
+        typeToAsset.Add("TrackWidget", "Images/TrackWidget.png");
         typeToAsset.Add("ObjectDir", "Images/ObjectDir.png");
         typeToAsset.Add("RndDir", "Images/RndDir.png");
         typeToAsset.Add("Object", "Images/default.png");
@@ -94,7 +95,7 @@ public static class Icons
         }
         return typeToAsset.ContainsKey(typeName) ? typeToAsset[typeName] : "Images/default.png";
     }
-    
+
     /// <summary>
     /// Gets a stream for an icon. Doesn't take raw type names, check <see cref="GetIconAssetPath"/>
     /// </summary>

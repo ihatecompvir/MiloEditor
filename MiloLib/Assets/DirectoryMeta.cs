@@ -1124,6 +1124,10 @@ namespace MiloLib.Assets
                     Debug.WriteLine("Reading entry TexMovie " + entry.name.value);
                     entry.obj = new RndTexMovie().Read(reader, true, this, entry);
                     break;
+                case "TrackWidget":
+                    Debug.WriteLine("Reading entry TrackWidget " + entry.name.value);
+                    entry.obj = new TrackWidget().Read(reader, true, this, entry);
+                    break;
                 case "Trans":
                     Debug.WriteLine("Reading entry Trans " + entry.name.value);
                     entry.obj = new RndTrans().Read(reader, true, this, entry);
@@ -1553,6 +1557,9 @@ namespace MiloLib.Assets
                     break;
                 case "TexMovie":
                     ((RndTexMovie)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "TrackWidget":
+                    ((TrackWidget)entry.obj).Write(writer, true, this, entry);
                     break;
                 case "Trans":
                     ((RndTrans)entry.obj).Write(writer, true, false);

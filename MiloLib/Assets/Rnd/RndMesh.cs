@@ -165,7 +165,6 @@ namespace MiloLib.Assets.Rnd
 
                         newVert.u = reader.ReadFloat();
                         newVert.v = reader.ReadFloat();
-                        Console.WriteLine($"Vertex {i}: UV = {newVert.u}, {newVert.v}");
                     }
                     else if (meshVersion < 35 || isNextGen == false)
                     {
@@ -189,7 +188,6 @@ namespace MiloLib.Assets.Rnd
                         {
                             newVert.u = reader.ReadFloat();
                             newVert.v = reader.ReadFloat();
-                            Console.WriteLine($"Vertex {i}: UV = {newVert.u}, {newVert.v}");
 
                             newVert.weight0 = reader.ReadFloat();
                             newVert.weight1 = reader.ReadFloat();
@@ -206,7 +204,6 @@ namespace MiloLib.Assets.Rnd
                             newVert.u = reader.ReadFloat();
                             newVert.v = reader.ReadFloat();
 
-                            Console.WriteLine($"Vertex {i}: UV = {newVert.u}, {newVert.v}");
                         }
 
                         if (meshVersion >= 33)
@@ -738,7 +735,7 @@ namespace MiloLib.Assets.Rnd
             if (reader.ReadInt32() > 0)
             {
                 reader.BaseStream.Position -= 4;
-                if (revision >= 34)
+                if (revision >= 33)
                 {
                     boneCount = reader.ReadUInt32();
                     boneTransforms = new List<BoneTransform>();

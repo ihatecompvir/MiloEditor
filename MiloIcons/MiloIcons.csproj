@@ -7,6 +7,10 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <None Remove="Images\TrackWidget.png" />
+    </ItemGroup>
+
+    <ItemGroup>
         <EmbeddedResource Include="Images\AnimFilter.png" LogicalName="Images/AnimFilter.png" />
         <EmbeddedResource Include="Images\BandCharDesc.png" LogicalName="Images/BandCharDesc.png" />
         <EmbeddedResource Include="Images\BandCrowdMeterDir.png" LogicalName="Images/BandCrowdMeterDir.png" />
@@ -50,6 +54,7 @@
         <EmbeddedResource Include="Images\Sfx.png" LogicalName="Images/Sfx.png" />
         <EmbeddedResource Include="Images\TexMovie.png" LogicalName="Images/TexMovie.png" />
         <EmbeddedResource Include="Images\Text.png" LogicalName="Images/Text.png" />
+        <EmbeddedResource Include="Images\TrackWidget.png" />
         <EmbeddedResource Include="Images\TransAnim.png" LogicalName="Images/TransAnim.png" />
         <EmbeddedResource Include="Images\TransProxy.png" LogicalName="Images/TransProxy.png" />
         <EmbeddedResource Include="Images\Trigger.png" LogicalName="Images/Trigger.png" />
