@@ -263,7 +263,7 @@ namespace MiloLib.Assets
             base.Write(writer, false, parent, entry);
 
             if (revision != 0)
-                draw.Write(writer, false, parent, entry);
+                draw.Write(writer, false, true);
 
             writer.WriteUInt32(meshCount);
             for (int i = 0; i < meshCount; i++)
