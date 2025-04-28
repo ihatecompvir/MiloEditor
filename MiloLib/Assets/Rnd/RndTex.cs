@@ -8,6 +8,21 @@ namespace MiloLib.Assets.Rnd
     [Name("Tex"), Description("Tex perObjs represent bitmaps used by materials. These can be created automatically with 'import overrideMap' on the file menu.")]
     public class RndTex : Object
     {
+        public enum Type
+        {
+            kRegular = 1,
+            kRendered = 2,
+            kMovie = 4,
+            kBackBuffer = 8,
+            kFrontBuffer = 0x18,
+            kRenderedNoZ = 0x22,
+            kShadowMap = 0x42,
+            kDepthVolumeMap = 0xA2,
+            kDensityMap = 0x122,
+            kScratch = 0x200,
+            kDeviceTexture = 0x1000
+        };
+
         private ushort altRevision;
         private ushort revision;
 
@@ -23,8 +38,8 @@ namespace MiloLib.Assets.Rnd
         public Symbol externalPath = new(0, "");
 
         [MinVersion(8)]
-        public float indexFloat;
-        public uint index2;
+        public float mipMapK;
+        public Type type;
 
         [MinVersion(11)]
         public bool optimizeForPS3;
@@ -40,6 +55,10 @@ namespace MiloLib.Assets.Rnd
         public uint unkInt;
         public uint unkInt2;
         public ushort unkShort2;
+
+        public bool isRegular;
+
+
 
         public RndTex Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
@@ -64,8 +83,20 @@ namespace MiloLib.Assets.Rnd
             externalPath = Symbol.Read(reader);
 
             if (revision >= 8)
-                indexFloat = reader.ReadFloat();
-            index2 = reader.ReadUInt32();
+                mipMapK = reader.ReadFloat();
+
+            if (revision > 6)
+            {
+                type = (Type)reader.ReadUInt32();
+            }
+            else if (revision > 5)
+            {
+                type = (Type)reader.ReadUInt32();
+            }
+            else if (revision > 4)
+            {
+                isRegular = reader.ReadBoolean();
+            }
 
             if (revision >= 11 && parent.revision != 25)
                 optimizeForPS3 = reader.ReadBoolean();
@@ -129,8 +160,19 @@ namespace MiloLib.Assets.Rnd
             Symbol.Write(writer, externalPath);
 
             if (revision >= 8)
-                writer.WriteFloat(indexFloat);
-            writer.WriteUInt32(index2);
+                writer.WriteFloat(mipMapK);
+            if (revision > 6)
+            {
+                writer.WriteUInt32((uint)type);
+            }
+            else if (revision > 5)
+            {
+                writer.WriteUInt32((uint)type);
+            }
+            else if (revision > 4)
+            {
+                writer.WriteBoolean(isRegular);
+            }
 
             if (revision >= 11)
                 writer.WriteBoolean(optimizeForPS3);
