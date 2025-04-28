@@ -6,7 +6,6 @@ using ICSharpCode.SharpZipLib.GZip;
 using System.IO;
 using System.Reflection.PortableExecutable;
 using System.Linq;
-using MiloLib.Classes;
 
 namespace MiloLib
 {
@@ -17,8 +16,9 @@ namespace MiloLib
     {
         /// <summary>
         /// The maximum size a block can be.
+        /// 0x20000 is what DirLoader::SaveObjects uses, so presumably that is a safe default.
         /// </summary>
-        private const int MAX_BLOCK_SIZE = 0xFFFFFF;
+        private const int MAX_BLOCK_SIZE = 0x20000;
 
         /// <summary>
         /// The type of the Milo file. Determines if it's compressed or not and how it's compressed.
@@ -49,12 +49,12 @@ namespace MiloLib
         /// <summary>
         /// The path to the Milo file.
         /// </summary>
-        public string? filePath { get; }
+        public string? filePath;
 
         /// <summary>
         /// The Milo's compression type.
         /// </summary>
-        public Type compressionType { get; }
+        public Type compressionType;
 
         /// <summary>
         /// The offset to the start of the root asset.
@@ -275,6 +275,25 @@ namespace MiloLib
             return DirectoryMeta.Platform.PS3;
         }
 
+        private void WriteHandler(object sender, DirectoryMeta.Entry.EntryOperationEventArgs args, uint startingOffset, List<uint> blockSizes, ref uint bytesWritten)
+        {
+            if (blockSizes.Count == 0)
+            {
+                bytesWritten = (uint)args.Writer.BaseStream.Position - startingOffset;
+            }
+            else
+            {
+                uint cumulativeSize = blockSizes.Aggregate(0u, (total, next) => total + next);
+                bytesWritten = (uint)args.Writer.BaseStream.Position - (startingOffset + cumulativeSize);
+            }
+
+            if (bytesWritten > MAX_BLOCK_SIZE)
+            {
+                blockSizes.Add(bytesWritten);
+                bytesWritten = 0;
+            }
+        }
+
         /// <summary>
         /// Constructs a new MiloFile.
         /// </summary>
@@ -304,7 +323,7 @@ namespace MiloLib
                 path = filePath;
             }
 
-            using (FileStream fs = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None))
+            using (FileStream fs = new FileStream(path, FileMode.Create, FileAccess.ReadWrite, FileShare.None))
             {
                 fs.SetLength(0);
             }
@@ -408,34 +427,105 @@ namespace MiloLib
                         break;
 
                     case Type.Uncompressed:
+                        // keep track of how many bytes have been written in total
+                        uint bytesWritten = 0;
+
+                        blockSizes = new List<uint>();
+
+                        // handler fired after any asset is saved
+                        EventHandler<DirectoryMeta.Entry.EntryOperationEventArgs> handler = (sender, args) =>
+                                WriteHandler(sender, args, startingOffset, blockSizes, ref bytesWritten);
+
+                        // recursively traverse all entries to add our handler
+                        foreach (var entry in dirMeta.entries)
+                        {
+                            AddHandlerRecursively(entry, handler);
+                        }
+
+                        // make sure we also traverse inline subdirectories
+                        if (dirMeta.directory is ObjectDir objDir)
+                        {
+                            TraverseInlineSubDirs(objDir, handler);
+                        }
+
                         dirMeta.Write(writer);
+
+                        // if we have no block sizes, write a single block size of the total size
+                        if (blockSizes.Count == 0)
+                        {
+                            blockSizes.Add(bytesWritten);
+                        }
+
+                        // sum all the block sizes and make sure they equate to total size - 0x810
+                        uint totalBlockSize = blockSizes.Aggregate(0u, (total, next) => total + next);
+                        if (totalBlockSize + startingOffset != (uint)writer.BaseStream.Length)
+                        {
+                            // if it doesn't, add the remainder as a block size
+                            blockSizes.Add((uint)writer.BaseStream.Length - startingOffset - totalBlockSize);
+                        }
+
 
                         writer.SeekTo(0x8);
                         writer.Endianness = Endian.LittleEndian;
 
-                        // Calculate the number of blocks
+                        // Calculate the total size of the data (after writing the directory)
                         uint totalSize = (uint)writer.BaseStream.Length;
-                        uint numBlocks = (totalSize + MAX_BLOCK_SIZE - 1) / MAX_BLOCK_SIZE;
 
-                        writer.WriteUInt32(numBlocks);
-                        writer.WriteUInt32(MAX_BLOCK_SIZE);
+                        // Calculate the number of blocks
+                        writer.WriteUInt32((uint)blockSizes.Count);
 
+                        // get the size of the largest block and write it
+                        uint largestBlockSize = blockSizes.Max();
+                        writer.WriteUInt32(largestBlockSize);
 
-                        for (int i = 0; i < numBlocks; i++)
+                        //Write out the size of all blocks
+                        foreach (uint blockSize in blockSizes)
                         {
-                            if (i == numBlocks - 1)
-                            {
-                                uint remainingSize = (totalSize % MAX_BLOCK_SIZE) - startingOffset;
-                                writer.WriteUInt32(remainingSize == 0 ? MAX_BLOCK_SIZE : remainingSize);
-                            }
-                            else
-                            {
-                                writer.WriteUInt32(MAX_BLOCK_SIZE);
-                            }
+                            writer.WriteUInt32(blockSize);
                         }
+
                         break;
                     default:
                         break;
+                }
+            }
+        }
+
+        void AddHandlerRecursively(DirectoryMeta.Entry entry, EventHandler<DirectoryMeta.Entry.EntryOperationEventArgs> handler)
+        {
+            // Attach the handler to the current entry
+            entry.AfterWrite -= handler;
+            entry.AfterWrite += handler;
+
+            // If entry has a directory, iterate over its entries
+            if (entry.dir != null)
+            {
+                foreach (var subEntry in entry.dir.entries)
+                {
+                    AddHandlerRecursively(subEntry, handler);
+                }
+
+                // Now check if entry.dir itself is an ObjectDir (cast DirectoryMeta to ObjectDir)
+                if (entry.dir is DirectoryMeta dirMeta && dirMeta.directory is ObjectDir objDir)
+                {
+                    TraverseInlineSubDirs(objDir, handler);
+                }
+            }
+        }
+
+        void TraverseInlineSubDirs(ObjectDir objDir, EventHandler<DirectoryMeta.Entry.EntryOperationEventArgs> handler)
+        {
+            foreach (var subDir in objDir.inlineSubDirs)
+            {
+                foreach (var entry in subDir.entries)
+                {
+                    AddHandlerRecursively(entry, handler);
+                }
+
+                // Recursively traverse deeper inline subdirectories
+                if (subDir.directory is ObjectDir subObjDir)
+                {
+                    TraverseInlineSubDirs(subObjDir, handler);
                 }
             }
         }
