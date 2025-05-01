@@ -128,7 +128,67 @@ namespace MiloLib.Assets.Rnd
 
         public class RndMatAnimStage
         {
+			public List<Vec3Key> transKeys = new List<Vec3Key>();
+			public List<Vec3Key> scaleKeys = new List<Vec3Key>();
+			public List<Vec3Key> rotKeys = new List<Vec3Key>();
+			public List<SymbolKey> texKeys = new List<SymbolKey>();
 
+			public RndMatAnimStage Read(EndianReader reader)
+            {
+                uint transKeysCount = reader.ReadUInt32();
+                for (uint i = 0; i < transKeysCount; i++)
+                {
+                    Vec3Key transKey = new();
+                    transKey.Read(reader);
+                    transKeys.Add(transKey);
+                }
+				uint scaleKeysCount = reader.ReadUInt32();
+                for (uint i = 0; i < scaleKeysCount; i++)
+                {
+                    Vec3Key scaleKey = new();
+                    scaleKey.Read(reader);
+                    scaleKeys.Add(scaleKey);
+                }
+				uint rotKeysCount = reader.ReadUInt32();
+                for (uint i = 0; i < rotKeysCount; i++)
+                {
+                    Vec3Key rotKey = new();
+                    rotKey.Read(reader);
+                    rotKeys.Add(rotKey);
+                }
+				uint texKeysCount = reader.ReadUInt32();
+                for (uint i = 0; i < texKeysCount; i++)
+                {
+                    SymbolKey texKey = new();
+                    texKey.Read(reader);
+                    texKeys.Add(texKey);
+                }
+                return this;
+            }
+
+            public void Write(EndianWriter writer)
+            {
+				writer.WriteUInt32((uint)transKeys.Count);
+                foreach (Vec3Key transKey in transKeys)
+                {
+                    transKey.Write(writer);
+                }
+				writer.WriteUInt32((uint)scaleKeys.Count);
+                foreach (Vec3Key scaleKey in scaleKeys)
+                {
+                    scaleKey.Write(writer);
+                }
+				writer.WriteUInt32((uint)rotKeys.Count);
+                foreach (Vec3Key rotKey in rotKeys)
+                {
+                    rotKey.Write(writer);
+                }
+				writer.WriteUInt32((uint)texKeys.Count);
+                foreach (SymbolKey texKey in texKeys)
+                {
+                    texKey.Write(writer);
+                }
+            }
         }
 
         private ushort altRevision;
@@ -175,8 +235,8 @@ namespace MiloLib.Assets.Rnd
         private uint colorKeysCount3;
         [MaxVersion(3)]
         public List<ColorKey> colorKeys3 = new();
-
-
+		[MaxVersion(3)]
+		public List<RndMatAnimStage> stages = new();
 
 
 
@@ -194,6 +254,16 @@ namespace MiloLib.Assets.Rnd
             anim = anim.Read(reader, parent, entry);
 
             material = Symbol.Read(reader);
+
+			if (revision <= 3) 
+			{
+				uint stage_ct = reader.ReadUInt32();
+				for (uint i = 0; i < stage_ct; i++) {
+                    RndMatAnimStage stage = new();
+                    stage.Read(reader);
+                    stages.Add(stage);
+				}
+			}
 
             keysOwner = Symbol.Read(reader);
 

@@ -39,6 +39,8 @@ namespace MiloLib.Assets.Rnd
 
         [MinVersion(8)]
         public float mipMapK;
+		[MinVersion(5), MaxVersion(5)]
+		public uint mipMapK_i;
         public Type type;
 
         [MinVersion(11)]
@@ -95,7 +97,7 @@ namespace MiloLib.Assets.Rnd
             }
             else if (revision > 4)
             {
-                isRegular = reader.ReadBoolean();
+                mipMapK_i = reader.ReadUInt32();
             }
 
             if (revision >= 11 && parent.revision != 25)
@@ -106,7 +108,7 @@ namespace MiloLib.Assets.Rnd
             else
                 useExternalPath = reader.ReadUInt32() == 1;
 
-            if (revision == 5)
+            if (revision == 5 || useExternalPath)
             {
                 if (standalone)
                 {

@@ -222,7 +222,7 @@ namespace MiloLib.Assets.Rnd
 
             life.Read(reader);
 
-            if (35 < revision)
+            if (revision >= 35)
                 heightRatio = reader.ReadFloat();
 
             posLow.Read(reader);
@@ -233,7 +233,7 @@ namespace MiloLib.Assets.Rnd
             yaw.Read(reader);
             emitRate.Read(reader);
 
-            if (32 < revision)
+            if (revision >= 32)
             {
                 maxBursts = reader.ReadUInt32();
                 burstInterval.Read(reader);
@@ -243,7 +243,7 @@ namespace MiloLib.Assets.Rnd
 
             startSize.Read(reader);
 
-            if (15 < revision)
+            if (revision >= 15)
                 deltaSize.Read(reader);
 
             startColorLow.Read(reader);
@@ -252,7 +252,20 @@ namespace MiloLib.Assets.Rnd
             endColorLow.Read(reader);
             endColorHigh.Read(reader);
 
-            bounce = Symbol.Read(reader);
+            if (revision > 9)
+			{
+				bounce = Symbol.Read(reader);
+			}
+			else 
+			{
+				reader.ReadBoolean(); // collide
+				reader.ReadFloat(); // ????
+				reader.ReadFloat();
+				reader.ReadFloat();
+				reader.ReadFloat();
+				reader.ReadFloat();
+				reader.ReadFloat();
+			}
 
             force.Read(reader);
 
@@ -279,7 +292,7 @@ namespace MiloLib.Assets.Rnd
 
             maxParticles = reader.ReadUInt32();
 
-            if (2 < revision)
+            if (revision >= 2)
             {
                 if (revision < 7)
                 {
@@ -287,18 +300,26 @@ namespace MiloLib.Assets.Rnd
                 }
                 else if (revision < 13)
                 {
-                    unkInt4 = reader.ReadUInt32();
+                    unkInt4 = reader.ReadUInt32(); // line len
                 }
             }
 
-            if (3 < revision)
+            if (revision >= 3)
             {
                 bubblePeriod.Read(reader);
                 bubbleSize.Read(reader);
                 bubble = reader.ReadBoolean();
             }
 
-            if (29 < revision)
+			if (revision <= 9) {
+				reader.ReadBoolean(); // read z
+				Symbol.Read(reader);
+				if (standalone)
+                	if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");
+            	return this;
+			}
+
+            if (revision >= 29)
             {
                 rotate = reader.ReadBoolean();
                 rotSpeed.Read(reader);
@@ -311,7 +332,7 @@ namespace MiloLib.Assets.Rnd
                 drag = reader.ReadUInt32();
             }
 
-            if (31 < revision)
+            if (revision >= 31)
             {
                 swingArmStart.Read(reader);
                 swingArmEnd.Read(reader);
@@ -323,17 +344,17 @@ namespace MiloLib.Assets.Rnd
                 stretchScale = reader.ReadFloat();
             }
 
-            if (33 < revision)
+            if (revision >= 33)
             {
                 perspectiveStretch = reader.ReadBoolean();
             }
 
             relativeMotion = reader.ReadFloat();
 
-            if (26 < revision)
+            if (revision >= 26)
                 relativeParent = Symbol.Read(reader);
 
-            if (18 < revision)
+            if (revision >= 18)
                 mesh = Symbol.Read(reader);
 
             if (30 < revision || revision == 21)
