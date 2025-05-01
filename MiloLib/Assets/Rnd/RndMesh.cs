@@ -898,9 +898,9 @@ namespace MiloLib.Assets.Rnd
 
             if (boneTransforms.Count > 0)
             {
-                if (revision >= 34)
+                if (revision >= 33)
                 {
-                    writer.WriteUInt32(boneCount);
+                    writer.WriteUInt32((uint)boneTransforms.Count);
                     foreach (BoneTransform boneTransform in boneTransforms)
                     {
                         boneTransform.Write(writer, revision);
