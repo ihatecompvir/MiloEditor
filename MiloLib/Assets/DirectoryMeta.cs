@@ -1156,6 +1156,38 @@ namespace MiloLib.Assets
                     Debug.WriteLine("Reading entry UIList " + entry.name.value);
                     entry.obj = new UIList().Read(reader, true, this, entry);
                     break;
+                case "UIListArrow":
+                    Debug.WriteLine("Reading entry UIListArrow " + entry.name.value);
+                    entry.obj = new UIListArrow().Read(reader, true, this, entry);
+                    break;
+                case "UIListCustom":
+                    Debug.WriteLine("Reading entry UIListCustom " + entry.name.value);
+                    entry.obj = new UIListCustom().Read(reader, true, this, entry);
+                    break;
+                case "UIListHighlight":
+                    Debug.WriteLine("Reading entry UIListHighlight " + entry.name.value);
+                    entry.obj = new UIListHighlight().Read(reader, true, this, entry);
+                    break;
+                case "UIListLabel":
+                    Debug.WriteLine("Reading entry UIListLabel " + entry.name.value);
+                    entry.obj = new UIListLabel().Read(reader, true, this, entry);
+                    break;
+                case "UIListMesh":
+                    Debug.WriteLine("Reading entry UIListMesh " + entry.name.value);
+                    entry.obj = new UIListMesh().Read(reader, true, this, entry);
+                    break;
+                case "UIListSlot":
+                    Debug.WriteLine("Reading entry UIListSlot " + entry.name.value);
+                    entry.obj = new UIListSlot().Read(reader, true, this, entry);
+                    break;
+                case "UIListWidget":
+                    Debug.WriteLine("Reading entry UIListWidget " + entry.name.value);
+                    entry.obj = new UIListWidget().Read(reader, true, this, entry);
+                    break;
+                case "UIPicture":
+                    Debug.WriteLine("Reading entry UIPicture " + entry.name.value);
+                    entry.obj = new UIPicture().Read(reader, true, this, entry);
+                    break;
                 case "UITrigger":
                     Debug.WriteLine("Reading entry UITrigger " + entry.name.value);
                     entry.obj = new UITrigger().Read(reader, true, this, entry);
@@ -1584,6 +1616,30 @@ namespace MiloLib.Assets
                     break;
                 case "UIList":
                     ((UIList)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "UIListArrow":
+                    ((UIListArrow)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "UIListCustom":
+                    ((UIListCustom)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "UIListHighlight":
+                    ((UIListHighlight)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "UIListLabel":
+                    ((UIListLabel)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "UIListMesh":
+                    ((UIListMesh)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "UIListSlot":
+                    ((UIListSlot)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "UIListWidget":
+                    ((UIListWidget)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "UIPicture":
+                    ((UIPicture)entry.obj).Write(writer, true, this, entry);
                     break;
                 case "UITrigger":
                     ((UITrigger)entry.obj).Write(writer, true, this, entry);
