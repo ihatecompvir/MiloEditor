@@ -1076,6 +1076,10 @@ namespace MiloLib.Assets
                     Debug.WriteLine("Reading entry ParticleSys " + entry.name.value);
                     entry.obj = new RndParticleSys().Read(reader, true, this, entry);
                     break;
+                case "ParticleSysAnim":
+                    Debug.WriteLine("Reading entry ParticleSysAnim " + entry.name.value);
+                    entry.obj = new RndParticleSysAnim().Read(reader, true, this, entry);
+                    break;
                 case "PollAnim":
                     Debug.WriteLine("Reading entry PollAnim " + entry.name.value);
                     entry.obj = new RndPollAnim().Read(reader, true, this, entry);
@@ -1561,6 +1565,9 @@ namespace MiloLib.Assets
                     break;
                 case "ParticleSys":
                     ((RndParticleSys)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "ParticleSysAnim":
+                    ((RndParticleSysAnim)entry.obj).Write(writer, true, this, entry);
                     break;
                 case "PollAnim":
                     ((RndPollAnim)entry.obj).Write(writer, true, this, entry);
