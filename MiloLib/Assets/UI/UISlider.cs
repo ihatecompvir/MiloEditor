@@ -1,22 +1,18 @@
 ﻿using MiloLib.Classes;
 using MiloLib.Utils;
 
-namespace MiloLib.Assets.Rnd
+namespace MiloLib.Assets.UI
 {
-    [Name("RndTransProxy"), Description("Stand-in for a RndTransformable inside of a proxy, so you can use it")]
-    public class RndTransProxy : Object
+    [Name("UISlider"), Description("A component with animatable whose frames correspond to a range of values. The resources don't have to look like a slider; they could easily be a knob, dial, etc.")]
+    public class UISlider : UIComponent
     {
         private ushort altRevision;
         private ushort revision;
 
-        [MinVersion(1)]
-        public RndTrans trans = new();
-        [Name("Proxy"), Description("Proxy object this will look into.")]
-        public Symbol proxy = new(0, "");
-        [Name("Part"), Description("The part inside it")]
-        public Symbol part = new(0, "");
+        [Name("Require Selection To Scroll"), Description("Does slider need to be selected before user can scroll?"), MinVersion(1)]
+        public bool mSelectToShow;
 
-        public RndTransProxy Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
+        public UISlider Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
@@ -25,10 +21,7 @@ namespace MiloLib.Assets.Rnd
             base.Read(reader, false, parent, entry);
 
             if (revision != 0)
-                trans = trans.Read(reader, false, parent, entry);
-
-            proxy = Symbol.Read(reader);
-            part = Symbol.Read(reader);
+                mSelectToShow = reader.ReadBoolean();
 
             if (standalone)
                 if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");
@@ -43,10 +36,7 @@ namespace MiloLib.Assets.Rnd
             base.Write(writer, false, parent, entry);
 
             if (revision != 0)
-                trans.Write(writer, false, true);
-
-            Symbol.Write(writer, proxy);
-            Symbol.Write(writer, part);
+                writer.WriteBoolean(mSelectToShow);
 
             if (standalone)
                 writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });

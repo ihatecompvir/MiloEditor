@@ -949,6 +949,10 @@ namespace MiloLib.Assets
                     Debug.WriteLine("Reading entry BandSongPref " + entry.name.value);
                     entry.obj = new BandSongPref().Read(reader, true, this, entry);
                     break;
+                case "BandSwatch":
+                    Debug.WriteLine("Reading entry BandSwatch " + entry.name.value);
+                    entry.obj = new BandSwatch().Read(reader, true, this, entry);
+                    break;
                 case "Cam":
                     Debug.WriteLine("Reading entry Cam " + entry.name.value);
                     entry.obj = new RndCam().Read(reader, true, this, entry);
@@ -1187,6 +1191,10 @@ namespace MiloLib.Assets
                 case "UIPicture":
                     Debug.WriteLine("Reading entry UIPicture " + entry.name.value);
                     entry.obj = new UIPicture().Read(reader, true, this, entry);
+                    break;
+                case "UISlider":
+                    Debug.WriteLine("Reading entry UISlider " + entry.name.value);
+                    entry.obj = new UISlider().Read(reader, true, this, entry);
                     break;
                 case "UITrigger":
                     Debug.WriteLine("Reading entry UITrigger " + entry.name.value);
@@ -1473,6 +1481,9 @@ namespace MiloLib.Assets
                 case "BandSongPref":
                     ((BandSongPref)entry.obj).Write(writer, true, this, entry);
                     break;
+                case "BandSwatch":
+                    ((BandSwatch)entry.obj).Write(writer, true, this, entry);
+                    break;
                 case "Cam":
                     ((RndCam)entry.obj).Write(writer, true, this, entry);
                     break;
@@ -1640,6 +1651,9 @@ namespace MiloLib.Assets
                     break;
                 case "UIPicture":
                     ((UIPicture)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "UISlider":
+                    ((UISlider)entry.obj).Write(writer, true, this, entry);
                     break;
                 case "UITrigger":
                     ((UITrigger)entry.obj).Write(writer, true, this, entry);
