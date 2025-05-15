@@ -116,6 +116,41 @@ namespace MiloLib.Assets.Rnd
                 Symbol.Write(writer, name);
             }
         }
+
+		public class TextureEntry_Amp 
+		{
+			public Blend blendMode;
+			public int coordIndex;
+			public TexGen genMode;
+			public Matrix texXfm = new Matrix();
+			public bool useXfm;
+			public int wrapMode; // differs from TexWrap
+			public Symbol tex_name = new Symbol(0, "");
+
+			public TextureEntry_Amp Read(EndianReader reader)
+            {
+                blendMode = (Blend)reader.ReadInt32();
+                coordIndex = reader.ReadInt32();
+                genMode = (TexGen)reader.ReadInt32();
+                texXfm = new Matrix().Read(reader);
+				useXfm = reader.ReadBoolean();
+                wrapMode = reader.ReadInt32();
+                tex_name = Symbol.Read(reader);
+                return this;
+            }
+
+            public void Write(EndianWriter writer)
+            {
+                writer.WriteInt32((int)blendMode);
+                writer.WriteInt32(coordIndex);
+                writer.WriteInt32((int)genMode);
+                texXfm.Write(writer);
+				writer.WriteBoolean(useXfm);
+                writer.WriteInt32(wrapMode);
+                Symbol.Write(writer, tex_name);
+            }
+		}
+
         private ushort altRevision;
         private ushort revision;
 
@@ -292,6 +327,9 @@ namespace MiloLib.Assets.Rnd
         private uint textureCount;
         public List<TextureEntry> textures = new();
 
+        private uint textureCountAmp;
+        public List<TextureEntry_Amp> textures_amp = new();
+
         public int unkInt1;
         public int unkInt2;
         public int unkInt3;
@@ -314,6 +352,11 @@ namespace MiloLib.Assets.Rnd
 
             if (revision <= 9)
             {
+				textureCountAmp = reader.ReadUInt32();
+                for (int i = 0; i < textureCountAmp; i++)
+                {
+                    textures_amp.Add(new TextureEntry_Amp().Read(reader));
+                }
             }
             else if (revision <= 21)
             {
@@ -324,12 +367,33 @@ namespace MiloLib.Assets.Rnd
                 }
             }
 
-            base.Read(reader, false, parent, entry);
+			if (revision > 21) {
+            	base.Read(reader, false, parent, entry);
+			}
 
             blend = (Blend)reader.ReadInt32();
             color = new HmxColor4().Read(reader);
 
-            if (revision <= 21)
+			if (revision <= 15) 
+			{
+				HmxColor4 light_color = new HmxColor4().Read(reader);
+				HmxColor4 edge_color = new HmxColor4().Read(reader);
+                reader.ReadByte(); // mat enable?
+                reader.ReadByte(); // unk
+                reader.ReadByte(); // do vert lighting
+                reader.ReadByte(); // do edge highlights
+                reader.ReadUInt32(); // cull winding dir
+                reader.ReadUInt32(); // do multipass processing(?)
+                reader.ReadByte(); // "normalize"
+                reader.ReadByte(); // do flat shading
+                reader.ReadByte(); // "base ambient"
+				if (standalone)
+                {
+                    if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");
+                }
+				return this;
+			} 
+			else if (revision <= 21)
             {
                 reader.ReadByte();
                 reader.ReadUInt16();
