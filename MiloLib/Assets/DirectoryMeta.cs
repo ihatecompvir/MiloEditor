@@ -1140,6 +1140,10 @@ namespace MiloLib.Assets
                     Debug.WriteLine("Reading entry Trans " + entry.name.value);
                     entry.obj = new RndTrans().Read(reader, true, this, entry);
                     break;
+                case "TransAnim":
+                    Debug.WriteLine("Reading entry TransAnim " + entry.name.value);
+                    entry.obj = new RndTransAnim().Read(reader, true, this, entry);
+                    break;
                 case "TransProxy":
                     Debug.WriteLine("Reading entry TransProxy " + entry.name.value);
                     entry.obj = new RndTransProxy().Read(reader, true, this, entry);
@@ -1613,6 +1617,9 @@ namespace MiloLib.Assets
                     break;
                 case "Trans":
                     ((RndTrans)entry.obj).Write(writer, true, false);
+                    break;
+                case "TransAnim":
+                    ((RndTransAnim)entry.obj).Write(writer, true, this, entry);
                     break;
                 case "TransProxy":
                     ((RndTransProxy)entry.obj).Write(writer, true, this, entry);
