@@ -95,8 +95,6 @@ namespace MiloLib.Assets.UI
             }
 
             Symbol.Write(writer, mDefaultColor);
-            writer.WriteInt32(unkInt1);
-
             writer.WriteInt32((int)mDrawType);
 
             if (revision >= 2)
