@@ -64,9 +64,9 @@ namespace MiloLib.Assets.Rnd
 
         public uint unkInt1;
         public uint unkInt2;
-        public uint unkInt3;
-        public uint unkInt4;
-        public uint unkInt5;
+        public float constant_atten;
+        public float linear_atten;
+        public float quadratic_atten;
 
         public RndLight Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
@@ -75,18 +75,25 @@ namespace MiloLib.Assets.Rnd
             else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
 
 
-            base.objFields.Read(reader, parent, entry);
+            if (revision > 3) base.objFields.Read(reader, parent, entry);
 
             trans.Read(reader, false, parent, entry);
 
             color = color.Read(reader);
+
+			if (revision < 3) 
+			{
+				reader.ReadFloat(); // inner angle
+				reader.ReadFloat(); // outer angle
+			}
+
             range = reader.ReadFloat();
 
             if (revision < 3)
             {
-                unkInt3 = reader.ReadUInt32();
-                unkInt4 = reader.ReadUInt32();
-                unkInt5 = reader.ReadUInt32();
+                constant_atten = reader.ReadFloat();
+                linear_atten = reader.ReadFloat();
+                quadratic_atten = reader.ReadFloat();
             }
 
             if (revision != 0)
@@ -179,9 +186,9 @@ namespace MiloLib.Assets.Rnd
 
             if (revision < 3)
             {
-                writer.WriteUInt32(unkInt3);
-                writer.WriteUInt32(unkInt4);
-                writer.WriteUInt32(unkInt5);
+                writer.WriteFloat(constant_atten);
+                writer.WriteFloat(linear_atten);
+                writer.WriteFloat(quadratic_atten);
             }
 
             if (revision != 0)

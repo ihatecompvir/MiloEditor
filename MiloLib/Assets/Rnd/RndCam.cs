@@ -60,6 +60,7 @@ namespace MiloLib.Assets.Rnd
 
             if (revision == 8)
             {
+				reader.ReadUInt32(); // coll version
                 objectsCount = reader.ReadUInt32();
                 for (int i = 0; i < objectsCount; i++)
                 {
