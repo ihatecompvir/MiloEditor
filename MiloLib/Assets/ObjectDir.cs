@@ -182,7 +182,14 @@ namespace MiloLib.Assets
             if (revision > 12)
             {
                 if (revision > 19)
-                    inlineProxy = reader.ReadBoolean();
+                {
+                    if(revision < 28) {
+                        inlineProxy = reader.ReadBoolean();
+                    }
+                    else {
+                        inlineProxy = Convert.ToBoolean(reader.ReadByte());
+                    }
+                }
                 proxyPath = Symbol.Read(reader);
             }
 
