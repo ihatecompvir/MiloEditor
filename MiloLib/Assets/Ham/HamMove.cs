@@ -1,4 +1,5 @@
 using System.Numerics;
+using MiloLib.Assets.Rnd;
 using MiloLib.Classes;
 using MiloLib.Utils;
 
@@ -9,13 +10,14 @@ namespace MiloLib.Assets.Ham
         private Dictionary<Game.MiloGame, uint> gameRevisions = new Dictionary<Game.MiloGame, uint>
         {
             { Game.MiloGame.DanceCentral, 28 },
+            { Game.MiloGame.DanceCentral3, 50 }
         };
-        public class Language
+        public class LocalizedName
         {
             public Symbol locale = new(0, "");
             public Symbol name = new(0, "");
 
-            public Language Read(EndianReader reader)
+            public LocalizedName Read(EndianReader reader)
             {
                 locale = Symbol.Read(reader);
                 name = Symbol.Read(reader);
@@ -63,7 +65,7 @@ namespace MiloLib.Assets.Ham
         private ushort revision;
 
         // TODO: add propanim template
-        // public RndPropAnim propAnim;
+        public RndPropAnim superPropAnim;
 
         public uint unk;
 
@@ -75,7 +77,7 @@ namespace MiloLib.Assets.Ham
 
         private uint languageCount;
 
-        public List<Language> languages = new();
+        public List<LocalizedName> languages = new();
 
         public uint unk2;
         public uint unk3;
@@ -94,7 +96,7 @@ namespace MiloLib.Assets.Ham
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
             else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
-            // propAnim = RndPropAnim.Read(reader);
+            superPropAnim = superPropAnim.Read(reader, standalone, parent, entry);
 
             unk = reader.ReadUInt32();
             tex = Symbol.Read(reader);
@@ -105,7 +107,7 @@ namespace MiloLib.Assets.Ham
             languageCount = reader.ReadUInt32();
             for (int i = 0; i < languageCount; i++)
             {
-                languages.Add(new Language().Read(reader));
+                languages.Add(new LocalizedName().Read(reader));
             }
 
             unk2 = reader.ReadUInt32();
@@ -146,6 +148,9 @@ namespace MiloLib.Assets.Ham
             }
 
             unk6 = reader.ReadUInt32();
+
+            if (standalone)
+                if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");
 
             return this;
         }

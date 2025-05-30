@@ -47,25 +47,25 @@ namespace MiloLib.Assets.Ham
             if (entry != null && !entry.isProxy)
             {
                 unknownSym = Symbol.Read(reader);
-
-                if (revision != 0)
+                if(revision < 4)
                 {
-                    unkBool = reader.ReadBoolean();
-                }
 
-                if (revision > 1)
-                {
-                    useSmoothing = reader.ReadBoolean();
-                    smoothing = reader.ReadFloat();
-                    correction = reader.ReadFloat();
-                    prediction = reader.ReadFloat();
-                    jitterRadius = reader.ReadFloat();
-                    maxDeviationRadius = reader.ReadFloat();
-                }
+                    if (revision != 0) {
+                        unkBool = reader.ReadBoolean();
+                    }
 
-                if (revision > 2)
-                {
-                    unkBool3 = reader.ReadBoolean();
+                    if (revision > 1) {
+                        useSmoothing = reader.ReadBoolean();
+                        smoothing = reader.ReadFloat();
+                        correction = reader.ReadFloat();
+                        prediction = reader.ReadFloat();
+                        jitterRadius = reader.ReadFloat();
+                        maxDeviationRadius = reader.ReadFloat();
+                    }
+
+                    if (revision > 2) {
+                        unkBool3 = reader.ReadBoolean();
+                    }
                 }
             }
 

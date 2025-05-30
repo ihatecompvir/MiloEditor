@@ -1,5 +1,6 @@
 ﻿using MiloLib.Classes;
 using MiloLib.Utils;
+using System.Numerics;
 
 namespace MiloLib.Assets.Ham
 {
@@ -13,6 +14,11 @@ namespace MiloLib.Assets.Ham
         public uint unkInt2;
         public uint unkInt3;
         public uint unkInt4;
+        public bool mFiltersEnabled;
+        public bool mMoveOverlayEnabled;
+        public int mDebugNodeTypes;
+        public Symbol mImportClipPath;
+        public Symbol mFilterVersion;
 
         public MoveDir(ushort revision, ushort altRevision = 0) : base(revision, altRevision)
         {
@@ -29,15 +35,13 @@ namespace MiloLib.Assets.Ham
 
             base.Read(reader, false, parent, entry);
 
-            if (entry != null && !entry.isProxy)
-            {
-                unkInt1 = reader.ReadUInt32();
-                unkInt2 = reader.ReadUInt32();
-                unkInt3 = reader.ReadUInt32();
-                unkInt4 = reader.ReadUInt32();
+            if (entry != null && !entry.isProxy) {
+                mMoveOverlayEnabled = reader.ReadBoolean();
+                mDebugNodeTypes = reader.ReadInt32();
+                mImportClipPath = Symbol.Read(reader);
+                mFilterVersion = Symbol.Read(reader);
             }
-            else
-            {
+            else {
                 // there is prooooobably some fields here but ive never seen them be anything but empty
                 reader.ReadBlock(25);
             }

@@ -30,14 +30,18 @@ namespace MiloLib.Assets.Rnd
         [Name("Draw Order"), Description("Draw order within proxies, lower numbers are drawn first, so assign numbers from the outside-in (unless translucent), to minimize overdraw.  In groups, draw_order will be ignored unless you explicitly click the sort button."), MinVersion(3)]
         public float drawOrder;
 
-        [Name("Override Include In Depth Only Pass"), MinVersion(4)]
-        public OverrideIncludeInDepthOnlyPass overrideIncludeInDepthOnlyPass;
+        //[Name("Override Include In Depth Only Pass"), MinVersion(4)]
+        //public OverrideIncludeInDepthOnlyPass overrideIncludeInDepthOnlyPass;
 
         private uint drawableCount;
         [Name("Drawables"), MaxVersion(1)]
         public List<Symbol> drawables = new();
         [Name("Drawables Null Terminated"), MaxVersion(1)]
         public List<string> drawablesNullTerminated = new();
+
+        [Name("Clip planes"), Description("List of up to 6 transformable objects which specify user-defined clip planes (for a given trans, the plane will run through the trans position, and use the rotated z-axis for the plane normal)."), MinVersion(4)]
+        private uint clipPlaneCount;
+        public List<Symbol> clipPlanes = new();
 
         public RndDrawable Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
@@ -81,7 +85,13 @@ namespace MiloLib.Assets.Rnd
 
             if (revision >= 4)
             {
-                overrideIncludeInDepthOnlyPass = (OverrideIncludeInDepthOnlyPass)reader.ReadUInt32();
+                //overrideIncludeInDepthOnlyPass = (OverrideIncludeInDepthOnlyPass)reader.ReadUInt32();
+                clipPlaneCount = reader.ReadUInt32();
+                for(int i = 0; i < clipPlaneCount; i++) {
+                    Symbol sym = Symbol.Read(reader);
+                    clipPlanes.Add(sym);
+                }
+
             }
 
             if (standalone)
@@ -137,7 +147,11 @@ namespace MiloLib.Assets.Rnd
 
             if (revision >= 4)
             {
-                writer.WriteUInt32((uint)overrideIncludeInDepthOnlyPass);
+                //writer.WriteUInt32((uint)overrideIncludeInDepthOnlyPass);
+                writer.WriteUInt32((uint)clipPlanes.Count);
+                foreach (Symbol plane in clipPlanes) {
+                    Symbol.Write(writer, plane);
+                }
             }
 
             if (standalone)
