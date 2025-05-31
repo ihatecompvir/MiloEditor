@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Numerics;
 using MiloLib.Assets.Rnd;
 using MiloLib.Classes;
@@ -5,7 +6,7 @@ using MiloLib.Utils;
 
 namespace MiloLib.Assets.Ham
 {
-    public class HamMove : Object
+    public class HamMove : RndPropAnim 
     {
         private Dictionary<Game.MiloGame, uint> gameRevisions = new Dictionary<Game.MiloGame, uint>
         {
@@ -36,118 +37,212 @@ namespace MiloLib.Assets.Ham
             }
         }
 
-        public class LargeMoveFrame
-        {
-            public uint unk;
-            public uint unk2;
+        public class OldNodeWeight {
+            float unk0, unk4, unk8, unkc, unk10;
+        }
 
-            public MiloLib.Classes.Vector3 vec;
+        public class Ham1NodeWeight {
+            bool unk0;
+            float unk4, unk8, unkc, unk10;
 
-            public uint unk3;
+            public Ham1NodeWeight Read(EndianReader reader) {
+                unk4 = reader.ReadFloat();
+                unk8 = reader.ReadFloat();
+                unkc = reader.ReadFloat();
+                unk10 = reader.ReadFloat();
+                unk0 = reader.ReadBoolean();
+                return this;
+            }
+        }
 
-            public byte unk4;
+        public class Ham2FrameWeight {
+            float unk0;
+            float[] unk4 = new float[4];
+            float[] unk14 = new float[4];
+            public Ham2FrameWeight Read(EndianReader reader) {
+                unk0 = reader.ReadFloat();
+                for(int i = 0; i < 4; i++) {
+                    unk4[i] = reader.ReadFloat();
+                    unk14[i] = reader.ReadFloat();
+                }
+                return this;
+            }
+        }
 
-            // TODO: there is much more here
+        public enum NodeCounts {
+            kNumHam1Nodes = 16,
+            kMaxNumErrorNodes = 33
         }
 
         public class MoveFrame
         {
-            public float position;
+            public float unk0; // beat?
+            public int unk4;
+            // TODO: this 64 is actually indexed as a 2D array of some sort (16 by 4 maybe?)
+            Ham1NodeWeight[] mHam1NodeWeights = new Ham1NodeWeight[64];
+            Classes.Vector3[,] mNodeWeights = new Classes.Vector3[33, 2];
+            Classes.Vector3[,] mNodeScales = new Classes.Vector3[33, 2];
+            Classes.Vector3[,] mNodesInverseScale = new Classes.Vector3[33, 2];
+            Ham2FrameWeight[] mFrameWeights = new Ham2FrameWeight[2];
 
-            public uint unk1;
-            public uint unk2;
-            public uint unk3;
-            public uint unk4;
-            public uint unk5;
+            public MoveFrame Read(EndianReader reader) {
+                unk0 = reader.ReadFloat();
+                unk4 = reader.ReadInt32();
+                int always16 = reader.ReadInt32(); // expecting this to be 16
+
+                for (int i = 0; i < 64; i++) {
+                    mHam1NodeWeights[i] = new Ham1NodeWeight().Read(reader);
+                }
+
+                for(int i = 0; i < 2; i++) {
+                    mFrameWeights[i] = new Ham2FrameWeight().Read(reader);
+                }
+
+                int numHam2Nodes = reader.ReadInt32(); // expecting this to be 33
+
+                for(int i = 0; i < 2; i++) {
+                    for(int j = 0; j < numHam2Nodes; j++) {
+                        mNodeWeights[j,i] = new MiloLib.Classes.Vector3().Read(reader);
+                        mNodeScales[j, i] = new MiloLib.Classes.Vector3().Read(reader);
+                    }
+                }
+
+                return this;
+            }
         }
 
         private ushort altRevision;
         private ushort revision;
 
-        // TODO: add propanim template
-        public RndPropAnim superPropAnim;
-
-        public uint unk;
+        public Symbol mirror = new(0, "");
 
         public Symbol tex = new(0, "");
 
-        public bool unkBool;
-
-        public bool unkBool2;
+        public bool mScored;
+        public bool mFinalPose;
 
         private uint languageCount;
 
         public List<LocalizedName> languages = new();
 
-        public uint unk2;
-        public uint unk3;
-        public uint unk4;
-        public uint unk5;
+        public enum TexState {
+            kTexNone,
+            kTexNormal,
+            kTexFlip,
+            kTexDblFlip
+        }
+        public TexState mTexState;
 
-        private uint frameCount;
-
-        public List<LargeMoveFrame> largeFrames = new();
+        private uint numMoveFrames;
         public List<MoveFrame> frames = new();
 
-        public uint unk6;
+        public bool mParadiddle;
+        public bool mSuppressGuide;
+        public bool mSuppressPracticeOptions;
+        public bool mOmitMinigame;
+
+        private uint numRatingStates;
+        public List<float> mRatingStates = new();
+
+        public bool mShoulderDisplacements;
+
+        public float[] mThresholds = new float[4];
+        public float[] mOverrides = new float[4];
+
+        private uint numConfusabilities;
+        public Dictionary<uint, float> mConfusabilities = new();
+
+        public int unk94;
+
+        public Symbol mDancerSeq = new(0, "");
+
+        public uint mConfusabilityID;
 
         public HamMove Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
             else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
-            superPropAnim = superPropAnim.Read(reader, standalone, parent, entry);
 
-            unk = reader.ReadUInt32();
+            // TODO: if revision < 4, should read superclass Object instead of RndPropAnim
+
+            base.Read(reader, false, parent, entry);
+
+            if(revision > 7) mirror = Symbol.Read(reader);
+
+            // read empty string
+            if (revision < 5) Symbol.Read(reader);
+
             tex = Symbol.Read(reader);
 
-            unkBool = reader.ReadBoolean();
-            unkBool2 = reader.ReadBoolean();
+            if(revision > 1)
+                mScored = reader.ReadBoolean();
+            if(revision > 19)
+                mFinalPose = reader.ReadBoolean();
 
-            languageCount = reader.ReadUInt32();
-            for (int i = 0; i < languageCount; i++)
-            {
-                languages.Add(new LocalizedName().Read(reader));
-            }
+            // if(revision > 2 && revision < 11), do a bunch of unused, deprecated stuff
+            // if(revision < 16), do more unused, deprecated stuff
 
-            unk2 = reader.ReadUInt32();
-            unk3 = reader.ReadUInt32();
-            unk4 = reader.ReadUInt32();
-            unk5 = reader.ReadUInt32();
-
-            frameCount = reader.ReadUInt32();
-            if (frameCount > 0 && revision >= 28)
-            {
-                for (int i = 0; i < frameCount; i++)
-                {
-                    largeFrames.Add(new LargeMoveFrame
-                    {
-                        unk = reader.ReadUInt32(),
-                        unk2 = reader.ReadUInt32(),
-                        vec = new MiloLib.Classes.Vector3(reader.ReadFloat(), reader.ReadFloat(), reader.ReadFloat()),
-                        unk3 = reader.ReadUInt32(),
-                        unk4 = reader.ReadByte()
-                        // TODO: there is much more here
-                    });
+            if(revision > 4) {
+                languageCount = reader.ReadUInt32();
+                for (int i = 0; i < languageCount; i++) {
+                    languages.Add(new LocalizedName().Read(reader));
                 }
             }
-            else if (frameCount > 0)
-            {
-                for (int i = 0; i < frameCount; i++)
-                {
-                    frames.Add(new MoveFrame
-                    {
-                        position = reader.ReadFloat(),
-                        unk1 = reader.ReadUInt32(),
-                        unk2 = reader.ReadUInt32(),
-                        unk3 = reader.ReadUInt32(),
-                        unk4 = reader.ReadUInt32(),
-                        unk5 = reader.ReadUInt32()
-                    });
+            // if(revision < 4) MILO_WARN("Can't load version older than 4");
+            // if(revision < 39) a bunch of unused stuff
+
+            if (revision > 11) mTexState = (TexState)reader.ReadUInt32();
+
+            if(revision > 12) {
+                numMoveFrames = reader.ReadUInt32();
+                for(int i = 0; i < numMoveFrames; i++) {
+                    frames.Add(new MoveFrame().Read(reader));
                 }
             }
 
-            unk6 = reader.ReadUInt32();
+            // if(revision > 14 && revision < 42) unused
+            if(revision > 17) mParadiddle = reader.ReadBoolean();
+            if (revision > 20) mSuppressGuide = reader.ReadBoolean();
+            if(revision > 49) mSuppressPracticeOptions = reader.ReadBoolean();
+            if(revision > 33) mOmitMinigame = reader.ReadBoolean();
+
+            if(revision > 21) {
+                numRatingStates = reader.ReadUInt32();
+                for(int i = 0; i < numRatingStates; i++) {
+                    mRatingStates.Add(reader.ReadFloat());
+                }
+            }
+
+            // if gRev < 26, unused
+
+            if (revision > 26) mShoulderDisplacements = reader.ReadBoolean();
+
+            if(revision > 35) {
+                for(int i = 0; i < 4; i++) {
+                    mThresholds[i] = reader.ReadFloat();
+                    if (revision > 44) mOverrides[i] = reader.ReadFloat();
+                }
+            }
+
+            if(revision > 42) {
+                numConfusabilities = reader.ReadUInt32();
+                for(int i = 0; i < numConfusabilities; i++) {
+                    mConfusabilities.Add(reader.ReadUInt32(), reader.ReadFloat());
+                }
+            }
+
+            if(revision > 46) {
+                unk94 = reader.ReadInt32();
+            }
+
+            if(revision > 47) {
+                mDancerSeq = Symbol.Read(reader);
+            }
+
+            if(revision > 48) {
+                mConfusabilityID = reader.ReadUInt32();
+            }
 
             if (standalone)
                 if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");
