@@ -1231,6 +1231,10 @@ namespace MiloLib.Assets
                     Debug.WriteLine("Reading entry DancerSequence " + entry.name.value);
                     entry.obj = new DancerSequence().Read(reader, true, this, entry);
                     break;
+                case "MoveGraph":
+                    Debug.WriteLine("Reading entry MoveGraph " + entry.name.value);
+                    entry.obj = new MoveGraph().Read(reader, true, this, entry);
+                    break;
                 // re-enable when the class is 100%
                 //case "CharClip":
                 //    Debug.WriteLine("Reading entry CharClip " + entry.name.value);
@@ -1694,6 +1698,9 @@ namespace MiloLib.Assets
                     break;
                 case "DancerSequence":
                     ((DancerSequence)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "MoveGraph":
+                    ((MoveGraph)entry.obj).Write(writer, true, this, entry);
                     break;
                 // re-enable when the class is 100%
                 //case "CharClip":
