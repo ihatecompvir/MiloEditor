@@ -715,10 +715,13 @@ namespace MiloLib.Assets
                     entry.isProxy = true;
                     entry.obj = new ObjectDir(0).Read(reader, true, this, entry);
 
-                    dir = new DirectoryMeta();
-                    dir.platform = platform;
-                    dir.Read(reader);
-                    entry.dir = dir;
+                    if (entry.name.value != "barks")
+                    {
+                        dir = new DirectoryMeta();
+                        dir.platform = platform;
+                        dir.Read(reader);
+                        entry.dir = dir;
+                    }
                     break;
                 case "OverdriveMeterDir":
                     Debug.WriteLine("Reading entry OverdriveMeterDir " + entry.name.value);
@@ -1337,7 +1340,10 @@ namespace MiloLib.Assets
                 case "ObjectDir":
                     ((ObjectDir)entry.obj).Write(writer, true, this, entry);
                     entry.isProxy = false;
-                    entry.dir.Write(writer);
+                    if (entry.dir != null)
+                    {
+                        entry.dir.Write(writer);
+                    }
                     break;
                 case "OverdriveMeterDir":
                     ((OverdriveMeterDir)entry.obj).Write(writer, true, this, entry);
