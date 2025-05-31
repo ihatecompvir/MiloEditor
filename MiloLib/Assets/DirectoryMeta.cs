@@ -1227,6 +1227,10 @@ namespace MiloLib.Assets
                     Debug.WriteLine("Reading entry WorldReflection " + entry.name.value);
                     entry.obj = new WorldReflection().Read(reader, true, this, entry);
                     break;
+                case "DancerSequence":
+                    Debug.WriteLine("Reading entry DancerSequence " + entry.name.value);
+                    entry.obj = new DancerSequence().Read(reader, true, this, entry);
+                    break;
                 // re-enable when the class is 100%
                 //case "CharClip":
                 //    Debug.WriteLine("Reading entry CharClip " + entry.name.value);
@@ -1687,6 +1691,9 @@ namespace MiloLib.Assets
                     break;
                 case "WorldReflection":
                     ((WorldReflection)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "DancerSequence":
+                    ((DancerSequence)entry.obj).Write(writer, true, this, entry);
                     break;
                 // re-enable when the class is 100%
                 //case "CharClip":
