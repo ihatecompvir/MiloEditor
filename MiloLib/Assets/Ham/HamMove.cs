@@ -114,15 +114,19 @@ namespace MiloLib.Assets.Ham
         private ushort altRevision;
         private ushort revision;
 
+        [Name("Mirror"), Description("Move to mirror"), MinVersion(8)]
         public Symbol mirror = new(0, "");
 
+        [Name("Texture"), Description("Texture to describe the move")]
         public Symbol tex = new(0, "");
 
+        [Name("Scored"), Description("True if this is move is scored. False if it's a rest or some kind of indicator (like freestyle)"), MinVersion(2)]
         public bool mScored;
+        [Name("Final Pose"), Description("True if this move is the final pose in the song"), MinVersion(20)]
         public bool mFinalPose;
 
         private uint languageCount;
-
+        [Name("Localized Names"), Description("This move's name for each language"), MinVersion(5)]
         public List<LocalizedName> languages = new();
 
         public enum TexState {
@@ -131,23 +135,31 @@ namespace MiloLib.Assets.Ham
             kTexFlip,
             kTexDblFlip
         }
+        [Name("Texture State"), Description("Texture state describes how to display the tex"), MinVersion(12)]
         public TexState mTexState;
 
         private uint numMoveFrames;
         public List<MoveFrame> frames = new();
 
+        [Name("Paradiddle"), Description("True if this move is a paradiddle"), MinVersion(18)]
         public bool mParadiddle;
+        [Name("Supress Guide"), Description("Prevent the Guide Gesture from appearing for the duration of this move"), MinVersion(21)]
         public bool mSuppressGuide;
+        [Name("Supress Practice Options"), Description("Prevent the Practice Options from appearing for the duration of this move"), MinVersion(50)]
         public bool mSuppressPracticeOptions;
+        [Name("Omit from Minigame"), Description("Prevent this move from appear in the dance battle minigame"), MinVersion(34)]
         public bool mOmitMinigame;
 
         private uint numRatingStates;
         public List<float> mRatingStates = new();
 
+        [Name("Shoulder Displacements"), Description("Whether to use shoulder displacements for detection - specific to Ham1!"), MinVersion(27)]
         public bool mShoulderDisplacements;
 
-        public float[] mThresholds = new float[4];
-        public float[] mOverrides = new float[4];
+        [Name("Thresholds"), Description("Generated threshold for super perfect / perfect/flawless / awesome/nice / ok/almost"), MinVersion(36)]
+        public float[] mThresholds = new float[4]; // enum MoveRating
+        [Name("Thresholds"), Description("Override threshold for super perfect / perfect/flawless / awesome/nice / ok/almost (0 means no override)"), MinVersion(45)]
+        public float[] mOverrides = new float[4]; // enum MoveRating
 
         private uint numConfusabilities;
         public Dictionary<uint, float> mConfusabilities = new();
@@ -156,6 +168,7 @@ namespace MiloLib.Assets.Ham
 
         public Symbol mDancerSeq = new(0, "");
 
+        [Name("Confusability ID"), Description("id used when comparing to other moves"), MinVersion(49)]
         public uint mConfusabilityID;
 
         public HamMove Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
