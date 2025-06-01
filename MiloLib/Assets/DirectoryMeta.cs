@@ -1041,6 +1041,10 @@ namespace MiloLib.Assets
                     Debug.WriteLine("Reading entry Group " + entry.name.value);
                     entry.obj = new RndGroup().Read(reader, true, this, entry);
                     break;
+                case "HamBattleData":
+                    Debug.WriteLine("Reading entry HamBattleData " + entry.name.value);
+                    entry.obj = new HamBattleData().Read(reader, true, this, entry);
+                    break;
                 case "HamMove":
                     Debug.WriteLine("Reading entry HamMove " + entry.name.value);
                     entry.obj = new HamMove().Read(reader, true, this, entry);

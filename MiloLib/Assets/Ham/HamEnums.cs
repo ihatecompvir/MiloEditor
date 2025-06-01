@@ -80,4 +80,19 @@ namespace MiloLib.Assets.Ham {
         kMirroredYes = 1,
         kNumMoveMirrored = 2
     };
+
+    public enum PlayerFlags {
+        // "Player 0"
+        kHamPlayer0 = 0,
+        // "Player 1"
+        kHamPlayer1 = 1,
+        // "Both Players"
+        kHamPlayerBoth = 2,
+        // "Neither Player"
+        kHamPlayerOff = 3,
+        // "Player 0 Solo"
+        kHamPlayer0SoloInOut = 4,
+        // "Player 1 Solo"
+        kHamPlayer1SoloInOut = 5
+    };
 }
