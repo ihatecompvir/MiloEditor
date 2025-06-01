@@ -1049,6 +1049,10 @@ namespace MiloLib.Assets
                     Debug.WriteLine("Reading entry HamMove " + entry.name.value);
                     entry.obj = new HamMove().Read(reader, true, this, entry);
                     break;
+                case "HamSupereasyData":
+                    Debug.WriteLine("Reading entry HamSupereasyData " + entry.name.value);
+                    entry.obj = new HamSupereasyData().Read(reader, true, this, entry);
+                    break;
                 case "InlineHelp":
                     Debug.WriteLine("Reading entry InlineHelp " + entry.name.value);
                     entry.obj = new InlineHelp().Read(reader, true, this, entry);
