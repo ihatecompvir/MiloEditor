@@ -956,6 +956,10 @@ namespace MiloLib.Assets
                     Debug.WriteLine("Reading entry BandSwatch " + entry.name.value);
                     entry.obj = new BandSwatch().Read(reader, true, this, entry);
                     break;
+                case "BustAMoveData":
+                    Debug.WriteLine("Reading entry BustAMoveData " + entry.name.value);
+                    entry.obj = new BustAMoveData().Read(reader, true, this, entry);
+                    break;
                 case "Cam":
                     Debug.WriteLine("Reading entry Cam " + entry.name.value);
                     entry.obj = new RndCam().Read(reader, true, this, entry);
