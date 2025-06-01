@@ -1103,6 +1103,10 @@ namespace MiloLib.Assets
                     Debug.WriteLine("Reading entry PostProc " + entry.name.value);
                     entry.obj = new RndPostProc().Read(reader, true, this, entry);
                     break;
+                case "PracticeSection":
+                    Debug.WriteLine("Reading entry PracticeSection " + entry.name.value);
+                    entry.obj = new PracticeSection().Read(reader, true, this, entry);
+                    break;
                 case "PropAnim":
                     Debug.WriteLine("Reading entry PropAnim " + entry.name.value);
                     entry.obj = new RndPropAnim().Read(reader, true, this, entry);
