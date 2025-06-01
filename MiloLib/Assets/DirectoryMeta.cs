@@ -1020,6 +1020,10 @@ namespace MiloLib.Assets
                     Debug.WriteLine("Reading entry ColorPalette " + entry.name.value);
                     entry.obj = new ColorPalette().Read(reader, true, this, entry);
                     break;
+                case "DancerSequence":
+                    Debug.WriteLine("Reading entry DancerSequence " + entry.name.value);
+                    entry.obj = new DancerSequence().Read(reader, true, this, entry);
+                    break;
                 case "Environ":
                     Debug.WriteLine("Reading entry Environ " + entry.name.value);
                     entry.obj = new RndEnviron().Read(reader, true, this, entry);
@@ -1064,6 +1068,10 @@ namespace MiloLib.Assets
                 case "MotionBlur":
                     Debug.WriteLine("Reading entry MotionBlur " + entry.name.value);
                     entry.obj = new RndMotionBlur().Read(reader, true, this, entry);
+                    break;
+                case "MoveGraph":
+                    Debug.WriteLine("Reading entry MoveGraph " + entry.name.value);
+                    entry.obj = new MoveGraph().Read(reader, true, this, entry);
                     break;
                 case "Object":
                     Debug.WriteLine("Reading entry Object " + entry.name.value);
@@ -1226,14 +1234,6 @@ namespace MiloLib.Assets
                 case "WorldReflection":
                     Debug.WriteLine("Reading entry WorldReflection " + entry.name.value);
                     entry.obj = new WorldReflection().Read(reader, true, this, entry);
-                    break;
-                case "DancerSequence":
-                    Debug.WriteLine("Reading entry DancerSequence " + entry.name.value);
-                    entry.obj = new DancerSequence().Read(reader, true, this, entry);
-                    break;
-                case "MoveGraph":
-                    Debug.WriteLine("Reading entry MoveGraph " + entry.name.value);
-                    entry.obj = new MoveGraph().Read(reader, true, this, entry);
                     break;
                 // re-enable when the class is 100%
                 //case "CharClip":
