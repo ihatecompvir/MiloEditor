@@ -714,9 +714,7 @@ namespace MiloLib.Assets
                     Debug.WriteLine("Reading entry ObjectDir " + entry.name.value);
                     entry.isProxy = true;
                     entry.obj = new ObjectDir(0).Read(reader, true, this, entry);
-
-                    if (entry.name.value != "barks")
-                    {
+                    if (((ObjectDir)entry.obj).inlineProxy && ((ObjectDir)entry.obj).proxyPath.value != "") {
                         dir = new DirectoryMeta();
                         dir.platform = platform;
                         dir.Read(reader);
