@@ -1,6 +1,9 @@
-﻿using MiloLib.Classes;
+﻿using MiloLib.Assets.Ham;
+using MiloLib.Classes;
 using MiloLib.Utils;
+using System.Diagnostics;
 using System.Reflection.PortableExecutable;
+using static MiloLib.Assets.Rnd.RndMesh;
 
 namespace MiloLib.Assets.Rnd
 {
@@ -12,18 +15,25 @@ namespace MiloLib.Assets.Rnd
             public interface IAnimEvent
             {
                 float Pos { get; set; }
+                string ToString();
             }
 
             public struct AnimEventFloat : IAnimEvent
             {
                 public float Value { get; set; }
                 public float Pos { get; set; }
+                public override string ToString() {
+                    return "frame " + Pos + " -> " + Value;
+                }
             }
 
             public struct AnimEventColor : IAnimEvent
             {
                 public HmxColor4 Value { get; set; }
                 public float Pos { get; set; }
+                public override string ToString() {
+                    return "frame " + Pos + " -> " + Value;
+                }
             }
 
             public struct AnimEventObject : IAnimEvent
@@ -31,30 +41,45 @@ namespace MiloLib.Assets.Rnd
                 public Symbol Text1 { get; set; }
                 public Symbol Text2 { get; set; }
                 public float Pos { get; set; }
+                public override string ToString() {
+                    return "frame " + Pos + " -> " + Text1 + ", " + Text2;
+                }
             }
 
             public struct AnimEventBool : IAnimEvent
             {
                 public bool Value { get; set; }
                 public float Pos { get; set; }
+                public override string ToString() {
+                    return "frame " + Pos + " -> " + Value;
+                }
             }
 
             public struct AnimEventQuat : IAnimEvent
             {
                 public MiloLib.Classes.Vector4 Value { get; set; }
                 public float Pos { get; set; }
+                public override string ToString() {
+                    return "frame " + Pos + " -> " + Value;
+                }
             }
 
             public struct AnimEventVector3 : IAnimEvent
             {
                 public MiloLib.Classes.Vector3 Value { get; set; }
                 public float Pos { get; set; }
+                public override string ToString() {
+                    return "frame " + Pos + " -> " + Value;
+                }
             }
 
             public struct AnimEventSymbol : IAnimEvent
             {
                 public Symbol Text { get; set; }
                 public float Pos { get; set; }
+                public override string ToString() {
+                    return "frame " + Pos + " -> " + Text;
+                }
             }
 
             public enum Interpolation : int
@@ -245,10 +270,17 @@ namespace MiloLib.Assets.Rnd
 
             public override string ToString()
             {
-                if (interpHandler.value == "")
-                    return $"target: {target} type: {type1} interp: {interpolation} exceptionType: {exceptionType} numKeys: {keysCount}";
-                else
-                    return $"target: {target} type: {type1} interp: {interpolation} interpHandler: {interpHandler} exceptionType: {exceptionType} numKeys: {keysCount}";
+                string str = "PropKeys:\n";
+                str += $"target: {target}\n";
+                str += $"property: {dtb}";
+                str += $"interpolation: {interpolation}\n";
+                str += $"interpHandler: {interpHandler}\n";
+                str += $"exceptionType: {exceptionType}\n";
+                str += $"Keys ({keysCount}):\n";
+                for(int i = 0; i < keysCount; i++) {
+                    str += $"\t{keys[i]}\n";
+                }
+                return str;
             }
 
 
@@ -273,6 +305,28 @@ namespace MiloLib.Assets.Rnd
 
         [Name("Intensity"), Description("Scales all animation keyframe values by this #"), MinVersion(15)]
         public float mIntensity;
+
+
+        public override string ToString() {
+            string str = "RndPropAnim: ";
+            str += $"revs ({revision}, {altRevision}) ";
+            str += anim.ToString();
+            str += $"PropKeys ({propKeysCount}):\n";
+
+            for(int i = 0; i < propKeysCount; i++) {
+                str += propKeys[i].ToString() + "\n";
+            }
+
+            if (revision > 11) str += $"Loop: {mLoop}\n";
+            if(revision > 13) {
+                str += $"Flow labels ({numFlowLabels}):\n";
+                for(int i = 0; i < numFlowLabels ; i++) {
+                    str += flowLabels[i].ToString() + "\n";
+                }
+            }
+            if (revision > 14) str += $"Intensity: {mIntensity}\n";
+            return str;
+        }
 
         public RndPropAnim Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {

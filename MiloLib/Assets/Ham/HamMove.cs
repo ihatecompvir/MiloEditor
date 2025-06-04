@@ -1,8 +1,10 @@
 using System.Diagnostics;
 using System.Numerics;
+using System.Reflection.PortableExecutable;
 using MiloLib.Assets.Rnd;
 using MiloLib.Classes;
 using MiloLib.Utils;
+using static MiloLib.Assets.Rnd.RndPropAnim.PropKey;
 
 namespace MiloLib.Assets.Ham
 {
@@ -96,6 +98,91 @@ namespace MiloLib.Assets.Ham
 
         [Name("Confusability ID"), Description("id used when comparing to other moves"), MinVersion(49)]
         public uint mConfusabilityID;
+
+        private string PrintMoveKeys() {
+            string str = "RndPropAnim: ";
+            str += $"revs ({revision}, {altRevision}) ";
+            str += anim.ToString();
+            for(int i = 0; i < propKeys.Count; i++) {
+                str += propKeys[i].dtb.children[0].value.ToString() + $" keys ({propKeys[i].keys.Count}): \n";
+                for(int j = 0; j < propKeys[i].keys.Count; j++) {
+                    str += "\t" + propKeys[i].keys[j].ToString() + "\n";
+                }
+            }
+            return str;
+        }
+
+        public override string ToString() {
+            string str = "HamMove: ";
+            str += $"revs ({revision}, {altRevision}) ";
+            // condensed dump of RndPropAnim specifically for HamMove
+            str += PrintMoveKeys();
+            str += $"Loop: {mLoop}\n";
+            str += $"Intensity: {mIntensity}\n";
+
+            if (revision > 7) str += $"Move to mirror: {mirror}\n";
+            str += $"Texture: {tex}\n";
+            if (revision > 1) str += $"Scored: {mScored}\n";
+            if (revision > 19) str += $"Final pose: {mFinalPose}\n";
+            if (revision > 4) {
+                str += $"Localized names ({languageCount}): \n";
+                for(int i = 0; i < languageCount; i++) {
+                    str += $"\t {languages[i]}\n";
+                }
+            }
+            if (revision > 11) str += $"Tex state: {mTexState}\n";
+            if(revision > 12) {
+                str += $"MoveFrames ({numMoveFrames}):\n";
+                for(int i = 0; i < numMoveFrames; i++) {
+                    str += frames[i];
+                }
+            }
+
+            if (revision > 17) str += $"Paradiddle: {mParadiddle}\n";
+            if (revision > 20) str += $"Suppress Guide: {mSuppressGuide}\n";
+            if (revision > 49) str += $"Suppress Practice Options: {mSuppressPracticeOptions}\n";
+            if (revision > 33) str += $"Omit from Minigame: {mOmitMinigame}\n";
+
+            if (revision > 21) {
+                str += $"Rating states ({numRatingStates}): ";
+                for (int i = 0; i < numRatingStates; i++) {
+                    str += $" {mRatingStates[i]} ";
+                }
+                str += "\n";
+            }
+
+            if (revision > 26) str += $"Use shoulder displacements (DC1 only): {mShoulderDisplacements}\n";
+
+            if(revision > 35) {
+                str += $"Thresholds: \n";
+                str += $"\tSuper perfect: {mThresholds[0]}\n";
+                str += $"\tPerfect/flawless: {mThresholds[1]}\n";
+                str += $"\tAwesome/nice: {mThresholds[2]}\n";
+                str += $"\tOk/almost: {mThresholds[3]}\n";
+            }
+
+            if(revision > 44) {
+                str += $"Overrides: \n";
+                str += $"\tSuper perfect: {mOverrides[0]}\n";
+                str += $"\tPerfect/flawless: {mOverrides[1]}\n";
+                str += $"\tAwesome/nice: {mOverrides[2]}\n";
+                str += $"\tOk/almost: {mOverrides[3]}\n";
+            }
+
+            if(revision > 42) {
+                str += $"Confusabilities ({mConfusabilities.Count}): \n\t";
+                foreach (var item in mConfusabilities) {
+                    str += $"({item.Key}, {item.Value}) ";
+                }
+                str += "\n";
+            }
+
+            if (revision > 46) str += $"Unknown value at 0x94: {unk94}\n";
+            if (revision > 47) str += $"Dancer sequence: {mDancerSeq}\n";
+            if (revision > 48) str += $"Confusability ID: {mConfusabilityID}\n";
+
+            return str;
+        }
 
         public HamMove Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
