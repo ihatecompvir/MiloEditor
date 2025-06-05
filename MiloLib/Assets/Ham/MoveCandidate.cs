@@ -12,6 +12,14 @@ namespace MiloLib.Assets.Ham
         public Symbol unk;
         public uint mAdjacencyFlag;
 
+        enum AdjacencyFlags {
+            kOriginalAdjacent = 4,
+            kEasyMedAdjacent = 8,
+            kAutoScore = 0x10,
+            kAnimHotOrNot = 0x20,
+            kFake = 0
+        };
+
         public override string ToString() {
             return $"MoveCandidate: variant name {variantName} adjacency flags {mAdjacencyFlag}";
         }

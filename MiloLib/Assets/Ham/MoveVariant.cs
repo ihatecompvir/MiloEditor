@@ -26,6 +26,15 @@ namespace MiloLib.Assets.Ham
 
         uint flags;
 
+        enum MoveVariantFlags {
+            kScored = 2,
+            kFinalPose = 8,
+            kSuppressGuideGesture = 0x10,
+            kOmitFromMinigame = 0x20,
+            kUseful = 0x40,
+            kSuppressPracticeOptions = 0x80
+        };
+
         public override string ToString() {
             string str = "MoveVariant";
             str += $"\trev: {revision} position offset: {positionOffset}\n";

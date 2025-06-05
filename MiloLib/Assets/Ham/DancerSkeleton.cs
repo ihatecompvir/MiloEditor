@@ -11,6 +11,24 @@ namespace MiloLib.Assets.Ham
         public int mElapsedMs;
         public bool mTracked;
 
+        public override string ToString() {
+            string str = "DancerSkeleton:\n";
+            str += "Cam joint displacements:\n";
+            for (int i = 0; i < 20; i++) {
+                str += $"{(SkeletonJoint)i}: {mCamJointDisplacements[i]}\n";
+            }
+            str += "Cam joint positions:\n";
+            for(int i = 0; i < 20; i++) {
+                str += $"{(SkeletonJoint)i}: {mCamJointPositions[i]}\n";
+            }
+            //str += "Cam bone lengths:\n";
+            //for(int i = 0; i < 19; i++) {
+            //    str += $"{(SkeletonBone)i}: {mCamBoneLengths[i]}\n";
+            //}
+            str += $"Elapsed ms: {mElapsedMs}\n";
+            str += $"Tracked: {mTracked}\n";
+            return str;
+        }
         public DancerSkeleton Read(EndianReader reader)
         {
             for (int i = 0; i < 20; i++)
