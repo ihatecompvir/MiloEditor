@@ -767,7 +767,7 @@ public static partial class Program
                     hasCustomEditor = true;
                 }
 
-                if(viewingObject is HamMove) { hasCustomEditor = true; }
+                if(viewingObject is HamMove || viewingObject is MoveGraph) { hasCustomEditor = true; }
 
                 if (hasCustomEditor)
                 {
@@ -775,9 +775,19 @@ public static partial class Program
 
                         if (viewingObject is HamMove move) {
                             if (ImGui.BeginTabItem("Output")) {
-                                if (ImGui.BeginChild("HamMoveScrollText", new Vector2(0, 1000), ImGuiChildFlags.Borders, ImGuiWindowFlags.AlwaysVerticalScrollbar|ImGuiWindowFlags.AlwaysHorizontalScrollbar)) {
+                                if (ImGui.BeginChild("ScrollText", new Vector2(0, 1000), ImGuiChildFlags.Borders, ImGuiWindowFlags.AlwaysVerticalScrollbar|ImGuiWindowFlags.AlwaysHorizontalScrollbar)) {
 
                                     ImGui.TextUnformatted(move.ToString());
+                                    ImGui.EndChild();
+                                }
+                                ImGui.EndTabItem();
+                            }
+                        }
+                        else if(viewingObject is MoveGraph graph) {
+                            if (ImGui.BeginTabItem("Output")) {
+                                if (ImGui.BeginChild("ScrollText", new Vector2(0, 1000), ImGuiChildFlags.Borders, ImGuiWindowFlags.AlwaysVerticalScrollbar | ImGuiWindowFlags.AlwaysHorizontalScrollbar)) {
+
+                                    ImGui.TextUnformatted(graph.ToString());
                                     ImGui.EndChild();
                                 }
                                 ImGui.EndTabItem();

@@ -15,22 +15,33 @@ namespace MiloLib.Assets.Ham
         public List<MoveCandidate> prevCandidates = new List<MoveCandidate>();
         public List<MoveCandidate> nextCandidates = new List<MoveCandidate>();
 
-        public Symbol hamMoveName;
-        public Symbol hamMoveMiloname;
-
-        public Symbol linkedTo;
-
-        public Symbol linkedFrom;
-
-        public Symbol genre;
-
-        public Symbol era;
-
-        public Symbol songName;
-
+        public Symbol hamMoveName = new(0,"");
+        public Symbol hamMoveMiloname = new(0, "");
+        public Symbol linkedTo = new(0, "");
+        public Symbol linkedFrom = new(0, "");
+        public Symbol genre = new(0, "");
+        public Symbol era = new(0, "");
+        public Symbol songName = new(0, "");
         public float avgBeatsPerSecond;
 
         uint flags;
+
+        public override string ToString() {
+            string str = "MoveVariant";
+            str += $"\trev: {revision} position offset: {positionOffset}\n";
+            str += $"\tindex: {index} hamMoveName: {hamMoveName} hamMoveMiloName: {hamMoveMiloname}\n";
+            str += $"\tgenre: {genre} era: {era} songName: {songName} avgBeatsPerSec: {avgBeatsPerSecond} flags: {flags}\n";
+            str += $"\tLinked to: {linkedTo}; Linked from: {linkedFrom}\n";
+            str += $"\tPrev candidates ({prevCandidates.Count})\n";
+            for(int i = 0; i < prevCandidates.Count; i++) {
+                str += $"\t\t{prevCandidates[i]}\n";
+            }
+            str += $"\tNext candidates ({nextCandidates.Count})\n";
+            for (int i = 0; i < nextCandidates.Count; i++) {
+                str += $"\t\t{nextCandidates[i]}\n";
+            }
+            return str;
+        }
 
         public MoveVariant Read(EndianReader reader, MoveParent parent, MoveGraph moveGraph)
         {

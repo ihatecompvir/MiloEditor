@@ -12,7 +12,9 @@ namespace MiloLib.Assets.Ham
         public Symbol unk;
         public uint mAdjacencyFlag;
 
-
+        public override string ToString() {
+            return $"MoveCandidate: variant name {variantName} adjacency flags {mAdjacencyFlag}";
+        }
         public MoveCandidate Read(EndianReader reader)
         {
             revision = reader.ReadInt32();

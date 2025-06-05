@@ -308,9 +308,7 @@ namespace MiloLib.Assets.Rnd
 
 
         public override string ToString() {
-            string str = "RndPropAnim: ";
-            str += $"revs ({revision}, {altRevision}) ";
-            str += anim.ToString();
+            string str = $"RndPropAnim: revs ({revision}, {altRevision}) {anim}";
             str += $"PropKeys ({propKeysCount}):\n";
 
             for(int i = 0; i < propKeysCount; i++) {

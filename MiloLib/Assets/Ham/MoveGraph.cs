@@ -16,6 +16,37 @@ namespace MiloLib.Assets.Ham
 
         public DTBArrayParent moveArray = new DTBArrayParent();
 
+        public override string ToString() {
+            string str = "MoveGraph:\n";
+            str += $"Move parents ({moveParents.Count}):\n\n";
+            int count = 1;
+            foreach(var parent in moveParents) {
+                str += $"MoveParent {count} of {moveParents.Count}: (\n";
+                str += $"Move symbol: {parent.Key}\n";
+                str += parent.Value  ;
+                str += ")\n\n";
+                count += 1;
+            }
+
+            str += $"Move variants ({moveVariants.Count}):\n\n";
+            count = 1;
+            foreach (var variant in moveVariants)
+            {
+                str += $"MoveVariant {count} of {moveVariants.Count}: (\n";
+                str += $"Move symbol: {variant.Key}\n";
+                str += variant.Value;
+                str += ")\n\n";
+                count += 1;
+            }
+
+            str += $"Move array:\n";
+            for(int i = 0; i < moveArray.children.Count; i++) {
+                str += moveArray.children[i].ToString() + "\n";
+            }
+            
+            return str;
+        }
+
         public new MoveGraph Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
             // Read revision

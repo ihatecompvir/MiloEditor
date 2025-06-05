@@ -109,6 +109,8 @@ namespace MiloLib.Assets.Ham
                     str += "\t" + propKeys[i].keys[j].ToString() + "\n";
                 }
             }
+            str += $"Loop: {mLoop}\n";
+            str += $"Intensity: {mIntensity}\n";
             return str;
         }
 
@@ -117,8 +119,6 @@ namespace MiloLib.Assets.Ham
             str += $"revs ({revision}, {altRevision}) ";
             // condensed dump of RndPropAnim specifically for HamMove
             str += PrintMoveKeys();
-            str += $"Loop: {mLoop}\n";
-            str += $"Intensity: {mIntensity}\n";
 
             if (revision > 7) str += $"Move to mirror: {mirror}\n";
             str += $"Texture: {tex}\n";

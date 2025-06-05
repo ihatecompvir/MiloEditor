@@ -74,11 +74,7 @@ namespace MiloLib.Assets.Rnd
         public List<Symbol> anims = new();
 
         public override string ToString() {
-            StringBuilder sb = new StringBuilder();
-            sb.Append("RndAnimatable: ");
-            sb.Append($"revs ({revision}, {altRevision}) ");
-            sb.AppendLine($"\tframe: {frame}, rate {rate}");
-            return sb.ToString();
+            return $"RndAnimatable: revs({revision}, {altRevision})\tframe: {frame}, rate {rate}\n";
         }
 
         public RndAnimatable Read(EndianReader reader, DirectoryMeta parent, DirectoryMeta.Entry entry)

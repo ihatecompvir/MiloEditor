@@ -29,6 +29,24 @@ namespace MiloLib.Assets.Ham
 
         public List<MoveVariant> moveVariants = new List<MoveVariant>();
 
+        public override string ToString() {
+            string str = "MoveParent:\n";
+            str += $"\trev {revision}, name {name}, difficulty {difficulty}";
+            str += $"\n\tgenre flags ({genreFlags.Count}): ";
+            for(int i = 0; i < genreFlags.Count; i++) {
+                str += genreFlags[i] + " ";
+            }
+            str += $"\n\tera flags ({eraFlags.Count}): ";
+            for(int i = 0; i < eraFlags.Count; i++) {
+                str += eraFlags[i] + " ";
+            }
+            str += $"\n\tMoveVariants ({moveVariants.Count}):\n";
+            for(int i = 0; i < moveVariants.Count; i++) {
+                str += moveVariants[i];
+            }
+            return str;
+        }
+
         public MoveParent Read(EndianReader reader, MoveGraph graph)
         {
             revision = reader.ReadInt32();
