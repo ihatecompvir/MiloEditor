@@ -1567,6 +1567,9 @@ namespace MiloLib.Assets
                 case "MotionBlur":
                     ((RndMotionBlur)entry.obj).Write(writer, true, this, entry);
                     break;
+                case "OutfitConfig":
+                    ((OutfitConfig)entry.obj).Write(writer, true, this, entry);
+                    break;
                 case "ParticleSys":
                     ((RndParticleSys)entry.obj).Write(writer, true, this, entry);
                     break;
