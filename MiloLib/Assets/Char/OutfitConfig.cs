@@ -218,6 +218,8 @@ namespace MiloLib.Assets.Char
                 writer.WriteUInt32((uint)seams.Count);
                 foreach (Seam seam in seams)
                     seam.Write(writer);
+                if (revision > 0x18)
+                    Symbol.Write(writer, unkSym);
             }
         }
 
