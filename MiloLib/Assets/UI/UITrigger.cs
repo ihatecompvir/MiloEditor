@@ -55,7 +55,7 @@ namespace MiloLib.Assets.UI
                 Symbol.Write(writer, animRef);
             }
 
-            base.Write(writer, standalone, parent, entry);
+            base.Write(writer, false, parent, entry);
             writer.WriteBoolean(blockTransition);
 
             if (standalone)

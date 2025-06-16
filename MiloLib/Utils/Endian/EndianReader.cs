@@ -421,6 +421,23 @@ namespace MiloLib.Utils
             return _currentString.ToString();
         }
 
+        public string ReadBytesWithEncoding(int size, Encoding encoding)
+        {
+            byte[] bytes = new byte[size];
+            for (int i = 0; i < size; i++)
+            {
+                bytes[i] = ReadByte();
+            }
+
+            int nullIndex = Array.IndexOf<byte>(bytes, 0);
+            if (nullIndex >= 0)
+            {
+                size = nullIndex;
+            }
+
+            return encoding.GetString(bytes, 0, size);
+        }
+
 
         /// <summary>
         ///     Reads an array of bytes from the stream.

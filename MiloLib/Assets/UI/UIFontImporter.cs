@@ -223,7 +223,8 @@ public class UIFontImporter
         writer.WriteInt32(fontQuality);
 
         writer.WriteInt32(fontCharSet);
-        writer.WriteInt32((int)fontSupersample);
+        if (revision > 1)
+            writer.WriteInt32((int)fontSupersample);
 
         Symbol.Write(writer, bitmapPath);
         Symbol.Write(writer, bitmapFilename);
@@ -240,7 +241,7 @@ public class UIFontImporter
 
         if (revision > 2)
         {
-            writer.WriteInt32(genedFontsCount);
+            writer.WriteInt32(genFonts.Count);
             foreach (var genFont in genFonts)
             {
                 Symbol.Write(writer, genFont);
@@ -256,7 +257,7 @@ public class UIFontImporter
 
         if (revision > 3)
         {
-            writer.WriteInt32(matVariationsCount);
+            writer.WriteInt32(matVariations.Count);
             foreach (var matVariation in matVariations)
             {
                 Symbol.Write(writer, matVariation);

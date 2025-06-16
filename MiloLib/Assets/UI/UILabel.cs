@@ -100,6 +100,10 @@ namespace MiloLib.Assets.UI
         [Name("Alternate Font Resource Name"), Description("path to alt font resource file for this component"), MinVersion(0x16)]
         public Symbol altFontResourceName = new(0, "");
 
+        public Symbol unkSymbol = new(0, "");
+        public bool unkBool, unkBool2;
+        public int unkIntA, unkIntC, unkIntD;
+
 
 
         public UILabel Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
@@ -111,13 +115,13 @@ namespace MiloLib.Assets.UI
             base.Read(reader, false, parent, entry);
             if (revision != 0 && revision < 0xE)
             {
-                reader.ReadBoolean(); //b
+                unkBool = reader.ReadBoolean();
             }
             textToken = Symbol.Read(reader);
 
             if (revision > 0xD)
             {
-                Symbol.Read(reader);
+                unkSymbol = Symbol.Read(reader);
             }
 
             if (revision > 0xE)
@@ -158,10 +162,10 @@ namespace MiloLib.Assets.UI
             }
             if (revision >= 9 && revision <= 15)
             {
-                reader.ReadBoolean(); //b 
-                reader.ReadInt32(); //a
-                reader.ReadInt32(); //c
-                reader.ReadInt32(); //d
+                unkBool2 = reader.ReadBoolean();
+                unkIntA = reader.ReadInt32();
+                unkIntC = reader.ReadInt32();
+                unkIntD = reader.ReadInt32();
             }
 
             if (revision > 9)
@@ -231,13 +235,13 @@ namespace MiloLib.Assets.UI
 
             if (revision != 0 && revision < 0xE)
             {
-                writer.WriteBoolean(false);
+                writer.WriteBoolean(unkBool);
             }
             Symbol.Write(writer, textToken);
 
             if (revision > 0xD)
             {
-                Symbol.Write(writer, new Symbol(0, ""));
+                Symbol.Write(writer, unkSymbol);
             }
 
             if (revision > 0xE)
@@ -278,10 +282,10 @@ namespace MiloLib.Assets.UI
             }
             if (revision >= 9 && revision <= 15)
             {
-                writer.WriteBoolean(false);
-                writer.WriteInt32(0);
-                writer.WriteInt32(0);
-                writer.WriteInt32(0);
+                writer.WriteBoolean(unkBool2);
+                writer.WriteInt32(unkIntA);
+                writer.WriteInt32(unkIntC);
+                writer.WriteInt32(unkIntD);
             }
             if (revision > 9)
             {

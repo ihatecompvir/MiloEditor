@@ -484,6 +484,9 @@ namespace MiloLib.Assets
                 case "P9Character":
                     ((P9Character)directory).Write(writer, true, this, new Entry(type, name, directory));
                     break;
+                case "CharBoneDir":
+                    ((CharBoneDir)directory).Write(writer, true, this, new Entry(type, name, directory));
+                    break;
                 case "CharClipSet":
                     ((CharClipSet)directory).Write(writer, true, this, new Entry(type, name, directory));
                     break;
@@ -1306,6 +1309,11 @@ namespace MiloLib.Assets
                         entry.isProxy = false;
                         entry.dir.Write(writer);
                     }
+                    break;
+                case "CharBoneDir":
+                    ((CharBoneDir)entry.obj).Write(writer, true, this, entry);
+                    entry.isProxy = false;
+                    entry.dir.Write(writer);
                     break;
                 case "CharClipSet":
                     writer.WriteUInt32(0x18);

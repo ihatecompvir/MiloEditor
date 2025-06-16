@@ -48,10 +48,11 @@ class Program
             case "uncompress":
                 if (args.Length < 2)
                 {
-                    Console.WriteLine("Usage: MiloUtil uncompress <filePath>");
+                    Console.WriteLine("Usage: MiloUtil uncompress <filePath> [<outputPath>]");
                     return;
                 }
-                UncompressCommand(args[1]);
+                string uncompressOutputPath = args.Length > 2 ? args[2] : args[1];
+                UncompressCommand(args[1], uncompressOutputPath);
                 break;
 
             case "extract":
@@ -164,15 +165,15 @@ class Program
         // Logic for renaming an asset
     }
 
-    static void UncompressCommand(string filePath)
+    static void UncompressCommand(string filePath, string outputPath)
     {
         MiloFile compressedFile = new MiloFile(filePath);
 
         // try to save, catch any errors
         try
         {
-            compressedFile.Save(filePath, MiloFile.Type.Uncompressed);
-            Console.WriteLine("Milo at " + filePath + " is now uncompressed!");
+            compressedFile.Save(outputPath, MiloFile.Type.Uncompressed);
+            Console.WriteLine("Uncompressed Milo saved to: " + outputPath);
         }
         catch (Exception e)
         {

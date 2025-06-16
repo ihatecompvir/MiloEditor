@@ -1,12 +1,13 @@
-﻿using MiloLib.Assets;
-using MiloLib.Utils;
+﻿using ICSharpCode.SharpZipLib.GZip;
 using ICSharpCode.SharpZipLib.Zip.Compression;
 using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
-using ICSharpCode.SharpZipLib.GZip;
+using MiloLib.Assets;
+using MiloLib.Utils;
 using System.IO;
-using System.Reflection.PortableExecutable;
 using System.Linq;
+using System.Reflection.PortableExecutable;
 using System.Security.Cryptography.X509Certificates;
+using System.Text;
 
 namespace MiloLib
 {
@@ -87,6 +88,7 @@ namespace MiloLib
         /// </summary>
         public MiloFile(string path)
         {
+
             filePath = path;
 
             using (EndianReader reader = new EndianReader(File.OpenRead(path), Endian.LittleEndian))

@@ -60,7 +60,7 @@ namespace MiloLib.Assets.Rnd
             writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
 
             base.Write(writer, false, parent, entry);
-            draw.Write(writer, false, parent, entry);
+            draw.Write(writer, false, true);
 
             Symbol.Write(writer, outputTexture);
             Symbol.Write(writer, baseMap);

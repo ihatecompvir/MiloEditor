@@ -31,23 +31,24 @@ public class Symbol
 
     public static Symbol Read(EndianReader reader)
     {
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
         uint length = reader.ReadUInt32();
 
-        // sanity check on length, if this is something really high we are probably reading garbage
-        // as there are no symbols of this length
         if (length > 512)
         {
             throw new InvalidDataException($"Symbol length is too high: {length}");
         }
 
-        string value = reader.ReadUTF8((int)length);
+        // use windows-1252 encoding to support extended characters
+        string value = reader.ReadBytesWithEncoding((int)length, Encoding.GetEncoding("Windows-1252"));
         return new Symbol(length, value);
     }
 
     public static void Write(EndianWriter writer, Symbol lengthString)
     {
-        writer.WriteUInt32(lengthString.length);
-
-        writer.WriteBlock(Encoding.UTF8.GetBytes(lengthString.chars));
+        byte[] bytes = Encoding.GetEncoding("Windows-1252").GetBytes(lengthString.chars);
+        writer.WriteUInt32((uint)bytes.Length);
+        writer.WriteBlock(bytes);
     }
 }
