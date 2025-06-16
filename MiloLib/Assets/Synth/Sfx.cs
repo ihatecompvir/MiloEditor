@@ -179,12 +179,18 @@ namespace MiloLib.Assets
             }
 
             if (4 < revision)
+            {
                 Symbol.Write(writer, sendObj);
+                if (revision <= 7)
+                {
+                    writer.WriteUInt32(unkInt1);
+                }
+            }
 
-            if (8 < revision)
+            if (revision >= 9)
                 faderGroup.Write(writer);
 
-            if (revision > 11)
+            if (revision >= 11)
             {
                 writer.WriteFloat(reverbMixDb);
                 writer.WriteBoolean(reverbSendEnable);

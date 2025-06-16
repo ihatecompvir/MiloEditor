@@ -961,6 +961,10 @@ namespace MiloLib.Assets
                     Debug.WriteLine("Reading entry CharClipGroup " + entry.name.value);
                     entry.obj = new CharClipGroup().Read(reader, true, this, entry);
                     break;
+                case "CharCollide":
+                    Debug.WriteLine("Reading entry CharCollide " + entry.name.value);
+                    entry.obj = new CharCollide().Read(reader, true, this, entry);
+                    break;
                 case "CharForeTwist":
                     Debug.WriteLine("Reading entry CharForeTwist " + entry.name.value);
                     entry.obj = new CharForeTwist().Read(reader, true, this, entry);
@@ -1497,6 +1501,9 @@ namespace MiloLib.Assets
                     break;
                 case "CharClipGroup":
                     ((CharClipGroup)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "CharCollide":
+                    ((CharCollide)entry.obj).Write(writer, true, this, entry);
                     break;
                 case "CharForeTwist":
                     ((CharForeTwist)entry.obj).Write(writer, true, this, entry);

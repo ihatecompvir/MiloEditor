@@ -11,7 +11,7 @@ namespace MiloLib.Assets.Synth
 
         [Name("Number of Simultaneous Sequences"), Description("Number of children to play simultaneously")]
         public uint numSimultaneous;
-        [Name("Allow Repeats"), Description("If false, you will never hear the same sequence again until all have played (only if num_simul is 1)")]
+        [Name("Allow Repeats"), Description("If false, you will never hear the same sequence again until all have played (only if num_simul is 1)"), MinVersion(2)]
         public bool allowRepeats;
 
         public RandomGroupSeq Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
@@ -23,7 +23,8 @@ namespace MiloLib.Assets.Synth
             base.Read(reader, false, parent, entry);
 
             numSimultaneous = reader.ReadUInt32();
-            allowRepeats = reader.ReadBoolean();
+            if (revision >= 2)
+                allowRepeats = reader.ReadBoolean();
 
             if (standalone)
                 if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");
@@ -38,7 +39,8 @@ namespace MiloLib.Assets.Synth
             base.Write(writer, false, parent, entry);
 
             writer.WriteUInt32(numSimultaneous);
-            writer.WriteBoolean(allowRepeats);
+            if (revision >= 2)
+                writer.WriteBoolean(allowRepeats);
 
             if (standalone)
                 writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
