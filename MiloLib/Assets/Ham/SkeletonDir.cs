@@ -1,4 +1,4 @@
-﻿using MiloLib.Assets.UI;
+using MiloLib.Assets.UI;
 using MiloLib.Classes;
 using MiloLib.Utils;
 
@@ -47,14 +47,16 @@ namespace MiloLib.Assets.Ham
             if (entry != null && !entry.isProxy)
             {
                 unknownSym = Symbol.Read(reader);
-                if(revision < 4)
+                if (revision < 4)
                 {
 
-                    if (revision != 0) {
+                    if (revision != 0)
+                    {
                         unkBool = reader.ReadBoolean();
                     }
 
-                    if (revision > 1) {
+                    if (revision > 1)
+                    {
                         useSmoothing = reader.ReadBoolean();
                         smoothing = reader.ReadFloat();
                         correction = reader.ReadFloat();
@@ -63,7 +65,8 @@ namespace MiloLib.Assets.Ham
                         maxDeviationRadius = reader.ReadFloat();
                     }
 
-                    if (revision > 2) {
+                    if (revision > 2)
+                    {
                         unkBool3 = reader.ReadBoolean();
                     }
                 }
@@ -83,27 +86,29 @@ namespace MiloLib.Assets.Ham
 
             if (entry != null && !entry.isProxy)
             {
-
                 Symbol.Write(writer, unknownSym);
 
-                if (revision != 0)
+                if (revision < 4)
                 {
-                    writer.WriteBoolean(unkBool);
-                }
+                    if (revision != 0)
+                    {
+                        writer.WriteBoolean(unkBool);
+                    }
 
-                if (revision > 1)
-                {
-                    writer.WriteBoolean(useSmoothing);
-                    writer.WriteFloat(smoothing);
-                    writer.WriteFloat(correction);
-                    writer.WriteFloat(prediction);
-                    writer.WriteFloat(jitterRadius);
-                    writer.WriteFloat(maxDeviationRadius);
-                }
+                    if (revision > 1)
+                    {
+                        writer.WriteBoolean(useSmoothing);
+                        writer.WriteFloat(smoothing);
+                        writer.WriteFloat(correction);
+                        writer.WriteFloat(prediction);
+                        writer.WriteFloat(jitterRadius);
+                        writer.WriteFloat(maxDeviationRadius);
+                    }
 
-                if (revision > 2)
-                {
-                    writer.WriteBoolean(unkBool3);
+                    if (revision > 2)
+                    {
+                        writer.WriteBoolean(unkBool3);
+                    }
                 }
             }
 

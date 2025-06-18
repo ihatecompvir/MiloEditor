@@ -1368,13 +1368,16 @@ namespace MiloLib.Assets
                 case "MoveDir":
                     ((MoveDir)entry.obj).Write(writer, true, this, entry);
                     entry.isProxy = false;
-                    entry.dir.Write(writer);
+                    if (entry.dir != null)
+                    {
+                        entry.dir.Write(writer);
+                    }
                     break;
                 case "ObjectDir":
                     ((ObjectDir)entry.obj).Write(writer, true, this, entry);
-                    entry.isProxy = false;
                     if (entry.dir != null)
                     {
+                        entry.isProxy = false;
                         entry.dir.Write(writer);
                     }
                     break;

@@ -104,7 +104,7 @@ namespace MiloLib.Assets.Ham
         public override void Write(EndianWriter writer, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
             // Revision
-            writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)(altRevision << 16 | revision) : (uint)(revision << 16 | altRevision));
+            writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
 
             // Base Write
             base.Write(writer, false, parent, entry);
@@ -112,12 +112,14 @@ namespace MiloLib.Assets.Ham
 
             // DancerSequence length
             writer.WriteInt32(mDancerFrames.Count);
+
             foreach (DancerFrame curFrame in mDancerFrames)
             {
                 // Unknown data
                 if (revision == 0)
                 {
-                    writer.WriteInt32(0);
+                    writer.WriteInt32(0); // Dummy stuff
+                    // Note: We don't write unk0 and unk2 for revision 0, as they're set to -1 in Read
                 }
                 else
                 {
@@ -143,6 +145,11 @@ namespace MiloLib.Assets.Ham
                     }
                     writer.WriteInt32(skeleton.mElapsedMs);
                 }
+            }
+
+            if (standalone)
+            {
+                writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
             }
         }
     }
