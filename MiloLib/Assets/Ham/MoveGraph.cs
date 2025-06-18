@@ -16,14 +16,16 @@ namespace MiloLib.Assets.Ham
 
         public DTBArrayParent moveArray = new DTBArrayParent();
 
-        public override string ToString() {
+        public override string ToString()
+        {
             string str = "MoveGraph:\n";
             str += $"Move parents ({moveParents.Count}):\n\n";
             int count = 1;
-            foreach(var parent in moveParents) {
+            foreach (var parent in moveParents)
+            {
                 str += $"MoveParent {count} of {moveParents.Count}: (\n";
                 str += $"Move symbol: {parent.Key}\n";
-                str += parent.Value  ;
+                str += parent.Value;
                 str += ")\n\n";
                 count += 1;
             }
@@ -40,10 +42,11 @@ namespace MiloLib.Assets.Ham
             }
 
             str += $"Move array:\n";
-            for(int i = 0; i < moveArray.children.Count; i++) {
+            for (int i = 0; i < moveArray.children.Count; i++)
+            {
                 str += moveArray.children[i].ToString() + "\n";
             }
-            
+
             return str;
         }
 
@@ -79,22 +82,26 @@ namespace MiloLib.Assets.Ham
         public override void Write(EndianWriter writer, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
             // Revision
-            writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)(altRevision << 16 | revision) : (uint)(revision << 16 | altRevision));
+            writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
 
+            // Base Write
             base.Write(writer, false, parent, entry);
 
-            for (int i = 0; i < moveParents.Count; i++)
+            // Write number of parents
+            writer.WriteInt32(moveParents.Count);
+
+            // Write each MoveParent
+            foreach (var moveParent in moveParents.Values)
             {
-                MoveParent moveParent = moveParents.ElementAt(i).Value;
                 moveParent.Write(writer);
             }
 
+            // Write moveArray
             moveArray.Write(writer);
 
             if (standalone)
             {
-                if (writer.Endianness == Endian.BigEndian) writer.WriteUInt32(0xADDEADDE);
-                else writer.WriteUInt32(0xDEADDEAD);
+                writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
             }
         }
     }

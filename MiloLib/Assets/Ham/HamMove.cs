@@ -8,7 +8,7 @@ using static MiloLib.Assets.Rnd.RndPropAnim.PropKey;
 
 namespace MiloLib.Assets.Ham
 {
-    public class HamMove : RndPropAnim 
+    public class HamMove : RndPropAnim
     {
         private Dictionary<Game.MiloGame, uint> gameRevisions = new Dictionary<Game.MiloGame, uint>
         {
@@ -37,7 +37,7 @@ namespace MiloLib.Assets.Ham
             {
                 return $"{locale} - {name}";
             }
-        }        
+        }
 
         private ushort altRevision;
         private ushort revision;
@@ -57,7 +57,8 @@ namespace MiloLib.Assets.Ham
         [Name("Localized Names"), Description("This move's name for each language"), MinVersion(5)]
         public List<LocalizedName> languages = new();
 
-        public enum TexState {
+        public enum TexState
+        {
             kTexNone,
             kTexNormal,
             kTexFlip,
@@ -99,13 +100,16 @@ namespace MiloLib.Assets.Ham
         [Name("Confusability ID"), Description("id used when comparing to other moves"), MinVersion(49)]
         public uint mConfusabilityID;
 
-        private string PrintMoveKeys() {
+        private string PrintMoveKeys()
+        {
             string str = "RndPropAnim: ";
             str += $"revs ({revision}, {altRevision}) ";
             str += anim.ToString();
-            for(int i = 0; i < propKeys.Count; i++) {
+            for (int i = 0; i < propKeys.Count; i++)
+            {
                 str += propKeys[i].dtb.children[0].value.ToString() + $" keys ({propKeys[i].keys.Count}): \n";
-                for(int j = 0; j < propKeys[i].keys.Count; j++) {
+                for (int j = 0; j < propKeys[i].keys.Count; j++)
+                {
                     str += "\t" + propKeys[i].keys[j].ToString() + "\n";
                 }
             }
@@ -114,7 +118,8 @@ namespace MiloLib.Assets.Ham
             return str;
         }
 
-        public override string ToString() {
+        public override string ToString()
+        {
             string str = "HamMove: ";
             str += $"revs ({revision}, {altRevision}) ";
             // condensed dump of RndPropAnim specifically for HamMove
@@ -124,16 +129,20 @@ namespace MiloLib.Assets.Ham
             str += $"Texture: {tex}\n";
             if (revision > 1) str += $"Scored: {mScored}\n";
             if (revision > 19) str += $"Final pose: {mFinalPose}\n";
-            if (revision > 4) {
+            if (revision > 4)
+            {
                 str += $"Localized names ({languageCount}): \n";
-                for(int i = 0; i < languageCount; i++) {
+                for (int i = 0; i < languageCount; i++)
+                {
                     str += $"\t {languages[i]}\n";
                 }
             }
             if (revision > 11) str += $"Tex state: {mTexState}\n";
-            if(revision > 12) {
+            if (revision > 12)
+            {
                 str += $"MoveFrames ({numMoveFrames}):\n";
-                for(int i = 0; i < numMoveFrames; i++) {
+                for (int i = 0; i < numMoveFrames; i++)
+                {
                     str += frames[i];
                 }
             }
@@ -143,9 +152,11 @@ namespace MiloLib.Assets.Ham
             if (revision > 49) str += $"Suppress Practice Options: {mSuppressPracticeOptions}\n";
             if (revision > 33) str += $"Omit from Minigame: {mOmitMinigame}\n";
 
-            if (revision > 21) {
+            if (revision > 21)
+            {
                 str += $"Rating states ({numRatingStates}): ";
-                for (int i = 0; i < numRatingStates; i++) {
+                for (int i = 0; i < numRatingStates; i++)
+                {
                     str += $" {mRatingStates[i]} ";
                 }
                 str += "\n";
@@ -153,7 +164,8 @@ namespace MiloLib.Assets.Ham
 
             if (revision > 26) str += $"Use shoulder displacements (DC1 only): {mShoulderDisplacements}\n";
 
-            if(revision > 35) {
+            if (revision > 35)
+            {
                 str += $"Thresholds: \n";
                 str += $"\tSuper perfect: {mThresholds[0]}\n";
                 str += $"\tPerfect/flawless: {mThresholds[1]}\n";
@@ -161,7 +173,8 @@ namespace MiloLib.Assets.Ham
                 str += $"\tOk/almost: {mThresholds[3]}\n";
             }
 
-            if(revision > 44) {
+            if (revision > 44)
+            {
                 str += $"Overrides: \n";
                 str += $"\tSuper perfect: {mOverrides[0]}\n";
                 str += $"\tPerfect/flawless: {mOverrides[1]}\n";
@@ -169,9 +182,11 @@ namespace MiloLib.Assets.Ham
                 str += $"\tOk/almost: {mOverrides[3]}\n";
             }
 
-            if(revision > 42) {
+            if (revision > 42)
+            {
                 str += $"Confusabilities ({mConfusabilities.Count}): \n\t";
-                foreach (var item in mConfusabilities) {
+                foreach (var item in mConfusabilities)
+                {
                     str += $"({item.Key}, {item.Value}) ";
                 }
                 str += "\n";
@@ -194,24 +209,26 @@ namespace MiloLib.Assets.Ham
 
             base.Read(reader, false, parent, entry);
 
-            if(revision > 7) mirror = Symbol.Read(reader);
+            if (revision > 7) mirror = Symbol.Read(reader);
 
             // read empty string
             if (revision < 5) Symbol.Read(reader);
 
             tex = Symbol.Read(reader);
 
-            if(revision > 1)
+            if (revision > 1)
                 mScored = reader.ReadBoolean();
-            if(revision > 19)
+            if (revision > 19)
                 mFinalPose = reader.ReadBoolean();
 
             // if(revision > 2 && revision < 11), do a bunch of unused, deprecated stuff
             // if(revision < 16), do more unused, deprecated stuff
 
-            if(revision > 4) {
+            if (revision > 4)
+            {
                 languageCount = reader.ReadUInt32();
-                for (int i = 0; i < languageCount; i++) {
+                for (int i = 0; i < languageCount; i++)
+                {
                     languages.Add(new LocalizedName().Read(reader));
                 }
             }
@@ -220,22 +237,26 @@ namespace MiloLib.Assets.Ham
 
             if (revision > 11) mTexState = (TexState)reader.ReadUInt32();
 
-            if(revision > 12) {
+            if (revision > 12)
+            {
                 numMoveFrames = reader.ReadUInt32();
-                for(int i = 0; i < numMoveFrames; i++) {
+                for (int i = 0; i < numMoveFrames; i++)
+                {
                     frames.Add(new MoveFrame().Read(reader));
                 }
             }
 
             // if(revision > 14 && revision < 42) unused
-            if(revision > 17) mParadiddle = reader.ReadBoolean();
+            if (revision > 17) mParadiddle = reader.ReadBoolean();
             if (revision > 20) mSuppressGuide = reader.ReadBoolean();
-            if(revision > 49) mSuppressPracticeOptions = reader.ReadBoolean();
-            if(revision > 33) mOmitMinigame = reader.ReadBoolean();
+            if (revision > 49) mSuppressPracticeOptions = reader.ReadBoolean();
+            if (revision > 33) mOmitMinigame = reader.ReadBoolean();
 
-            if(revision > 21) {
+            if (revision > 21)
+            {
                 numRatingStates = reader.ReadUInt32();
-                for(int i = 0; i < numRatingStates; i++) {
+                for (int i = 0; i < numRatingStates; i++)
+                {
                     mRatingStates.Add(reader.ReadFloat());
                 }
             }
@@ -244,29 +265,36 @@ namespace MiloLib.Assets.Ham
 
             if (revision > 26) mShoulderDisplacements = reader.ReadBoolean();
 
-            if(revision > 35) {
-                for(int i = 0; i < 4; i++) {
+            if (revision > 35)
+            {
+                for (int i = 0; i < 4; i++)
+                {
                     mThresholds[i] = reader.ReadFloat();
                     if (revision > 44) mOverrides[i] = reader.ReadFloat();
                 }
             }
 
-            if(revision > 42) {
+            if (revision > 42)
+            {
                 numConfusabilities = reader.ReadUInt32();
-                for(int i = 0; i < numConfusabilities; i++) {
+                for (int i = 0; i < numConfusabilities; i++)
+                {
                     mConfusabilities.Add(reader.ReadUInt32(), reader.ReadFloat());
                 }
             }
 
-            if(revision > 46) {
+            if (revision > 46)
+            {
                 unk94 = reader.ReadInt32();
             }
 
-            if(revision > 47) {
+            if (revision > 47)
+            {
                 mDancerSeq = Symbol.Read(reader);
             }
 
-            if(revision > 48) {
+            if (revision > 48)
+            {
                 mConfusabilityID = reader.ReadUInt32();
             }
 
@@ -276,8 +304,95 @@ namespace MiloLib.Assets.Ham
             return this;
         }
 
+        public override void Write(EndianWriter writer, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry? entry)
+        {
+            writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
 
+            base.Write(writer, false, parent, entry);
 
+            if (revision > 7) Symbol.Write(writer, mirror);
 
+            if (revision < 5) Symbol.Write(writer, new Symbol(0, "")); // Write empty string
+
+            Symbol.Write(writer, tex);
+
+            if (revision > 1)
+                writer.WriteBoolean(mScored);
+            if (revision > 19)
+                writer.WriteBoolean(mFinalPose);
+
+            if (revision > 4)
+            {
+                writer.WriteUInt32(languageCount);
+                foreach (var lang in languages)
+                {
+                    lang.Write(writer);
+                }
+            }
+
+            if (revision > 11) writer.WriteUInt32((uint)mTexState);
+
+            if (revision > 12)
+            {
+                writer.WriteUInt32(numMoveFrames);
+                foreach (var frame in frames)
+                {
+                    frame.Write(writer);
+                }
+            }
+
+            if (revision > 17) writer.WriteBoolean(mParadiddle);
+            if (revision > 20) writer.WriteBoolean(mSuppressGuide);
+            if (revision > 49) writer.WriteBoolean(mSuppressPracticeOptions);
+            if (revision > 33) writer.WriteBoolean(mOmitMinigame);
+
+            if (revision > 21)
+            {
+                writer.WriteUInt32(numRatingStates);
+                foreach (var state in mRatingStates)
+                {
+                    writer.WriteFloat(state);
+                }
+            }
+
+            if (revision > 26) writer.WriteBoolean(mShoulderDisplacements);
+
+            if (revision > 35)
+            {
+                for (int i = 0; i < 4; i++)
+                {
+                    writer.WriteFloat(mThresholds[i]);
+                    if (revision > 44) writer.WriteFloat(mOverrides[i]);
+                }
+            }
+
+            if (revision > 42)
+            {
+                writer.WriteUInt32(numConfusabilities);
+                foreach (var confusability in mConfusabilities)
+                {
+                    writer.WriteUInt32(confusability.Key);
+                    writer.WriteFloat(confusability.Value);
+                }
+            }
+
+            if (revision > 46)
+            {
+                writer.WriteInt32(unk94);
+            }
+
+            if (revision > 47)
+            {
+                Symbol.Write(writer, mDancerSeq);
+            }
+
+            if (revision > 48)
+            {
+                writer.WriteUInt32(mConfusabilityID);
+            }
+
+            if (standalone)
+                writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
+        }
     }
 }
