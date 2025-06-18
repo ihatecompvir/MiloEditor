@@ -22,11 +22,13 @@ namespace MiloLib.Assets.Ham
 
         public List<DancerFrame> mDancerFrames = new List<DancerFrame>();
 
-        public override string ToString() {
+        public override string ToString()
+        {
             string str = $"DancerSequence: revs: ({revision}, {altRevision})\n";
             str += $"DancerFrames ({mDancerFrames.Count}):\n\n";
             str += $"Showing the first 50 frames for performance purposes:\n";
-            for(int i = 0; i < 50; i++) {
+            for (int i = 0; i < 50; i++)
+            {
                 str += $"DancerFrame {i} of {mDancerFrames.Count}:\n";
                 str += $"unk0 {mDancerFrames[i].unk0} unk2 {mDancerFrames[i].unk2}\n";
                 str += mDancerFrames[i].mSkeleton + "\n";

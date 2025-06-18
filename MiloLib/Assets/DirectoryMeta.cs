@@ -17,6 +17,7 @@ using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading.Tasks;
 using static MiloLib.Assets.DirectoryMeta;
+using static MiloLib.Assets.Ham.Range;
 
 namespace MiloLib.Assets
 {
@@ -455,6 +456,7 @@ namespace MiloLib.Assets
 
             writer.WriteInt32((entries.Count * 2) + 4);
             writer.WriteUInt32(stringTableSize);
+            writer.WriteBoolean(false);
 
             writer.WriteInt32((int)entries.Count);
 
@@ -714,7 +716,8 @@ namespace MiloLib.Assets
                     Debug.WriteLine("Reading entry ObjectDir " + entry.name.value);
                     entry.isProxy = true;
                     entry.obj = new ObjectDir(0).Read(reader, true, this, entry);
-                    if (((ObjectDir)entry.obj).inlineProxy && ((ObjectDir)entry.obj).proxyPath.value != "") {
+                    if (((ObjectDir)entry.obj).inlineProxy && ((ObjectDir)entry.obj).proxyPath.value != "")
+                    {
                         dir = new DirectoryMeta();
                         dir.platform = platform;
                         dir.Read(reader);
@@ -1719,6 +1722,24 @@ namespace MiloLib.Assets
                     break;
                 case "MoveGraph":
                     ((MoveGraph)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "HamMove":
+                    ((HamMove)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "BustAMoveData":
+                    ((BustAMoveData)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "PracticeSection":
+                    ((PracticeSection)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "HamBattleData":
+                    ((HamBattleData)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "HamPartyJumpData":
+                    ((HamPartyJumpData)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "HamSupereasyData":
+                    ((HamSupereasyData)entry.obj).Write(writer, true, this, entry);
                     break;
                 // re-enable when the class is 100%
                 //case "CharClip":
