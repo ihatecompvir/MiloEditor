@@ -41,15 +41,15 @@ public class Symbol
             throw new InvalidDataException($"Symbol length is too high: {length}");
         }
 
-        // use windows-1252 encoding to support extended characters
-        string value = reader.ReadBytesWithEncoding((int)length, Encoding.GetEncoding("Windows-1252"));
+        // use Latin1 encoding to support extended characters
+        string value = reader.ReadBytesWithEncoding((int)length, Encoding.Latin1);
         return new Symbol(length, value);
     }
 
     public static void Write(EndianWriter writer, Symbol lengthString)
     {
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-        byte[] bytes = Encoding.GetEncoding("Windows-1252").GetBytes(lengthString.chars);
+        byte[] bytes = Encoding.Latin1.GetBytes(lengthString.chars);
         writer.WriteUInt32((uint)bytes.Length);
         writer.WriteBlock(bytes);
     }
