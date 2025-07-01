@@ -456,7 +456,11 @@ namespace MiloLib.Assets
 
             writer.WriteInt32((entries.Count * 2) + 4);
             writer.WriteUInt32(stringTableSize);
-            writer.WriteBoolean(false);
+            
+            if (revision >= 32)
+            {
+                writer.WriteBoolean(false);
+            }
 
             writer.WriteInt32((int)entries.Count);
 
