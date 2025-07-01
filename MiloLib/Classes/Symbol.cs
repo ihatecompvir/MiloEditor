@@ -29,10 +29,11 @@ public class Symbol
         return chars;
     }
 
+    // TODO: move the register provider to a more global place, this is shit
+
     public static Symbol Read(EndianReader reader)
     {
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-
         uint length = reader.ReadUInt32();
 
         if (length > 512)
@@ -47,6 +48,7 @@ public class Symbol
 
     public static void Write(EndianWriter writer, Symbol lengthString)
     {
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         byte[] bytes = Encoding.GetEncoding("Windows-1252").GetBytes(lengthString.chars);
         writer.WriteUInt32((uint)bytes.Length);
         writer.WriteBlock(bytes);
