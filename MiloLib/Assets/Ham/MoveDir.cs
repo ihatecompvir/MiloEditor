@@ -1,5 +1,6 @@
 ﻿using MiloLib.Classes;
 using MiloLib.Utils;
+using System.Numerics;
 
 namespace MiloLib.Assets.Ham
 {
@@ -13,6 +14,11 @@ namespace MiloLib.Assets.Ham
         public uint unkInt2;
         public uint unkInt3;
         public uint unkInt4;
+        public bool mFiltersEnabled;
+        public bool mMoveOverlayEnabled;
+        public int mDebugNodeTypes;
+        public Symbol mImportClipPath;
+        public Symbol mFilterVersion;
 
         public MoveDir(ushort revision, ushort altRevision = 0) : base(revision, altRevision)
         {
@@ -29,18 +35,16 @@ namespace MiloLib.Assets.Ham
 
             base.Read(reader, false, parent, entry);
 
-            if (entry != null && !entry.isProxy)
+            mMoveOverlayEnabled = reader.ReadBoolean();
+            mDebugNodeTypes = reader.ReadInt32();
+            mImportClipPath = Symbol.Read(reader);
+
+            if (entry != null && entry.isProxy)
             {
-                unkInt1 = reader.ReadUInt32();
-                unkInt2 = reader.ReadUInt32();
-                unkInt3 = reader.ReadUInt32();
-                unkInt4 = reader.ReadUInt32();
+                unkBool = reader.ReadBoolean();
             }
-            else
-            {
-                // there is prooooobably some fields here but ive never seen them be anything but empty
-                reader.ReadBlock(25);
-            }
+
+            mFilterVersion = Symbol.Read(reader);
 
             if (standalone)
                 if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");
@@ -54,17 +58,16 @@ namespace MiloLib.Assets.Ham
 
             base.Write(writer, false, parent, entry);
 
-            if (entry != null && !entry.isProxy)
+            writer.WriteBoolean(mMoveOverlayEnabled);
+            writer.WriteInt32(mDebugNodeTypes);
+            Symbol.Write(writer, mImportClipPath);
+            if (entry != null && entry.isProxy)
             {
-                writer.WriteUInt32(unkInt1);
-                writer.WriteUInt32(unkInt2);
-                writer.WriteUInt32(unkInt3);
-                writer.WriteUInt32(unkInt4);
+                writer.WriteBoolean(unkBool);
             }
-            else
-            {
-                writer.WriteBlock(new byte[25]);
-            }
+            Symbol.Write(writer, mFilterVersion);
+
+
 
             if (standalone)
                 writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });

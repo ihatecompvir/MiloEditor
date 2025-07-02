@@ -16,6 +16,7 @@ using Vector3 = System.Numerics.Vector3;
 
 namespace ImMilo;
 
+using MiloLib.Assets.Ham;
 using Veldrid;
 using Veldrid.Sdl2;
 using Veldrid.StartupUtilities;
@@ -766,10 +767,43 @@ public static partial class Program
                     hasCustomEditor = true;
                 }
 
+                if(viewingObject is HamMove || viewingObject is MoveGraph || viewingObject is DancerSequence) { hasCustomEditor = true; }
+
                 if (hasCustomEditor)
                 {
-                    if (ImGui.BeginTabBar("Editors"))
-                    {
+                    if (ImGui.BeginTabBar("Editors")) {
+
+                        if (viewingObject is HamMove move) {
+                            if (ImGui.BeginTabItem("Output")) {
+                                if (ImGui.BeginChild("ScrollText", new Vector2(0, 1000), ImGuiChildFlags.Borders, ImGuiWindowFlags.AlwaysVerticalScrollbar|ImGuiWindowFlags.AlwaysHorizontalScrollbar)) {
+
+                                    ImGui.TextUnformatted(move.ToString());
+                                    ImGui.EndChild();
+                                }
+                                ImGui.EndTabItem();
+                            }
+                        }
+                        else if(viewingObject is MoveGraph graph) {
+                            if (ImGui.BeginTabItem("Output")) {
+                                if (ImGui.BeginChild("ScrollText", new Vector2(0, 1000), ImGuiChildFlags.Borders, ImGuiWindowFlags.AlwaysVerticalScrollbar | ImGuiWindowFlags.AlwaysHorizontalScrollbar)) {
+
+                                    ImGui.TextUnformatted(graph.ToString());
+                                    ImGui.EndChild();
+                                }
+                                ImGui.EndTabItem();
+                            }
+                        }
+                        else if (viewingObject is DancerSequence seq) {
+                            if (ImGui.BeginTabItem("Output")) {
+                                if (ImGui.BeginChild("ScrollText", new Vector2(0, 1000), ImGuiChildFlags.Borders, ImGuiWindowFlags.AlwaysVerticalScrollbar | ImGuiWindowFlags.AlwaysHorizontalScrollbar)) {
+
+                                    ImGui.TextUnformatted(seq.ToString());
+                                    ImGui.EndChild();
+                                }
+                                ImGui.EndTabItem();
+                            }
+                        }
+
                         if (viewingObject is RndTex tex)
                         {
                             if (ImGui.BeginTabItem(FontAwesome5.Image + "  Texture"))

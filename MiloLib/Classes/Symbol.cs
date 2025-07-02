@@ -1,5 +1,6 @@
 ﻿using MiloLib.Utils;
 using System.Text;
+using System;
 
 public class Symbol
 {
@@ -26,7 +27,10 @@ public class Symbol
 
     public override string ToString()
     {
-        return chars;
+        if(String.IsNullOrEmpty(chars)) {
+            return "N/A";
+        }
+        else return chars;
     }
 
     // TODO: move the register provider to a more global place, this is shit
