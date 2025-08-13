@@ -200,23 +200,16 @@ namespace MiloLib.Utils
         /// <exception cref="IOException">Thrown if there is an issue writing to the stream.</exception>
         public void WriteHalfFloat(float value)
         {
-            ushort bits = BitConverter.HalfToUInt16Bits((Half)value);
-
-            // Swap if stream endianness != host endianness
-            if (_bigEndian == BitConverter.IsLittleEndian)
-                bits = (ushort)((bits << 8) | (bits >> 8));
-
-            // write the low and high bits
-            byte lo = (byte)(bits & 0xFF);
-            byte hi = (byte)(bits >> 8);
-            try
+            Half half = (Half)value;
+            if (_bigEndian)
             {
-                _stream.WriteByte(lo);
-                _stream.WriteByte(hi);
+                byte[] bytes = BitConverter.GetBytes(half);
+                _stream.Write(bytes.Reverse().ToArray(), 0, bytes.Length);
             }
-            catch (Exception e)
+            else
             {
-                throw new IOException("An IO exception occurred during write", e);
+                byte[] bytes = BitConverter.GetBytes(half);
+                _stream.Write(bytes, 0, bytes.Length);
             }
         }
 
