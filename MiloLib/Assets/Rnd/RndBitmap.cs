@@ -25,6 +25,8 @@ namespace MiloLib.Assets.Rnd
         }
         public byte revision;
 
+        public uint? uknownData;
+
         public byte bpp;
 
         public TextureEncoding encoding;
@@ -56,6 +58,11 @@ namespace MiloLib.Assets.Rnd
                 throw new UnsupportedAssetRevisionException("RndBitmap", revision);
             }
 
+            if (revision == 2)
+            {
+                uknownData = reader.ReadUInt32();
+            }
+
             bpp = reader.ReadByte();
 
             encoding = (TextureEncoding)reader.ReadUInt32();
@@ -70,7 +77,15 @@ namespace MiloLib.Assets.Rnd
             wiiAlphaNum = reader.ReadUInt16();
 
             // skip empty bytes
-            reader.BaseStream.Position += 17;
+            if (revision == 2)
+            {
+                reader.BaseStream.Position += 13;
+            }
+            else
+            {
+                reader.BaseStream.Position += 17;
+            }
+
 
             if (encoding == TextureEncoding.RGBA && (bpp == 4 || bpp == 8))
             {
@@ -105,6 +120,11 @@ namespace MiloLib.Assets.Rnd
         {
             writer.WriteByte(revision);
 
+            if (uknownData != null)
+            {
+                writer.WriteUInt32(uknownData.Value);
+            }
+
             writer.WriteByte(bpp);
 
             writer.WriteUInt32((uint)encoding);
@@ -118,8 +138,16 @@ namespace MiloLib.Assets.Rnd
 
             writer.WriteUInt16(wiiAlphaNum);
 
-            // write 17 empty bytes
-            writer.WriteBlock(new byte[17]);
+            // write 13 empty bytes
+            if (revision == 2)
+            {
+                writer.WriteBlock(new byte[13]);
+            }
+            else
+            {
+                writer.WriteBlock(new byte[17]);
+            }
+
 
             foreach (List<byte> texture in textures)
             {

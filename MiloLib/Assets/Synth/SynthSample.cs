@@ -144,6 +144,8 @@ namespace MiloLib.Assets
         [Name("Loop End Sample"), Description("End of the loop, in samples.  Use -1 for the end of the sample."), MinVersion(3)]
         public int loopEndSample;
 
+        public uint unkInt;
+
         public SampleData sampleData = new SampleData();
 
         public SynthSample Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
@@ -156,13 +158,23 @@ namespace MiloLib.Assets
                 objFields = objFields.Read(reader, parent, entry);
 
             file = Symbol.Read(reader);
-            looped = reader.ReadBoolean();
 
-            loopStartSample = reader.ReadUInt32();
+            if (revision < 6)
+            {
+                looped = reader.ReadBoolean();
+                loopStartSample = reader.ReadUInt32();
+            }
+
             if (revision > 2)
                 loopEndSample = reader.ReadInt32();
 
             sampleData = sampleData.Read(reader);
+
+            if (revision >= 6)
+            {
+                unkInt = reader.ReadUInt32();
+            }
+
 
             if (standalone)
                 if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");
@@ -178,14 +190,24 @@ namespace MiloLib.Assets
                 objFields.Write(writer);
 
             Symbol.Write(writer, file);
-            writer.WriteBoolean(looped);
 
-            writer.WriteUInt32(loopStartSample);
+            if (revision < 6)
+            {
+                writer.WriteBoolean(looped);
+                writer.WriteUInt32(loopStartSample);
+            }
+
+
             if (revision > 2)
                 writer.WriteInt32(loopEndSample);
 
 
             sampleData.Write(writer);
+
+            if (revision >= 6)
+            {
+                writer.WriteUInt32(unkInt);
+            }
 
             if (standalone)
                 writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });

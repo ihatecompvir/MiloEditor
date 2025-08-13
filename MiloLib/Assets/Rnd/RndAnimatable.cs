@@ -1,5 +1,6 @@
 ﻿using MiloLib.Classes;
 using MiloLib.Utils;
+using System.Text;
 
 namespace MiloLib.Assets.Rnd
 {
@@ -71,6 +72,10 @@ namespace MiloLib.Assets.Rnd
         private uint animCount;
         [Name("Anims"), Description("List of animations"), MaxVersion(1)]
         public List<Symbol> anims = new();
+
+        public override string ToString() {
+            return $"RndAnimatable: revs({revision}, {altRevision})\tframe: {frame}, rate {rate}\n";
+        }
 
         public RndAnimatable Read(EndianReader reader, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {

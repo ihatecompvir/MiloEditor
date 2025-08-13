@@ -17,6 +17,7 @@ using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading.Tasks;
 using static MiloLib.Assets.DirectoryMeta;
+using static MiloLib.Assets.Ham.Range;
 
 namespace MiloLib.Assets
 {
@@ -466,6 +467,11 @@ namespace MiloLib.Assets
 
             writer.WriteInt32((entries.Count * 2) + 4);
             writer.WriteUInt32(stringTableSize);
+            
+            if (revision >= 32)
+            {
+                writer.WriteBoolean(false);
+            }
 
             writer.WriteInt32((int)entries.Count);
 
@@ -728,11 +734,13 @@ namespace MiloLib.Assets
                     Debug.WriteLine("Reading entry ObjectDir " + entry.name.value);
                     entry.isProxy = true;
                     entry.obj = new ObjectDir(0).Read(reader, true, this, entry);
-
-                    dir = new DirectoryMeta();
-                    dir.platform = platform;
-                    dir.Read(reader);
-                    entry.dir = dir;
+                    if (((ObjectDir)entry.obj).inlineProxy && ((ObjectDir)entry.obj).proxyPath.value != "")
+                    {
+                        dir = new DirectoryMeta();
+                        dir.platform = platform;
+                        dir.Read(reader);
+                        entry.dir = dir;
+                    }
                     break;
                 case "OverdriveMeterDir":
                     Debug.WriteLine("Reading entry OverdriveMeterDir " + entry.name.value);
@@ -974,6 +982,10 @@ namespace MiloLib.Assets
                     Debug.WriteLine("Reading entry BandSwatch " + entry.name.value);
                     entry.obj = new BandSwatch().Read(reader, true, this, entry);
                     break;
+                case "BustAMoveData":
+                    Debug.WriteLine("Reading entry BustAMoveData " + entry.name.value);
+                    entry.obj = new BustAMoveData().Read(reader, true, this, entry);
+                    break;
                 case "Cam":
                     Debug.WriteLine("Reading entry Cam " + entry.name.value);
                     entry.obj = new RndCam().Read(reader, true, this, entry);
@@ -1042,6 +1054,10 @@ namespace MiloLib.Assets
                     Debug.WriteLine("Reading entry ColorPalette " + entry.name.value);
                     entry.obj = new ColorPalette().Read(reader, true, this, entry);
                     break;
+                case "DancerSequence":
+                    Debug.WriteLine("Reading entry DancerSequence " + entry.name.value);
+                    entry.obj = new DancerSequence().Read(reader, true, this, entry);
+                    break;
                 case "Environ":
                     Debug.WriteLine("Reading entry Environ " + entry.name.value);
                     entry.obj = new RndEnviron().Read(reader, true, this, entry);
@@ -1058,6 +1074,22 @@ namespace MiloLib.Assets
                 case "View":
                     Debug.WriteLine("Reading entry Group " + entry.name.value);
                     entry.obj = new RndGroup().Read(reader, true, this, entry);
+                    break;
+                case "HamBattleData":
+                    Debug.WriteLine("Reading entry HamBattleData " + entry.name.value);
+                    entry.obj = new HamBattleData().Read(reader, true, this, entry);
+                    break;
+                case "HamMove":
+                    Debug.WriteLine("Reading entry HamMove " + entry.name.value);
+                    entry.obj = new HamMove().Read(reader, true, this, entry);
+                    break;
+                case "HamPartyJumpData":
+                    Debug.WriteLine("Reading entry HamPartyJumpData " + entry.name.value);
+                    entry.obj = new HamPartyJumpData().Read(reader, true, this, entry);
+                    break;
+                case "HamSupereasyData":
+                    Debug.WriteLine("Reading entry HamSupereasyData " + entry.name.value);
+                    entry.obj = new HamSupereasyData().Read(reader, true, this, entry);
                     break;
                 case "InlineHelp":
                     Debug.WriteLine("Reading entry InlineHelp " + entry.name.value);
@@ -1082,6 +1114,10 @@ namespace MiloLib.Assets
                 case "MotionBlur":
                     Debug.WriteLine("Reading entry MotionBlur " + entry.name.value);
                     entry.obj = new RndMotionBlur().Read(reader, true, this, entry);
+                    break;
+                case "MoveGraph":
+                    Debug.WriteLine("Reading entry MoveGraph " + entry.name.value);
+                    entry.obj = new MoveGraph().Read(reader, true, this, entry);
                     break;
                 case "Object":
                     Debug.WriteLine("Reading entry Object " + entry.name.value);
@@ -1112,6 +1148,10 @@ namespace MiloLib.Assets
                 case "PostProc":
                     Debug.WriteLine("Reading entry PostProc " + entry.name.value);
                     entry.obj = new RndPostProc().Read(reader, true, this, entry);
+                    break;
+                case "PracticeSection":
+                    Debug.WriteLine("Reading entry PracticeSection " + entry.name.value);
+                    entry.obj = new PracticeSection().Read(reader, true, this, entry);
                     break;
                 case "PropAnim":
                     Debug.WriteLine("Reading entry PropAnim " + entry.name.value);
@@ -1362,12 +1402,18 @@ namespace MiloLib.Assets
                 case "MoveDir":
                     ((MoveDir)entry.obj).Write(writer, true, this, entry);
                     entry.isProxy = false;
-                    entry.dir.Write(writer);
+                    if (entry.dir != null)
+                    {
+                        entry.dir.Write(writer);
+                    }
                     break;
                 case "ObjectDir":
                     ((ObjectDir)entry.obj).Write(writer, true, this, entry);
-                    entry.isProxy = false;
-                    entry.dir.Write(writer);
+                    if (entry.dir != null)
+                    {
+                        entry.isProxy = false;
+                        entry.dir.Write(writer);
+                    }
                     break;
                 case "OverdriveMeterDir":
                     ((OverdriveMeterDir)entry.obj).Write(writer, true, this, entry);
@@ -1712,6 +1758,30 @@ namespace MiloLib.Assets
                     break;
                 case "WorldReflection":
                     ((WorldReflection)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "DancerSequence":
+                    ((DancerSequence)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "MoveGraph":
+                    ((MoveGraph)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "HamMove":
+                    ((HamMove)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "BustAMoveData":
+                    ((BustAMoveData)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "PracticeSection":
+                    ((PracticeSection)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "HamBattleData":
+                    ((HamBattleData)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "HamPartyJumpData":
+                    ((HamPartyJumpData)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "HamSupereasyData":
+                    ((HamSupereasyData)entry.obj).Write(writer, true, this, entry);
                     break;
                 // re-enable when the class is 100%
                 //case "CharClip":

@@ -41,6 +41,28 @@ namespace MiloLib.Assets
             public uint id;
 
             public List<DTBNode> children;
+            public override string ToString() {
+                return ToString(0);
+            }
+            private string ToString(int indentLevel) {
+                StringBuilder sb = new StringBuilder();
+                string indent = new string(' ', indentLevel * 4);
+                sb.AppendLine($"{indent}Parent (ID: {id}, Children: {childCount})");
+
+                if (children != null) {
+                    foreach (DTBNode node in children) {
+                        if (node.value is DTBArrayParent parent) {
+                            sb.Append(parent.ToString(indentLevel + 1));
+                        }
+                        else {
+                            sb.AppendLine($"{indent}    {node.ToString()}");
+                        }
+                    }
+                }
+
+
+                return sb.ToString();
+            }
 
             public void Read(EndianReader reader)
             {

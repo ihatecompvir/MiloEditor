@@ -1,5 +1,9 @@
-﻿using MiloLib.Classes;
+﻿using MiloLib.Assets.Ham;
+using MiloLib.Classes;
 using MiloLib.Utils;
+using System.Diagnostics;
+using System.Reflection.PortableExecutable;
+using static MiloLib.Assets.Rnd.RndMesh;
 
 namespace MiloLib.Assets.Rnd
 {
@@ -11,18 +15,25 @@ namespace MiloLib.Assets.Rnd
             public interface IAnimEvent
             {
                 float Pos { get; set; }
+                string ToString();
             }
 
             public struct AnimEventFloat : IAnimEvent
             {
                 public float Value { get; set; }
                 public float Pos { get; set; }
+                public override string ToString() {
+                    return "frame " + Pos + " -> " + Value;
+                }
             }
 
             public struct AnimEventColor : IAnimEvent
             {
                 public HmxColor4 Value { get; set; }
                 public float Pos { get; set; }
+                public override string ToString() {
+                    return "frame " + Pos + " -> " + Value;
+                }
             }
 
             public struct AnimEventObject : IAnimEvent
@@ -30,30 +41,45 @@ namespace MiloLib.Assets.Rnd
                 public Symbol Text1 { get; set; }
                 public Symbol Text2 { get; set; }
                 public float Pos { get; set; }
+                public override string ToString() {
+                    return "frame " + Pos + " -> " + Text1 + ", " + Text2;
+                }
             }
 
             public struct AnimEventBool : IAnimEvent
             {
                 public bool Value { get; set; }
                 public float Pos { get; set; }
+                public override string ToString() {
+                    return "frame " + Pos + " -> " + Value;
+                }
             }
 
             public struct AnimEventQuat : IAnimEvent
             {
                 public MiloLib.Classes.Vector4 Value { get; set; }
                 public float Pos { get; set; }
+                public override string ToString() {
+                    return "frame " + Pos + " -> " + Value;
+                }
             }
 
             public struct AnimEventVector3 : IAnimEvent
             {
                 public MiloLib.Classes.Vector3 Value { get; set; }
                 public float Pos { get; set; }
+                public override string ToString() {
+                    return "frame " + Pos + " -> " + Value;
+                }
             }
 
             public struct AnimEventSymbol : IAnimEvent
             {
                 public Symbol Text { get; set; }
                 public float Pos { get; set; }
+                public override string ToString() {
+                    return "frame " + Pos + " -> " + Text;
+                }
             }
 
             public enum Interpolation : int
@@ -244,10 +270,17 @@ namespace MiloLib.Assets.Rnd
 
             public override string ToString()
             {
-                if (interpHandler.value == "")
-                    return $"target: {target} type: {type1} interp: {interpolation} exceptionType: {exceptionType} numKeys: {keysCount}";
-                else
-                    return $"target: {target} type: {type1} interp: {interpolation} interpHandler: {interpHandler} exceptionType: {exceptionType} numKeys: {keysCount}";
+                string str = "PropKeys:\n";
+                str += $"target: {target}\n";
+                str += $"property: {dtb}";
+                str += $"interpolation: {interpolation}\n";
+                str += $"interpHandler: {interpHandler}\n";
+                str += $"exceptionType: {exceptionType}\n";
+                str += $"Keys ({keysCount}):\n";
+                for(int i = 0; i < keysCount; i++) {
+                    str += $"\t{keys[i]}\n";
+                }
+                return str;
             }
 
 
@@ -260,8 +293,38 @@ namespace MiloLib.Assets.Rnd
         public bool unkBool;
         public bool unkBool2;
 
+        [Name("Loop"), Description("Do I self loop on SetFrame?"), MinVersion(12)]
+        public bool mLoop;
+
         private uint propKeysCount;
         public List<PropKey> propKeys = new();
+
+        [Name("Flow Labels"), Description("the names of possible flow labels you can place on this timeline (i.e. 'footstep')"), MinVersion(14)]
+        private uint numFlowLabels;
+        public List<Symbol> flowLabels = new();
+
+        [Name("Intensity"), Description("Scales all animation keyframe values by this #"), MinVersion(15)]
+        public float mIntensity;
+
+
+        public override string ToString() {
+            string str = $"RndPropAnim: revs ({revision}, {altRevision}) {anim}";
+            str += $"PropKeys ({propKeysCount}):\n";
+
+            for(int i = 0; i < propKeysCount; i++) {
+                str += propKeys[i].ToString() + "\n";
+            }
+
+            if (revision > 11) str += $"Loop: {mLoop}\n";
+            if(revision > 13) {
+                str += $"Flow labels ({numFlowLabels}):\n";
+                for(int i = 0; i < numFlowLabels ; i++) {
+                    str += flowLabels[i].ToString() + "\n";
+                }
+            }
+            if (revision > 14) str += $"Intensity: {mIntensity}\n";
+            return str;
+        }
 
         public RndPropAnim Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
@@ -273,8 +336,8 @@ namespace MiloLib.Assets.Rnd
 
             anim = anim.Read(reader, parent, entry);
 
-            if (revision == 12)
-                unkBool = reader.ReadBoolean();
+            // TODO: if revision < 7, there's some nasty involved keys loading routine
+            // else, do the following:
 
             propKeysCount = reader.ReadUInt32();
 
@@ -285,13 +348,21 @@ namespace MiloLib.Assets.Rnd
                 propKeys.Add(propKey);
             }
 
+            if (revision > 11)
+                mLoop = reader.ReadBoolean();
 
+            // if rev > 13, set flowlabels, a list<String>s
+            if (revision > 13) {
+                numFlowLabels = reader.ReadUInt32();
+                for(int i = 0; i < numFlowLabels; i++) {
+                    Symbol sym = Symbol.Read(reader);
+                    flowLabels.Add(sym);
+                }
+            }
 
-            if (revision >= 13)
-                unkBool2 = reader.ReadBoolean();
-
-
-
+            // if rev > 14, load float mIntensity
+            if (revision > 14)
+                mIntensity = reader.ReadFloat();
 
             if (standalone)
                 if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");
@@ -307,9 +378,6 @@ namespace MiloLib.Assets.Rnd
 
             anim.Write(writer);
 
-            if (revision == 12)
-                writer.WriteBoolean(unkBool);
-
             writer.WriteUInt32((uint)propKeys.Count);
 
             foreach (PropKey propKey in propKeys)
@@ -317,8 +385,16 @@ namespace MiloLib.Assets.Rnd
                 propKey.Write(writer, revision);
             }
 
-            if (revision >= 13)
-                writer.WriteBoolean(unkBool2);
+            if (revision > 11)
+                writer.WriteBoolean(mLoop);
+
+            writer.WriteUInt32((uint)flowLabels.Count);
+            foreach(Symbol flowLabel in flowLabels) {
+                Symbol.Write(writer, flowLabel);
+            }
+
+            if(revision > 14)
+                writer.WriteFloat(mIntensity);
 
             if (standalone)
                 writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
