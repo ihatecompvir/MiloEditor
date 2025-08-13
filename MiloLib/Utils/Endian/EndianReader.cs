@@ -167,14 +167,13 @@ namespace MiloLib.Utils
 
         public float ReadHalfFloat()
         {
-            // Read the raw 16 bits
             ushort raw = ReadUInt16();
 
-            // If endianness doesn't match the machine, swap the bytes
+            // Swap if stream endianness != host endianness
             if (_bigEndian == BitConverter.IsLittleEndian)
-                raw = (ushort)(((raw & 0xFF) << 8) | (raw >> 8));
+                raw = (ushort)((raw << 8) | (raw >> 8));
 
-            return HalfToFloat(raw);
+            return (float)BitConverter.UInt16BitsToHalf(raw);
         }
 
         /// <summary>

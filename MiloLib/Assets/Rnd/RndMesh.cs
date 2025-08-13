@@ -239,12 +239,31 @@ namespace MiloLib.Assets.Rnd
                         newVert.uvCheck = reader.ReadInt32();
                         if (newVert.uvCheck == -1)
                         {
-                            newVert.halfU = reader.ReadUInt16();
-                            newVert.halfV = reader.ReadUInt16();
+                            newVert.u = reader.ReadHalfFloat();
+                            newVert.v = reader.ReadHalfFloat();
 
-                            newVert.normals = newVert.normals.Read(reader);
-                            newVert.tangents = newVert.tangents.Read(reader);
-                            newVert.weights = newVert.weights.Read(reader);
+                            Vertex.SignedCompressedVec4 norms = new Vertex.SignedCompressedVec4();
+                            norms.Read(reader);
+                            newVert.nx = norms.x;
+                            newVert.ny = norms.y;
+                            newVert.nz = norms.z;
+                            newVert.nw = norms.w;
+
+                            Vertex.SignedCompressedVec4 tangents = new Vertex.SignedCompressedVec4();
+                            tangents.Read(reader);
+
+                            newVert.tangent0 = tangents.x;
+                            newVert.tangent1 = tangents.y;
+                            newVert.tangent2 = tangents.z;
+                            newVert.tangent3 = tangents.w;
+
+                            Vertex.UnsignedCompressedVec4 weights = new Vertex.UnsignedCompressedVec4();
+                            weights.Read(reader);
+
+                            newVert.weight0 = weights.x;
+                            newVert.weight1 = weights.y;
+                            newVert.weight2 = weights.z;
+                            newVert.weight3 = weights.w;
 
                             newVert.bone0 = reader.ReadByte();
                             newVert.bone1 = reader.ReadByte();
@@ -256,10 +275,15 @@ namespace MiloLib.Assets.Rnd
                             if (compressionType == 1)
                             {
                                 reader.BaseStream.Position -= 4;
-                                newVert.halfU = reader.ReadUInt16();
-                                newVert.halfV = reader.ReadUInt16();
+                                newVert.u = reader.ReadHalfFloat();
+                                newVert.v = reader.ReadHalfFloat();
 
-                                newVert.qTangents = newVert.qTangents.Read(reader);
+                                Vertex.QTangent tangents = new Vertex.QTangent();
+                                tangents.Read(reader);
+                                newVert.tangent0 = tangents.x.fValue;
+                                newVert.tangent1 = tangents.y.fValue;
+                                newVert.tangent2 = tangents.z.fValue;
+                                newVert.tangent3 = tangents.w.fValue;
 
                                 newVert.weight0 = reader.ReadByte();
                                 newVert.weight1 = reader.ReadByte();
@@ -274,12 +298,17 @@ namespace MiloLib.Assets.Rnd
                             else if (compressionType == 2)
                             {
                                 reader.BaseStream.Position -= 4;
-                                newVert.halfU = reader.ReadUInt16();
-                                newVert.halfV = reader.ReadUInt16();
+                                newVert.u = reader.ReadHalfFloat();
+                                newVert.v = reader.ReadHalfFloat();
 
                                 newVert.unknown2 = reader.ReadFloat();
 
-                                newVert.qTangents = newVert.qTangents.Read(reader);
+                                Vertex.QTangent tangents = new Vertex.QTangent();
+                                tangents.Read(reader);
+                                newVert.tangent0 = tangents.x.fValue;
+                                newVert.tangent1 = tangents.y.fValue;
+                                newVert.tangent2 = tangents.z.fValue;
+                                newVert.tangent3 = tangents.w.fValue;
 
                                 newVert.weight0 = reader.ReadByte();
                                 newVert.weight1 = reader.ReadByte();
@@ -425,12 +454,35 @@ namespace MiloLib.Assets.Rnd
 
                         if (vertex.uvCheck == -1)
                         {
-                            writer.WriteUInt16((ushort)vertex.halfU);
-                            writer.WriteUInt16((ushort)vertex.halfV);
+                            writer.WriteHalfFloat(vertex.u);
+                            writer.WriteHalfFloat(vertex.v);
 
-                            vertex.normals.Write(writer);
-                            vertex.tangents.Write(writer);
-                            vertex.weights.Write(writer);
+                            Vertex.SignedCompressedVec4 norms = new Vertex.SignedCompressedVec4
+                            {
+                                x = vertex.nx,
+                                y = vertex.ny,
+                                z = vertex.nz,
+                                w = vertex.nw
+                            };
+                            norms.Write(writer);
+
+                            Vertex.SignedCompressedVec4 tangents = new Vertex.SignedCompressedVec4
+                            {
+                                x = vertex.tangent0,
+                                y = vertex.tangent1,
+                                z = vertex.tangent2,
+                                w = vertex.tangent3
+                            };
+                            tangents.Write(writer);
+
+                            Vertex.UnsignedCompressedVec4 weights = new Vertex.UnsignedCompressedVec4
+                            {
+                                x = vertex.weight0,
+                                y = vertex.weight1,
+                                z = vertex.weight2,
+                                w = vertex.weight3
+                            };
+                            weights.Write(writer);
 
                             writer.WriteByte((byte)vertex.bone0);
                             writer.WriteByte((byte)vertex.bone1);
@@ -442,10 +494,16 @@ namespace MiloLib.Assets.Rnd
                             if (compressionType == 1)
                             {
                                 writer.BaseStream.Position -= 4;
-                                writer.WriteUInt16((ushort)vertex.halfU);
-                                writer.WriteUInt16((ushort)vertex.halfV);
+                                writer.WriteHalfFloat(vertex.u);
+                                writer.WriteHalfFloat(vertex.v);
 
-                                vertex.qTangents.Write(writer);
+                                Vertex.QTangent tangents = new Vertex.QTangent
+                                {
+                                    x = new Vertex.QTangent.SNorm((short)vertex.tangent0),
+                                    y = new Vertex.QTangent.SNorm((short)vertex.tangent1),
+                                    z = new Vertex.QTangent.SNorm((short)vertex.tangent2),
+                                    w = new Vertex.QTangent.SNorm((short)vertex.tangent3)
+                                };
 
                                 writer.WriteByte((byte)vertex.weight0);
                                 writer.WriteByte((byte)vertex.weight1);
@@ -460,12 +518,18 @@ namespace MiloLib.Assets.Rnd
                             else if (compressionType == 2)
                             {
                                 writer.BaseStream.Position -= 4;
-                                writer.WriteUInt16((ushort)vertex.halfU);
-                                writer.WriteUInt16((ushort)vertex.halfV);
+                                writer.WriteHalfFloat(vertex.u);
+                                writer.WriteHalfFloat(vertex.v);
 
                                 writer.WriteFloat(vertex.unknown2);
 
-                                vertex.qTangents.Write(writer);
+                                Vertex.QTangent tangents = new Vertex.QTangent
+                                {
+                                    x = new Vertex.QTangent.SNorm((short)vertex.tangent0),
+                                    y = new Vertex.QTangent.SNorm((short)vertex.tangent1),
+                                    z = new Vertex.QTangent.SNorm((short)vertex.tangent2),
+                                    w = new Vertex.QTangent.SNorm((short)vertex.tangent3)
+                                };
 
                                 writer.WriteByte((byte)vertex.weight0);
                                 writer.WriteByte((byte)vertex.weight1);

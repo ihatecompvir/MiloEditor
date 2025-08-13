@@ -187,6 +187,8 @@ namespace MiloLib.Assets
         /// </summary>
         public Platform platform = Platform.PS3;
 
+        public List<byte> DirObjBytes { get; set; } = new List<byte>();
+
         public DirectoryMeta Read(EndianReader reader)
         {
             revision = reader.ReadUInt32();
@@ -237,6 +239,8 @@ namespace MiloLib.Assets
                     externalResources.Add(Symbol.Read(reader));
                 }
             }
+
+            long dirDataStart = reader.BaseStream.Position;
 
             // figure out how to read this directory depending on the type
             switch (type.value)
@@ -409,6 +413,13 @@ namespace MiloLib.Assets
                     break;
                 default:
                     throw new Exception("Unknown directory type: " + type.value + ", cannot continue reading Milo scene");
+            }
+
+            long dirDataEnd = reader.BaseStream.Position;
+            if (dirDataEnd > dirDataStart)
+            {
+                reader.BaseStream.Position = dirDataStart;
+                this.DirObjBytes = reader.ReadBlock((int)(dirDataEnd - dirDataStart)).ToList();
             }
 
             foreach (Entry entry in entries)
@@ -880,6 +891,12 @@ namespace MiloLib.Assets
 
                     entry.obj = new WorldInstance(0).Read(reader, false, this, entry);
 
+                    // this doesn't have persistent objects if this hits
+                    if (((WorldInstance)entry.obj).revision == 0)
+                    {
+                        break;
+                    }
+
                     // if the world instance has no persistent perObjs, it will have a dir as expected, otherwise it won't
                     if (!((WorldInstance)entry.obj).hasPersistentObjects)
                     {
@@ -905,6 +922,7 @@ namespace MiloLib.Assets
                     }
                     else
                     {
+                        Debug.WriteLine("Reading persistent objects for WorldInstance " + entry.name.value);
                         ((WorldInstance)entry.obj).persistentObjects = new WorldInstance.PersistentObjects().Read(reader, this, entry, ((WorldInstance)entry.obj).revision);
                     }
                     break;
@@ -1441,27 +1459,23 @@ namespace MiloLib.Assets
 
                     if (!((WorldInstance)entry.obj).hasPersistentObjects)
                     {
-                        // Write the directory
                         entry.dir.Write(writer);
 
                         if (entry.dir.type.value == "WorldInstance")
                         {
-                            if (((WorldInstance)entry.dir.directory).hasPersistentObjects)
+                            var wi = (WorldInstance)entry.dir.directory;
+                            if (wi.hasPersistentObjects)
                             {
-                                // Write the persistent perObjs
-                                ((WorldInstance)entry.dir.directory).persistentObjects.Write(writer, this, entry, ((WorldInstance)entry.obj).revision);
+                                wi.persistentObjects.Write(writer, this, entry, wi.revision);
                             }
                         }
                         else
                         {
-                            // write the persistent objects we stored in the obj
-                            // this is a dumb hack but prevents need to adapt the API to allow mixes like that
                             ((WorldInstance)entry.obj).persistentObjects.Write(writer, this, entry, ((WorldInstance)entry.obj).revision);
                         }
                     }
                     else
                     {
-                        // Write the persistent perObjs
                         ((WorldInstance)entry.obj).persistentObjects.Write(writer, this, entry, ((WorldInstance)entry.obj).revision);
                     }
 
@@ -1557,6 +1571,9 @@ namespace MiloLib.Assets
                     break;
                 case "Environ":
                     ((RndEnviron)entry.obj).Write(writer, true, this, entry);
+                    break;
+                case "EventTrigger":
+                    ((EventTrigger)entry.obj).Write(writer, true, this, entry);
                     break;
                 case "FileMerger":
                     ((FileMerger)entry.obj).Write(writer, true, this, entry);

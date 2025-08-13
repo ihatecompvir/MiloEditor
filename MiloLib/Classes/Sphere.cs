@@ -10,7 +10,7 @@ namespace MiloLib.Classes
     /// <summary>
     /// Represents a sphere.
     /// </summary>
-    public class Sphere
+    public struct Sphere
     {
         public float x;
         public float y;

@@ -44,10 +44,11 @@ namespace MiloLib.Utils
         public void WriteByte(byte value)
         {
             _buffer[0] = value;
-            try{
+            try
+            {
                 _stream.Write(_buffer, 0, 1);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 throw new IOException($"An IO exception occured during write", e);
             }
@@ -68,7 +69,7 @@ namespace MiloLib.Utils
         ///     Writes an unsigned 16-bit integer to the stream.
         /// </summary>
         /// <param name="value">The unsigned 16-bit integer to write.</param>
-         ///  <exception cref="IOException">Thrown if there is an issue writing to the stream.</exception>
+        ///  <exception cref="IOException">Thrown if there is an issue writing to the stream.</exception>
         public void WriteUInt16(ushort value)
         {
             if (_bigEndian)
@@ -81,12 +82,13 @@ namespace MiloLib.Utils
                 _buffer[0] = (byte)(value & 0xFF);
                 _buffer[1] = (byte)(value >> 8);
             }
-            try{
-                 _stream.Write(_buffer, 0, 2);
-            }
-            catch(Exception e)
+            try
             {
-                 throw new IOException($"An IO exception occured during write", e);
+                _stream.Write(_buffer, 0, 2);
+            }
+            catch (Exception e)
+            {
+                throw new IOException($"An IO exception occured during write", e);
             }
 
         }
@@ -105,7 +107,7 @@ namespace MiloLib.Utils
         ///     Writes an unsigned 32-bit integer to the stream.
         /// </summary>
         /// <param name="value">The unsigned 32-bit integer to write.</param>
-         ///  <exception cref="IOException">Thrown if there is an issue writing to the stream.</exception>
+        ///  <exception cref="IOException">Thrown if there is an issue writing to the stream.</exception>
         public void WriteUInt32(uint value)
         {
             if (_bigEndian)
@@ -122,12 +124,13 @@ namespace MiloLib.Utils
                 _buffer[2] = (byte)((value >> 16) & 0xFF);
                 _buffer[3] = (byte)(value >> 24);
             }
-             try{
-                 _stream.Write(_buffer, 0, 4);
-            }
-            catch(Exception e)
+            try
             {
-                 throw new IOException($"An IO exception occured during write", e);
+                _stream.Write(_buffer, 0, 4);
+            }
+            catch (Exception e)
+            {
+                throw new IOException($"An IO exception occured during write", e);
             }
         }
 
@@ -135,7 +138,7 @@ namespace MiloLib.Utils
         ///     Writes a signed 32-bit integer to the stream.
         /// </summary>
         /// <param name="value">The signed 32-bit integer to write.</param>
-         ///  <exception cref="IOException">Thrown if there is an issue writing to the stream.</exception>
+        ///  <exception cref="IOException">Thrown if there is an issue writing to the stream.</exception>
         public void WriteInt32(int value)
         {
             WriteUInt32((uint)value);
@@ -145,7 +148,7 @@ namespace MiloLib.Utils
         ///     Writes an unsigned 64-bit integer to the stream.
         /// </summary>
         /// <param name="value">The unsigned 64-bit integer to write.</param>
-         ///  <exception cref="IOException">Thrown if there is an issue writing to the stream.</exception>
+        ///  <exception cref="IOException">Thrown if there is an issue writing to the stream.</exception>
         public void WriteUInt64(ulong value)
         {
             if (_bigEndian)
@@ -170,12 +173,13 @@ namespace MiloLib.Utils
                 _buffer[6] = (byte)((value >> 48) & 0xFF);
                 _buffer[7] = (byte)(value >> 56);
             }
-             try{
-                 _stream.Write(_buffer, 0, 8);
-            }
-            catch(Exception e)
+            try
             {
-                 throw new IOException($"An IO exception occured during write", e);
+                _stream.Write(_buffer, 0, 8);
+            }
+            catch (Exception e)
+            {
+                throw new IOException($"An IO exception occured during write", e);
             }
         }
 
@@ -190,10 +194,37 @@ namespace MiloLib.Utils
         }
 
         /// <summary>
+        ///     Writes a 16-bit floating-point value (half-precision) to the stream.
+        /// </summary>
+        /// <param name="value">The 16-bit floating point value to write.</param>
+        /// <exception cref="IOException">Thrown if there is an issue writing to the stream.</exception>
+        public void WriteHalfFloat(float value)
+        {
+            ushort bits = BitConverter.HalfToUInt16Bits((Half)value);
+
+            // Swap if stream endianness != host endianness
+            if (_bigEndian == BitConverter.IsLittleEndian)
+                bits = (ushort)((bits << 8) | (bits >> 8));
+
+            // write the low and high bits
+            byte lo = (byte)(bits & 0xFF);
+            byte hi = (byte)(bits >> 8);
+            try
+            {
+                _stream.WriteByte(lo);
+                _stream.WriteByte(hi);
+            }
+            catch (Exception e)
+            {
+                throw new IOException("An IO exception occurred during write", e);
+            }
+        }
+
+        /// <summary>
         ///     Writes a 32-bit floating-point value to the stream.
         /// </summary>
         /// <param name="value">The 32-bit floating-point value to write.</param>
-         ///  <exception cref="IOException">Thrown if there is an issue writing to the stream.</exception>
+        ///  <exception cref="IOException">Thrown if there is an issue writing to the stream.</exception>
         public void WriteFloat(float value)
         {
             byte[] bytes = BitConverter.GetBytes(value);
@@ -207,20 +238,21 @@ namespace MiloLib.Utils
                 bytes[1] = bytes[2];
                 bytes[2] = temp;
             }
-            try{
-                 _stream.Write(bytes, 0, bytes.Length);
-            }
-             catch(Exception e)
+            try
             {
-                 throw new IOException($"An IO exception occured during write", e);
+                _stream.Write(bytes, 0, bytes.Length);
+            }
+            catch (Exception e)
+            {
+                throw new IOException($"An IO exception occured during write", e);
             }
         }
-        
+
         /// <summary>
         ///     Writes a boolean value to the stream.
         /// </summary>
         /// <param name="value">The boolean value to write.</param>
-         /// <exception cref="IOException">Thrown if there is an issue writing to the stream.</exception>
+        /// <exception cref="IOException">Thrown if there is an issue writing to the stream.</exception>
         public void WriteBoolean(bool value)
         {
             WriteByte(value ? (byte)1 : (byte)0);
@@ -243,10 +275,10 @@ namespace MiloLib.Utils
         /// </summary>
         /// <param name="str"></param>
         /// <param name="length"></param>
-         ///  <exception cref="IOException">Thrown if there is an issue writing to the stream.</exception>
+        ///  <exception cref="IOException">Thrown if there is an issue writing to the stream.</exception>
         public void WriteAscii(string str, int length)
         {
-             byte[] bytes = Encoding.ASCII.GetBytes(str);
+            byte[] bytes = Encoding.ASCII.GetBytes(str);
 
             if (bytes.Length >= length)
             {
@@ -265,7 +297,7 @@ namespace MiloLib.Utils
         ///     Writes a Windows-1252 string to the stream, followed by a null terminator.
         /// </summary>
         /// <param name="str">The Windows-1252 string to write.</param>
-         ///  <exception cref="IOException">Thrown if there is an issue writing to the stream.</exception>
+        ///  <exception cref="IOException">Thrown if there is an issue writing to the stream.</exception>
         public void WriteWin1252(string str)
         {
             var enc = Encoding.GetEncoding(1252);
@@ -278,7 +310,7 @@ namespace MiloLib.Utils
         ///     Writes a UTF-8 string to the stream, followed by a null terminator.
         /// </summary>
         /// <param name="str">The UTF-8 string to write.</param>
-         ///  <exception cref="IOException">Thrown if there is an issue writing to the stream.</exception>
+        ///  <exception cref="IOException">Thrown if there is an issue writing to the stream.</exception>
         public void WriteUTF8(string str)
         {
             byte[] bytes = Encoding.UTF8.GetBytes(str);
@@ -290,7 +322,7 @@ namespace MiloLib.Utils
         ///     Writes a UTF-16 string to the stream, followed by a null terminator.
         /// </summary>
         /// <param name="str">The UTF-16 string to write.</param>
-         ///  <exception cref="IOException">Thrown if there is an issue writing to the stream.</exception>
+        ///  <exception cref="IOException">Thrown if there is an issue writing to the stream.</exception>
         public void WriteUTF16(string str)
         {
             foreach (char ch in str)
@@ -305,12 +337,13 @@ namespace MiloLib.Utils
         ///  <exception cref="IOException">Thrown if there is an issue writing to the stream.</exception>
         public void WriteBlock(byte[] data)
         {
-            try{
-                 _stream.Write(data, 0, data.Length);
-            }
-             catch(Exception e)
+            try
             {
-                 throw new IOException($"An IO exception occured during write", e);
+                _stream.Write(data, 0, data.Length);
+            }
+            catch (Exception e)
+            {
+                throw new IOException($"An IO exception occured during write", e);
             }
         }
 
@@ -320,15 +353,16 @@ namespace MiloLib.Utils
         /// <param name="data">The bytes to write.</param>
         /// <param name="offset">The starting index in the array to write.</param>
         /// <param name="size">The number of bytes to write.</param>
-         ///  <exception cref="IOException">Thrown if there is an issue writing to the stream.</exception>
+        ///  <exception cref="IOException">Thrown if there is an issue writing to the stream.</exception>
         public void WriteBlock(byte[] data, int offset, int size)
         {
-            try{
-                 _stream.Write(data, offset, size);
-            }
-              catch(Exception e)
+            try
             {
-                 throw new IOException($"An IO exception occured during write", e);
+                _stream.Write(data, offset, size);
+            }
+            catch (Exception e)
+            {
+                throw new IOException($"An IO exception occured during write", e);
             }
         }
 

@@ -141,6 +141,8 @@ namespace MiloLib.Assets.World
                 for (int i = 0; i < bitmapOverrideSize; i++)
                 {
                     BitmapOverride bitmapOverride = new BitmapOverride();
+                    bitmapOverride.original = Symbol.Read(reader);
+                    bitmapOverride.replacement = Symbol.Read(reader);
 
                     bitmapOverrides.Add(bitmapOverride);
                 }

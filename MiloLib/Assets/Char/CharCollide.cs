@@ -81,7 +81,7 @@ namespace MiloLib.Assets.Char
 
             shape = (Shape)reader.ReadUInt32();
 
-            origRadius[1] = reader.ReadFloat();
+            origRadius[0] = reader.ReadFloat();
 
             if (revision > 4)
                 origLength[0] = reader.ReadFloat();
@@ -125,7 +125,7 @@ namespace MiloLib.Assets.Char
 
             writer.WriteUInt32((uint)shape);
 
-            writer.WriteFloat(origRadius[1]);
+            writer.WriteFloat(origRadius[0]);
 
             if (revision > 4)
                 writer.WriteFloat(origLength[0]);

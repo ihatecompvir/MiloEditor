@@ -5,7 +5,7 @@ namespace MiloLib.Classes
     /// <summary>
     /// Represents a 3D vector.
     /// </summary>
-    public class Vector3
+    public struct Vector3
     {
         public float x;
         public float y;

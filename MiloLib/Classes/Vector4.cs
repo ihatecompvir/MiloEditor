@@ -5,7 +5,7 @@ namespace MiloLib.Classes
     /// <summary>
     /// Represents a 4D vector.
     /// </summary>
-    public class Vector4
+    public struct Vector4
     {
         public float x;
         public float y;

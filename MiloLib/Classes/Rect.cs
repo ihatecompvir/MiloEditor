@@ -10,7 +10,7 @@ namespace MiloLib.Classes
     /// <summary>
     /// Represents a rectangle.
     /// </summary>
-    public class Rect
+    public struct Rect
     {
         public float x;
         public float y;
