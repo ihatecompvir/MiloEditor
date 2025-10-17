@@ -1,4 +1,5 @@
-﻿using MiloLib.Utils;
+﻿using MiloLib.Classes;
+using MiloLib.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -55,13 +56,14 @@ namespace MiloLib.Assets.Rnd
         public float neg1 { get; set; } = 0.0f;
         public float pos1 { get; set; } = 0.0f;
 
-        public int uvCheck { get; set; }
+        public HmxColor4 vertexColors = new HmxColor4();
 
         public override string ToString()
         {
             return $"<{x}, {y}, {z}>";
         }
 
+        // Xbox 360: 10-10-10-2 format
         public class SignedCompressedVec4
         {
             public uint origValue { get; private set; }
@@ -121,6 +123,64 @@ namespace MiloLib.Assets.Rnd
             }
         }
 
+        // PS3: 11-11-10 format (signed, for normals)
+        public class PS3SignedCompressedVec3
+        {
+            public uint origValue { get; private set; }
+            public float x { get; set; } = 0.0f;
+            public float y { get; set; } = 0.0f;
+            public float z { get; set; } = 0.0f;
+            public float w { get; set; } = 0.0f;
+
+            private static int ToSNormBits(float f, int n)
+            {
+                f = Math.Clamp(f, -1f, 1f);
+                int max = (1 << (n - 1)) - 1;
+                int s = (int)MathF.Truncate(f * max);
+                if (s < 0) s += (1 << n);
+                return s & ((1 << n) - 1);
+            }
+
+            private static float FromSNormBits(int bits, int n)
+            {
+                int max = (1 << (n - 1)) - 1;
+                int s = bits;
+                if (s > max) s -= (1 << n);
+                return Math.Max(s / (float)max, -1f);
+            }
+
+            public PS3SignedCompressedVec3 Read(EndianReader reader)
+            {
+                uint value = reader.ReadUInt32();
+                origValue = value;
+
+                int xb = (int)(value & 0x7FF);        // 11 bits
+                int yb = (int)((value >> 11) & 0x7FF); // 11 bits
+                int zb = (int)((value >> 22) & 0x3FF); // 10 bits
+
+                x = FromSNormBits(xb, 11);
+                y = FromSNormBits(yb, 11);
+                z = FromSNormBits(zb, 10);
+                w = 0.0f; // No W component
+
+                return this;
+            }
+
+            public void Write(EndianWriter writer)
+            {
+                int xBits = ToSNormBits(x, 11);
+                int yBits = ToSNormBits(y, 11);
+                int zBits = ToSNormBits(z, 10);
+
+                uint value = (uint)xBits
+                           | (uint)(yBits << 11)
+                           | (uint)(zBits << 22);
+
+                writer.WriteUInt32(value);
+            }
+        }
+
+        // Xbox 360: 10-10-10-2 format (unsigned, for weights)
         public class UnsignedCompressedVec4
         {
             public float x { get; set; } = 0.0f;
@@ -156,6 +216,44 @@ namespace MiloLib.Assets.Rnd
                            | (uint)(yBits << 10)
                            | (uint)(zBits << 20)
                            | (uint)(wBits << 30);
+
+                writer.WriteUInt32(value);
+            }
+        }
+
+        // PS3: 11-11-10 format (unsigned, for weights)
+        public class PS3UnsignedCompressedVec3
+        {
+            public float x { get; set; } = 0.0f;
+            public float y { get; set; } = 0.0f;
+            public float z { get; set; } = 0.0f;
+            public float w { get; set; } = 0.0f;
+
+            public PS3UnsignedCompressedVec3 Read(EndianReader reader)
+            {
+                uint value = reader.ReadUInt32();
+
+                uint xb = (value & 0x7FF);        // 11 bits
+                uint yb = ((value >> 11) & 0x7FF); // 11 bits
+                uint zb = ((value >> 22) & 0x3FF); // 10 bits
+
+                x = xb / 1023f;
+                y = yb / 1023f;
+                z = zb / 511f;
+                w = 0.0f; // No W component
+
+                return this;
+            }
+
+            public void Write(EndianWriter writer)
+            {
+                int xBits = (int)MathF.Truncate(Math.Clamp(x, 0f, 1f) * 1023f) & 0x7FF;
+                int yBits = (int)MathF.Truncate(Math.Clamp(y, 0f, 1f) * 1023f) & 0x7FF;
+                int zBits = (int)MathF.Truncate(Math.Clamp(z, 0f, 1f) * 511f) & 0x3FF;
+
+                uint value = (uint)xBits
+                           | (uint)(yBits << 11)
+                           | (uint)(zBits << 22);
 
                 writer.WriteUInt32(value);
             }

@@ -236,9 +236,13 @@ namespace MiloLib.Assets.Rnd
                     }
                     else
                     {
-                        newVert.uvCheck = reader.ReadInt32();
-                        if (newVert.uvCheck == -1)
+                        if (compressionType == 1)
                         {
+                            uint value = reader.ReadUInt32();
+                            newVert.vertexColors.r = (byte)((value >> 24) & 0xFF);
+                            newVert.vertexColors.g = (byte)((value >> 16) & 0xFF);
+                            newVert.vertexColors.b = (byte)((value >> 8) & 0xFF);
+                            newVert.vertexColors.a = (byte)(value & 0xFF);
                             newVert.u = reader.ReadHalfFloat();
                             newVert.v = reader.ReadHalfFloat();
 
@@ -270,56 +274,44 @@ namespace MiloLib.Assets.Rnd
                             newVert.bone2 = reader.ReadByte();
                             newVert.bone3 = reader.ReadByte();
                         }
-                        else
+                        else if (compressionType == 2)
                         {
-                            if (compressionType == 1)
-                            {
-                                reader.BaseStream.Position -= 4;
-                                newVert.u = reader.ReadHalfFloat();
-                                newVert.v = reader.ReadHalfFloat();
+                            newVert.u = reader.ReadHalfFloat();
+                            newVert.v = reader.ReadHalfFloat();
 
-                                Vertex.QTangent tangents = new Vertex.QTangent();
-                                tangents.Read(reader);
-                                newVert.tangent0 = tangents.x.fValue;
-                                newVert.tangent1 = tangents.y.fValue;
-                                newVert.tangent2 = tangents.z.fValue;
-                                newVert.tangent3 = tangents.w.fValue;
+                            Vertex.PS3SignedCompressedVec3 norms = new Vertex.PS3SignedCompressedVec3();
+                            norms.Read(reader);
+                            newVert.nx = norms.x;
+                            newVert.ny = norms.y;
+                            newVert.nz = norms.z;
+                            newVert.nw = norms.w;
 
-                                newVert.weight0 = reader.ReadByte();
-                                newVert.weight1 = reader.ReadByte();
-                                newVert.weight2 = reader.ReadByte();
-                                newVert.weight3 = reader.ReadByte();
+                            Vertex.PS3SignedCompressedVec3 tangents = new Vertex.PS3SignedCompressedVec3();
+                            tangents.Read(reader);
 
-                                newVert.bone0 = reader.ReadUInt16();
-                                newVert.bone1 = reader.ReadUInt16();
-                                newVert.bone2 = reader.ReadUInt16();
-                                newVert.bone3 = reader.ReadUInt16();
-                            }
-                            else if (compressionType == 2)
-                            {
-                                reader.BaseStream.Position -= 4;
-                                newVert.u = reader.ReadHalfFloat();
-                                newVert.v = reader.ReadHalfFloat();
+                            newVert.tangent0 = tangents.x;
+                            newVert.tangent1 = tangents.y;
+                            newVert.tangent2 = tangents.z;
+                            newVert.tangent3 = tangents.w;
 
-                                newVert.unknown2 = reader.ReadFloat();
+                            Vertex.PS3UnsignedCompressedVec3 weights = new Vertex.PS3UnsignedCompressedVec3();
+                            weights.Read(reader);
 
-                                Vertex.QTangent tangents = new Vertex.QTangent();
-                                tangents.Read(reader);
-                                newVert.tangent0 = tangents.x.fValue;
-                                newVert.tangent1 = tangents.y.fValue;
-                                newVert.tangent2 = tangents.z.fValue;
-                                newVert.tangent3 = tangents.w.fValue;
+                            uint value = reader.ReadUInt32();
+                            newVert.vertexColors.a = (byte)((value >> 24) & 0xFF);
+                            newVert.vertexColors.r = (byte)((value >> 16) & 0xFF);
+                            newVert.vertexColors.g = (byte)((value >> 8) & 0xFF);
+                            newVert.vertexColors.b = (byte)(value & 0xFF);
 
-                                newVert.weight0 = reader.ReadByte();
-                                newVert.weight1 = reader.ReadByte();
-                                newVert.weight2 = reader.ReadByte();
-                                newVert.weight3 = reader.ReadByte();
+                            newVert.weight0 = weights.x;
+                            newVert.weight1 = weights.y;
+                            newVert.weight2 = weights.z;
+                            newVert.weight3 = weights.w;
 
-                                newVert.bone0 = reader.ReadUInt16();
-                                newVert.bone1 = reader.ReadUInt16();
-                                newVert.bone2 = reader.ReadUInt16();
-                                newVert.bone3 = reader.ReadUInt16();
-                            }
+                            newVert.bone0 = reader.ReadUInt16();
+                            newVert.bone1 = reader.ReadUInt16();
+                            newVert.bone2 = reader.ReadUInt16();
+                            newVert.bone3 = reader.ReadUInt16();
                         }
                     }
 
@@ -449,11 +441,11 @@ namespace MiloLib.Assets.Rnd
                     }
                     else
                     {
-                        // We assume we have stored an int 'UvIndicator' in vertex indicating the read 'uv' value:
-                        writer.WriteInt32(vertex.uvCheck);
-
-                        if (vertex.uvCheck == -1)
+                        if (compressionType == 1)
                         {
+                            // vertex colors in RGBA?
+                            uint value = ((uint)vertex.vertexColors.r << 24) | ((uint)vertex.vertexColors.g << 16) | ((uint)vertex.vertexColors.b << 8) | (uint)vertex.vertexColors.a;
+                            writer.WriteUInt32(value);
                             writer.WriteHalfFloat(vertex.u);
                             writer.WriteHalfFloat(vertex.v);
 
@@ -489,58 +481,52 @@ namespace MiloLib.Assets.Rnd
                             writer.WriteByte((byte)vertex.bone2);
                             writer.WriteByte((byte)vertex.bone3);
                         }
-                        else
+                        else if (compressionType == 2)
                         {
-                            if (compressionType == 1)
+                            writer.WriteHalfFloat(vertex.u);
+                            writer.WriteHalfFloat(vertex.v);
+
+                            Vertex.PS3SignedCompressedVec3 norms = new Vertex.PS3SignedCompressedVec3
                             {
-                                writer.BaseStream.Position -= 4;
-                                writer.WriteHalfFloat(vertex.u);
-                                writer.WriteHalfFloat(vertex.v);
+                                x = vertex.nx,
+                                y = vertex.ny,
+                                z = vertex.nz,
+                                w = vertex.nw
+                            };
+                            norms.Write(writer);
 
-                                Vertex.QTangent tangents = new Vertex.QTangent
-                                {
-                                    x = new Vertex.QTangent.SNorm((short)vertex.tangent0),
-                                    y = new Vertex.QTangent.SNorm((short)vertex.tangent1),
-                                    z = new Vertex.QTangent.SNorm((short)vertex.tangent2),
-                                    w = new Vertex.QTangent.SNorm((short)vertex.tangent3)
-                                };
-
-                                writer.WriteByte((byte)vertex.weight0);
-                                writer.WriteByte((byte)vertex.weight1);
-                                writer.WriteByte((byte)vertex.weight2);
-                                writer.WriteByte((byte)vertex.weight3);
-
-                                writer.WriteUInt16(vertex.bone0);
-                                writer.WriteUInt16(vertex.bone1);
-                                writer.WriteUInt16(vertex.bone2);
-                                writer.WriteUInt16(vertex.bone3);
-                            }
-                            else if (compressionType == 2)
+                            Vertex.PS3SignedCompressedVec3 tangents = new Vertex.PS3SignedCompressedVec3
                             {
-                                writer.BaseStream.Position -= 4;
-                                writer.WriteHalfFloat(vertex.u);
-                                writer.WriteHalfFloat(vertex.v);
+                                x = vertex.tangent0,
+                                y = vertex.tangent1,
+                                z = vertex.tangent2,
+                                w = vertex.tangent3
+                            };
+                            tangents.Write(writer);
 
-                                writer.WriteFloat(vertex.unknown2);
+                            Vertex.PS3UnsignedCompressedVec3 weights = new Vertex.PS3UnsignedCompressedVec3
+                            {
+                                x = vertex.weight0,
+                                y = vertex.weight1,
+                                z = vertex.weight2,
+                                w = vertex.weight3
+                            };
+                            weights.Write(writer);
 
-                                Vertex.QTangent tangents = new Vertex.QTangent
-                                {
-                                    x = new Vertex.QTangent.SNorm((short)vertex.tangent0),
-                                    y = new Vertex.QTangent.SNorm((short)vertex.tangent1),
-                                    z = new Vertex.QTangent.SNorm((short)vertex.tangent2),
-                                    w = new Vertex.QTangent.SNorm((short)vertex.tangent3)
-                                };
+                            Vertex.PS3UnsignedCompressedVec3 unknown = new Vertex.PS3UnsignedCompressedVec3
+                            {
+                                x = vertex.weight0,
+                                y = vertex.weight1,
+                                z = vertex.weight2,
+                                w = vertex.weight3
+                            };
+                            uint value = ((uint)vertex.vertexColors.a << 24) | ((uint)vertex.vertexColors.r << 16) | ((uint)vertex.vertexColors.g << 8) | (uint)vertex.vertexColors.b;
+                            writer.WriteUInt32(value);
 
-                                writer.WriteByte((byte)vertex.weight0);
-                                writer.WriteByte((byte)vertex.weight1);
-                                writer.WriteByte((byte)vertex.weight2);
-                                writer.WriteByte((byte)vertex.weight3);
-
-                                writer.WriteUInt16(vertex.bone0);
-                                writer.WriteUInt16(vertex.bone1);
-                                writer.WriteUInt16(vertex.bone2);
-                                writer.WriteUInt16(vertex.bone3);
-                            }
+                            writer.WriteUInt16((byte)vertex.bone0);
+                            writer.WriteUInt16((byte)vertex.bone1);
+                            writer.WriteUInt16((byte)vertex.bone2);
+                            writer.WriteUInt16((byte)vertex.bone3);
                         }
                     }
                 }
