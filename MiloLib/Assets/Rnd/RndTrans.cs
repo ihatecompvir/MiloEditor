@@ -99,7 +99,12 @@ namespace MiloLib.Assets.Rnd
             if (revision > 6)
                 preserveScale = reader.ReadBoolean();
 
-            parentObj = Symbol.Read(reader);
+            if (revision > 5) parentObj = Symbol.Read(reader);
+
+			if (revision <= 5) {
+				reader.ReadUInt32(); // "billboard"
+				new Vector3().Read(reader); // "origin"
+			}
 
 
             if (standalone)

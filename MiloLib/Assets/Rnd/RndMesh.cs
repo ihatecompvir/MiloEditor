@@ -683,11 +683,24 @@ namespace MiloLib.Assets.Rnd
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
             else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
 
-            base.Read(reader, false, parent, entry);
+            if (revision > 25) base.Read(reader, false, parent, entry);
 
 
             trans = trans.Read(reader, false, parent, entry);
             draw = draw.Read(reader, false, parent, entry);
+
+			if (revision < 15)
+			{
+				uint collideable_rev = reader.ReadUInt32();
+				uint collideable_refs_siz = reader.ReadUInt32();
+				for (uint i = 0; i < collideable_refs_siz; i++)
+				{
+					Symbol.Read(reader);
+				}
+
+				uint z_mode = reader.ReadUInt32();
+				uint z_comparison_func = reader.ReadUInt32();
+			}
 
             mat = Symbol.Read(reader);
 
@@ -723,8 +736,6 @@ namespace MiloLib.Assets.Rnd
                 unkFloat = reader.ReadFloat();
             }
 
-
-
             if (revision < 16)
             {
                 if (revision > 11)
@@ -755,6 +766,15 @@ namespace MiloLib.Assets.Rnd
             {
                 faces.Add(new Face().Read(reader));
             }
+
+			if (revision < 15) {
+				uint edgeCount = reader.ReadUInt32();
+				for (int i = 0; i < edgeCount; i++)
+				{
+					reader.ReadUInt16();
+					reader.ReadUInt16();
+				}
+			}
 
             if (revision > 0x17)
             {
