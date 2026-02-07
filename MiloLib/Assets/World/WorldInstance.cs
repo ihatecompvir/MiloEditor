@@ -1,95 +1,112 @@
 ﻿using MiloLib.Assets.Rnd;
 using MiloLib.Classes;
 using MiloLib.Utils;
-using static MiloLib.Assets.Band.BandFaceDeform;
-using System.Linq;
 
 namespace MiloLib.Assets.World
 {
-    [Name("WorldInstance"), Description("")]
+    // i fucking hate this
+    [Name("WorldInstance"), Description("Shared instance of a RndDir")]
     public class WorldInstance : RndDir
     {
-
-        // WHY
         [Name("Persistent Objects")]
         public class PersistentObjects
         {
-            public byte[] empty = new byte[9];
+            public Symbol unknownString = new(0, "");
+            public Symbol unknownCamReference = new(0, "");
+            public ObjectFields objFields = new ObjectFields();
 
             public RndAnimatable anim = new RndAnimatable();
             public RndDrawable draw = new RndDrawable();
             public RndTrans trans = new RndTrans();
 
             public Symbol environ = new(0, "");
-            public Symbol unkSym = new(0, "");
-            public uint unkInt3;
+            public Symbol testEvent = new(0, "");
 
-            private uint stringTableCount; // maybe? seems right
-            private uint stringTableSize; // maybe? seems right
+            private uint stringTableCount;
+            private uint stringTableSize;
 
-            private uint objectCount;
-            public List<DirectoryMeta.Entry> perObjs = new(); // the list of perObjs
+            public List<DirectoryMeta.Entry> perObjs = new();
 
+            public bool hasPostLoadFields = false;
+
+            private static bool IsEndBytes(EndianReader reader)
+            {
+                uint expected = reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD;
+                long pos = reader.BaseStream.Position;
+                uint val = reader.ReadUInt32();
+                reader.BaseStream.Position = pos;
+                return val == expected;
+            }
 
             public PersistentObjects Read(EndianReader reader, DirectoryMeta parent, DirectoryMeta.Entry entry, uint revision)
             {
                 if (entry.isProxy)
                 {
-                    empty = reader.ReadBlock(13);
-
-                    anim = anim.Read(reader, parent, entry);
-                    draw = draw.Read(reader, false, parent, entry);
-                    trans = trans.Read(reader, false, parent, entry);
-
-                    environ = Symbol.Read(reader);
-                    unkSym = Symbol.Read(reader);
-
-
-                    if (revision > 1)
+                    if (!IsEndBytes(reader))
                     {
-                        if (revision > 2)
-                        {
-                            stringTableCount = reader.ReadUInt32();
-                            stringTableSize = reader.ReadUInt32();
-                        }
+                        hasPostLoadFields = true;
+ 
+                        unknownString = Symbol.Read(reader);
+                        unknownCamReference = Symbol.Read(reader);
+                        objFields.root.Read(reader);
+                        objFields.note = Symbol.Read(reader);
 
-                        objectCount = reader.ReadUInt32();
-                        for (int i = 0; i < objectCount; i++)
-                        {
-                            perObjs.Add(new DirectoryMeta.Entry(Symbol.Read(reader).value, Symbol.Read(reader).value, null));
-                        }
+                        anim = anim.Read(reader, parent, entry);
+                        draw = draw.Read(reader, false, parent, entry);
+                        trans = trans.Read(reader, false, parent, entry);
 
-                        for (int i = 0; i < objectCount; i++)
+                        environ = Symbol.Read(reader);
+                        testEvent = Symbol.Read(reader);
+
+                        if (revision > 1)
                         {
-                            switch (perObjs[i].type.value)
+                            if (revision > 2)
                             {
-                                case "Mesh":
-                                    perObjs[i].obj = new RndMesh().Read(reader, false, parent, perObjs[i]);
-                                    break;
-                                default:
-                                    throw new Exception("Unknown object type " + perObjs[i].type.value + " in WorldInstance PersistentObjects");
+                                stringTableCount = reader.ReadUInt32();
+                                stringTableSize = reader.ReadUInt32();
+                            }
+
+                            uint objectCount = reader.ReadUInt32();
+                            for (int i = 0; i < objectCount; i++)
+                            {
+                                perObjs.Add(new DirectoryMeta.Entry(Symbol.Read(reader).value, Symbol.Read(reader).value, null));
+                            }
+
+                            for (int i = 0; i < objectCount; i++)
+                            {
+                                switch (perObjs[i].type.value)
+                                {
+                                    case "Mesh":
+                                        perObjs[i].obj = new RndMesh().Read(reader, false, parent, perObjs[i]);
+                                        break;
+                                    default:
+                                        throw new Exception("Unknown persistent object type " + perObjs[i].type.value + " in WorldInstance");
+                                }
                             }
                         }
                     }
-
                 }
-                if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of persistent perObjs but didn't find the expected end bytes, read likely did not succeed");
+                if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of persistent objects but didn't find the expected end bytes, read likely did not succeed");
 
                 return this;
             }
 
             public void Write(EndianWriter writer, DirectoryMeta parent, DirectoryMeta.Entry? entry, uint revision)
             {
-                if (entry.isProxy)
+                if (hasPostLoadFields)
                 {
-                    writer.WriteBlock(new byte[13]);
+                    Symbol.Write(writer, unknownString);
+                    Symbol.Write(writer, unknownCamReference);
+                    objFields.root.Write(writer);
+                    Symbol.Write(writer, objFields.note);
 
                     anim.Write(writer);
                     draw.Write(writer, false, parent, true);
                     trans.Write(writer, false, parent, true);
 
                     Symbol.Write(writer, environ);
-                    Symbol.Write(writer, unkSym);
+                    Symbol.Write(writer, testEvent);
+
                     if (revision > 1)
                     {
                         if (revision > 2)
@@ -100,19 +117,21 @@ namespace MiloLib.Assets.World
 
                         writer.WriteUInt32((uint)perObjs.Count);
 
-                        for (int i = 0; i < objectCount; i++)
+                        for (int i = 0; i < perObjs.Count; i++)
                         {
                             Symbol.Write(writer, perObjs[i].type);
                             Symbol.Write(writer, perObjs[i].name);
                         }
 
-                        for (int i = 0; i < objectCount; i++)
+                        for (int i = 0; i < perObjs.Count; i++)
                         {
                             switch (perObjs[i].type.value)
                             {
                                 case "Mesh":
                                     ((RndMesh)perObjs[i].obj).Write(writer, false, parent, perObjs[i]);
                                     break;
+                                default:
+                                    throw new Exception("Unknown persistent object type " + perObjs[i].type.value + " in WorldInstance");
                             }
                         }
                     }
@@ -121,9 +140,11 @@ namespace MiloLib.Assets.World
                 writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
             }
         }
+
         public ushort altRevision;
         public ushort revision;
 
+        [Name("Instance File"), Description("Which file we instance, only set in instances")]
         public Symbol filePath = new(0, "");
 
         public Symbol dir = new(0, "");

@@ -11,50 +11,62 @@ namespace MiloLib.Assets
             [Name("Name"), Description("Name of the merger, just for identification")]
             public Symbol name = new(0, "");
 
-            public uint unkInt1;
-            public uint unkInt2;
+            [Name("Selected"), Description("The file you want to merge")]
+            public Symbol selected = new(0, "");
 
-            [Name("Name 2"), Description("The file you want to merge")]
-            public Symbol name2 = new(0, "");
+            [Name("Loaded"), Description("currently loaded file")]
+            public Symbol loaded = new(0, "");
 
-            public uint unkInt3;
+            [Name("Dir"), Description("Dir to merge into, proxy, for instance")]
+            public Symbol dir = new(0, "");
 
-            // one of these is this bool, need to adjust once this is decomped
             [Name("Proxy"), Description("If true, merges the Dir in as a proxy, rather than the individual objects")]
             public bool proxy;
-            public bool unkBool2;
 
-            public Merger Read(EndianReader reader)
+            [Name("Subdirs"), Description("How to treat subdirs in the source")]
+            public uint subdirs;
+
+            [Name("Pre Clear"), Description("Delete the old objects right at StartLoad time")]
+            public bool preClear;
+
+            public Merger Read(EndianReader reader, ushort fmRevision)
             {
                 name = Symbol.Read(reader);
-                unkInt1 = reader.ReadUInt32();
-                unkInt2 = reader.ReadUInt32();
+                selected = Symbol.Read(reader);
+                loaded = Symbol.Read(reader);
+                dir = Symbol.Read(reader);
 
-                name2 = Symbol.Read(reader);
-
-                unkInt3 = reader.ReadUInt32();
-                proxy = reader.ReadBoolean();
-                unkBool2 = reader.ReadBoolean();
+                if (fmRevision != 0)
+                {
+                    if (fmRevision != 4)
+                        proxy = reader.ReadBoolean();
+                    subdirs = reader.ReadUInt32();
+                    if (fmRevision > 2)
+                        preClear = reader.ReadBoolean();
+                }
                 return this;
             }
 
-            public void Write(EndianWriter writer)
+            public void Write(EndianWriter writer, ushort fmRevision)
             {
                 Symbol.Write(writer, name);
+                Symbol.Write(writer, selected);
+                Symbol.Write(writer, loaded);
+                Symbol.Write(writer, dir);
 
-                writer.WriteUInt32(unkInt1);
-                writer.WriteUInt32(unkInt2);
-
-                Symbol.Write(writer, name2);
-
-                writer.WriteUInt32(unkInt3);
-                writer.WriteBoolean(proxy);
-                writer.WriteBoolean(unkBool2);
+                if (fmRevision != 0)
+                {
+                    if (fmRevision != 4)
+                        writer.WriteBoolean(proxy);
+                    writer.WriteUInt32(subdirs);
+                    if (fmRevision > 2)
+                        writer.WriteBoolean(preClear);
+                }
             }
 
             public override string ToString()
             {
-                return $"{name} {unkInt1} {unkInt2} {name2} {unkInt3} {proxy} {unkBool2}";
+                return $"{name} {selected} {loaded} {dir} {proxy} {subdirs} {preClear}";
             }
         }
         private ushort altRevision;
@@ -81,7 +93,7 @@ namespace MiloLib.Assets
             filesCount = reader.ReadUInt32();
             for (int i = 0; i < filesCount; i++)
             {
-                files.Add(new Merger().Read(reader));
+                files.Add(new Merger().Read(reader, revision));
             }
 
             if (standalone)
@@ -103,7 +115,7 @@ namespace MiloLib.Assets
 
             writer.WriteUInt32((uint)files.Count);
             foreach (var file in files)
-                file.Write(writer);
+                file.Write(writer, revision);
 
             if (standalone)
                 writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });

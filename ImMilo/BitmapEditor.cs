@@ -67,25 +67,32 @@ public static class BitmapEditor
 
                     image.Decompress();
 
-                    if (image.Format != Pfim.ImageFormat.Rgba32)
+                    byte[] pixelData;
+                    if (image.Format == Pfim.ImageFormat.Rgba32)
                     {
-                        Console.WriteLine($"Warning: Decompressed to {image.Format}, expected Rgba32. Veldrid update might fail or look incorrect.");
+                        pixelData = image.Data;
                     }
-
-                    Console.WriteLine(image.Width + " x " + image.Height);
-
-                    if (image.Width <= 0 || image.Height <= 0)
+                    else if (image.Format == Pfim.ImageFormat.Rgb24)
                     {
-                        Console.WriteLine($"Invalid image dimensions after decoding: {image.Width}x{image.Height}");
+                        // Convert BGR24 to BGRA32 (add alpha=255)
+                        pixelData = new byte[image.Width * image.Height * 4];
+                        int srcStride = image.Stride;
+                        for (int y = 0; y < image.Height; y++)
+                        {
+                            int srcRow = y * srcStride;
+                            int dstRow = y * image.Width * 4;
+                            for (int x = 0; x < image.Width; x++)
+                            {
+                                pixelData[dstRow + x * 4 + 0] = image.Data[srcRow + x * 3 + 0];
+                                pixelData[dstRow + x * 4 + 1] = image.Data[srcRow + x * 3 + 1];
+                                pixelData[dstRow + x * 4 + 2] = image.Data[srcRow + x * 3 + 2];
+                                pixelData[dstRow + x * 4 + 3] = 255;
+                            }
+                        }
                     }
-                    uint bytesPerPixel = (uint)image.BitsPerPixel / 8;
-                    if (bytesPerPixel == 0)
-                        Console.WriteLine($"Invalid BitsPerPixel ({image.BitsPerPixel}) from decoded image.");
-
-                    uint expectedDataSize = (uint)(image.Width * image.Height * bytesPerPixel);
-                    if (image.DataLen != expectedDataSize)
+                    else
                     {
-                        throw new Exception($"Decompressed image data length ({image.DataLen}) does not match expected size ({expectedDataSize}) for {image.Width}x{image.Height} @ {image.BitsPerPixel}bpp. Format was {image.Format}.");
+                        throw new Exception($"Unsupported decompressed format: {image.Format}");
                     }
 
                     previewTexture = Program.gd.ResourceFactory.CreateTexture(TextureDescription.Texture2D(
@@ -95,7 +102,7 @@ public static class BitmapEditor
 
                     Program.gd.UpdateTexture(
                         previewTexture,
-                        image.Data,
+                        pixelData,
                         0, 0, 0,
                         (uint)image.Width, (uint)image.Height, 1,
                         0, 0);

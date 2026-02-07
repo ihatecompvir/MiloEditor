@@ -266,15 +266,15 @@ namespace MiloLib.Assets
                         {
                             DirectoryMeta inlinedSubDir = new DirectoryMeta();
                             inlinedSubDir.platform = parent.platform;
-                            // check if the reference types are actually there to avoid an out of bounds exception
-                            if (referenceTypes.Count > 0 && referenceTypesAlt.Count > 0)
+                            if (referenceTypes.Count > i && referenceTypesAlt.Count > i)
                             {
-                                if (referenceTypes[0] == ReferenceType.kInlineCached && referenceTypesAlt[0] == ReferenceType.kInlineCached)
+                                if (referenceTypes[i] == ReferenceType.kInlineCached && referenceTypesAlt[i] == ReferenceType.kInlineCached)
                                 {
                                     reader.ReadBoolean();
                                 }
                             }
-                            if (referenceTypes[0] == ReferenceType.kInlineCachedShared && referenceTypesAlt[0] == ReferenceType.kInlineCached)
+                            if (referenceTypes.Count > i && referenceTypesAlt.Count > i &&
+                                referenceTypes[i] == ReferenceType.kInlineCachedShared && referenceTypesAlt[i] == ReferenceType.kInlineCached)
                             {
                             }
                             else
@@ -304,7 +304,9 @@ namespace MiloLib.Assets
             }
 
 
+            // hack...sigh
             if (entry.type.value == "WorldInstance" &&
+            this is WorldInstance worldInstanceRead && worldInstanceRead.revision != 0 &&
             !(this.referenceTypes.Count > 0 &&
                 this.referenceTypesAlt.Count > 0 &&
                 this.referenceTypes[0] == ReferenceType.kInlineCached &&
@@ -411,7 +413,7 @@ namespace MiloLib.Assets
                 if (revision >= 21)
                 {
                     writer.WriteByte((byte)inlineSubDir);
-                    writer.WriteUInt32((uint)inlineSubDirs.Count);
+                    writer.WriteUInt32((uint)inlineSubDirNames.Count);
                     foreach (var inlineSubDirName in inlineSubDirNames)
                     {
                         Symbol.Write(writer, inlineSubDirName);
@@ -431,17 +433,25 @@ namespace MiloLib.Assets
                     }
 
 
-                    foreach (var inlineSubDir in inlineSubDirs)
+                    int inlineIdx = 0;
+                    for (int i = 0; i < inlineSubDirNames.Count; i++)
                     {
-                        // bounds check
-                        if (referenceTypes.Count > 0 && referenceTypesAlt.Count > 0)
+                        if (referenceTypes.Count > i && referenceTypesAlt.Count > i)
                         {
-                            if (referenceTypes[0] == ReferenceType.kInlineCached && referenceTypesAlt[0] == ReferenceType.kInlineCached)
+                            if (referenceTypes[i] == ReferenceType.kInlineCached && referenceTypesAlt[i] == ReferenceType.kInlineCached)
                             {
                                 writer.WriteBoolean(false);
                             }
                         }
-                        inlineSubDir.Write(writer);
+                        if (referenceTypes.Count > i && referenceTypesAlt.Count > i &&
+                            referenceTypes[i] == ReferenceType.kInlineCachedShared && referenceTypesAlt[i] == ReferenceType.kInlineCached)
+                        {
+                        }
+                        else
+                        {
+                            if (inlineIdx < inlineSubDirs.Count)
+                                inlineSubDirs[inlineIdx++].Write(writer);
+                        }
                     }
                 }
             }
@@ -461,7 +471,12 @@ namespace MiloLib.Assets
                 }
             }
 
-            if (entry != null && entry.type.value == "WorldInstance")
+            if (entry != null && entry.type.value == "WorldInstance" &&
+                this is WorldInstance wiWrite && wiWrite.revision != 0 &&
+                !(this.referenceTypes.Count > 0 &&
+                    this.referenceTypesAlt.Count > 0 &&
+                    this.referenceTypes[0] == ReferenceType.kInlineCached &&
+                    this.referenceTypesAlt[0] == ReferenceType.kInlineCached))
             {
                 writer.WriteBoolean(hasPersistentObjects);
                 if (entry.isProxy)

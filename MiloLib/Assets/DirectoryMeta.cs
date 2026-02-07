@@ -167,6 +167,7 @@ namespace MiloLib.Assets
             {
                 { "AnimFilter", (r, m, e) => new RndAnimFilter().Read(r, true, m, e) },
                 { "BandButton", (r, m, e) => new BandButton().Read(r, true, m, e) },
+                { "BandCamShot", (r, m, e) => new BandCamShot().Read(r, true, m, e) },
                 { "BandCharDesc", (r, m, e) => new BandCharDesc().Read(r, true, m, e) },
                 { "BandConfiguration", (r, m, e) => new BandConfiguration().Read(r, true, m, e) },
                 { "BandDirector", (r, m, e) => new BandDirector().Read(r, true, m, e) },
@@ -179,6 +180,7 @@ namespace MiloLib.Assets
                 { "BandSwatch", (r, m, e) => new BandSwatch().Read(r, true, m, e) },
                 { "BustAMoveData", (r, m, e) => new BustAMoveData().Read(r, true, m, e) },
                 { "Cam", (r, m, e) => new RndCam().Read(r, true, m, e) },
+                { "CamShot", (r, m, e) => new CamShot().Read(r, true, m, e) },
                 { "CharClipGroup", (r, m, e) => new CharClipGroup().Read(r, true, m, e) },
                 { "CharCollide", (r, m, e) => new CharCollide().Read(r, true, m, e) },
                 { "CharForeTwist", (r, m, e) => new CharForeTwist().Read(r, true, m, e) },
@@ -330,20 +332,20 @@ namespace MiloLib.Assets
                 }
             };
 
-            // CharClipSet - special case with extra ReadUInt32
+            // CharClipSet - conditional dir read based on inlineProxy
             EntryReadActions["CharClipSet"] = (reader, meta, entry) =>
             {
                 Debug.WriteLine($"Reading entry CharClipSet {entry.name.value}");
                 entry.isProxy = true;
+                entry.obj = new CharClipSet(0).Read(reader, true, meta, entry);
 
-                // this is unhinged, why'd they do it like this?
-                reader.ReadUInt32();
-                entry.obj = new ObjectDir(0).Read(reader, true, meta, entry);
-
-                DirectoryMeta dir = new DirectoryMeta();
-                dir.platform = meta.platform;
-                dir.Read(reader);
-                entry.dir = dir;
+                if (((ObjectDir)entry.obj).inlineProxy && ((ObjectDir)entry.obj).proxyPath.value != "")
+                {
+                    DirectoryMeta dir = new DirectoryMeta();
+                    dir.platform = meta.platform;
+                    dir.Read(reader);
+                    entry.dir = dir;
+                }
             };
 
             // RndDir and EndingBonusDir - conditional dir read based on inlineProxy
@@ -378,21 +380,21 @@ namespace MiloLib.Assets
                 }
             };
 
-            // WorldInstance - very complex logic with persistent objects
+            // WorldInstance - i dont even know
             EntryReadActions["WorldInstance"] = (reader, meta, entry) =>
             {
-                Debug.WriteLine($"Reading entry WorldInstance {entry.name.value}");
                 entry.isProxy = true;
 
                 entry.obj = new WorldInstance(0).Read(reader, false, meta, entry);
 
-                // this doesn't have persistent objects if this hits
                 if (((WorldInstance)entry.obj).revision == 0)
                 {
+                    if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32())
+                        throw new Exception($"WorldInstance '{entry.name.value}' revision 0: end bytes not found at 0x{reader.BaseStream.Position:X}");
                     return;
                 }
 
-                // if the world instance has no persistent perObjs, it will have a dir as expected, otherwise it won't
+                // if the world instance has no persistent objects, it will have a dir as expected, otherwise it won't
                 if (!((WorldInstance)entry.obj).hasPersistentObjects)
                 {
                     DirectoryMeta dir = new DirectoryMeta();
@@ -400,24 +402,17 @@ namespace MiloLib.Assets
                     dir.Read(reader);
                     entry.dir = dir;
 
-                    // these can be followed by a Character or other dirs...wtf
-                    // if it is another dir it seems to always be followed by persistentobjects
-                    if (entry.dir != null && entry.dir.type.value == "WorldInstance")
+                    if (entry.dir != null && entry.dir.type.value == "WorldInstance" && ((WorldInstance)dir.directory).hasPersistentObjects)
                     {
-                        if (((WorldInstance)dir.directory).hasPersistentObjects)
-                        {
-                            ((WorldInstance)dir.directory).persistentObjects = new WorldInstance.PersistentObjects().Read(reader, meta, entry, ((WorldInstance)entry.obj).revision);
-                        }
+                        ((WorldInstance)dir.directory).persistentObjects = new WorldInstance.PersistentObjects().Read(reader, meta, entry, ((WorldInstance)entry.obj).revision);
                     }
                     else
                     {
-                        // hack
                         ((WorldInstance)entry.obj).persistentObjects = new WorldInstance.PersistentObjects().Read(reader, meta, entry, ((WorldInstance)entry.obj).revision);
                     }
                 }
                 else
                 {
-                    Debug.WriteLine($"Reading persistent objects for WorldInstance {entry.name.value}");
                     ((WorldInstance)entry.obj).persistentObjects = new WorldInstance.PersistentObjects().Read(reader, meta, entry, ((WorldInstance)entry.obj).revision);
                 }
             };
@@ -464,6 +459,7 @@ namespace MiloLib.Assets
             {
                 { "AnimFilter", (w, o, m, e) => ((RndAnimFilter)o).Write(w, true, m, e) },
                 { "BandButton", (w, o, m, e) => ((BandButton)o).Write(w, true, m, e) },
+                { "BandCamShot", (w, o, m, e) => ((BandCamShot)o).Write(w, true, m, e) },
                 { "BandCharDesc", (w, o, m, e) => ((BandCharDesc)o).Write(w, true, m, e) },
                 { "BandConfiguration", (w, o, m, e) => ((BandConfiguration)o).Write(w, true, m, e) },
                 { "BandDirector", (w, o, m, e) => ((BandDirector)o).Write(w, true, m, e) },
@@ -475,6 +471,7 @@ namespace MiloLib.Assets
                 { "BandSwatch", (w, o, m, e) => ((BandSwatch)o).Write(w, true, m, e) },
                 { "BustAMoveData", (w, o, m, e) => ((BustAMoveData)o).Write(w, true, m, e) },
                 { "Cam", (w, o, m, e) => ((RndCam)o).Write(w, true, m, e) },
+                { "CamShot", (w, o, m, e) => ((CamShot)o).Write(w, true, m, e) },
                 { "CharClipGroup", (w, o, m, e) => ((CharClipGroup)o).Write(w, true, m, e) },
                 { "CharCollide", (w, o, m, e) => ((CharCollide)o).Write(w, true, m, e) },
                 { "CharForeTwist", (w, o, m, e) => ((CharForeTwist)o).Write(w, true, m, e) },
@@ -572,7 +569,6 @@ namespace MiloLib.Assets
                 EntryWriteActions[typeName] = (writer, meta, entry) =>
                 {
                     objWriter(writer, entry.obj, meta, entry);
-                    entry.isProxy = false;
                     entry.dir.Write(writer);
                 };
             };
@@ -609,25 +605,24 @@ namespace MiloLib.Assets
                 ((Character)entry.obj).Write(writer, true, meta, entry);
                 if (((Character)entry.obj).proxyPath != String.Empty)
                 {
-                    entry.isProxy = false;
                     entry.dir.Write(writer);
                 }
             };
 
-            // CharClipSet - special case with extra WriteUInt32
+            // CharClipSet - write as CharClipSet (includes PostLoad fields for non-proxy)
             EntryWriteActions["CharClipSet"] = (writer, meta, entry) =>
             {
-                writer.WriteUInt32(0x18);
-                ((ObjectDir)entry.obj).Write(writer, true, meta, entry);
-                entry.isProxy = false;
-                entry.dir.Write(writer);
+                ((CharClipSet)entry.obj).Write(writer, true, meta, entry);
+                if (entry.dir != null)
+                {
+                    entry.dir.Write(writer);
+                }
             };
 
             // MoveDir - conditional dir write
             EntryWriteActions["MoveDir"] = (writer, meta, entry) =>
             {
                 ((MoveDir)entry.obj).Write(writer, true, meta, entry);
-                entry.isProxy = false;
                 if (entry.dir != null)
                 {
                     entry.dir.Write(writer);
@@ -640,7 +635,6 @@ namespace MiloLib.Assets
                 ((ObjectDir)entry.obj).Write(writer, true, meta, entry);
                 if (entry.dir != null)
                 {
-                    entry.isProxy = false;
                     entry.dir.Write(writer);
                 }
             };
@@ -651,29 +645,28 @@ namespace MiloLib.Assets
                 ((RndDir)entry.obj).Write(writer, true, meta, entry);
                 if (entry.dir != null)
                 {
-                    entry.isProxy = false;
                     entry.dir.Write(writer);
                 }
             };
 
-            // WorldInstance - complex logic with persistent objects
+            // WorldInstance - fuck
             EntryWriteActions["WorldInstance"] = (writer, meta, entry) =>
             {
-                // Write the main object
                 ((WorldInstance)entry.obj).Write(writer, false, meta, entry);
-                entry.isProxy = false;
+
+                if (((WorldInstance)entry.obj).revision == 0)
+                {
+                    writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
+                    return;
+                }
 
                 if (!((WorldInstance)entry.obj).hasPersistentObjects)
                 {
                     entry.dir.Write(writer);
 
-                    if (entry.dir.type.value == "WorldInstance")
+                    if (entry.dir.type.value == "WorldInstance" && ((WorldInstance)entry.dir.directory).hasPersistentObjects)
                     {
-                        var wi = (WorldInstance)entry.dir.directory;
-                        if (wi.hasPersistentObjects)
-                        {
-                            wi.persistentObjects.Write(writer, meta, entry, wi.revision);
-                        }
+                        ((WorldInstance)entry.dir.directory).persistentObjects.Write(writer, meta, entry, ((WorldInstance)entry.dir.directory).revision);
                     }
                     else
                     {

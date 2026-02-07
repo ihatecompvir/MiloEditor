@@ -1,4 +1,5 @@
-﻿using MiloLib.Utils;
+﻿using MiloLib.Assets.World;
+using MiloLib.Utils;
 using MiloLib.Classes;
 
 namespace MiloLib.Assets.Rnd
@@ -51,7 +52,8 @@ namespace MiloLib.Assets.Rnd
             // TODO: investigate if this is just for RB3/DC1 or others too
             if (entry.isProxy && entry.type.value != "Character" && entry.type.value != "RndDir" && entry.type.value != "BandCrowdMeterDir" && entry.type.value != "CrowdMeterIcon" && entry.type.value != "EndingBonusDir" && entry.type.value != "UnisonIcon" && entry.type.value != "BandScoreboard" && entry.type.value != "BandStarDisplay" && entry.type.value != "PanelDir" && entry.type.value != "MoveDir" && entry.type.value != "SkeletonDir" && entry.type.value != "WorldDir" && entry.type.value != "VocalTrackDir" && entry.type.value != "OvershellDir" && entry.type.value != "BandCharacter" && entry.type.value != "GemTrackDir" && entry.type.value != "OverdriveMeterDir" && entry.type.value != "StreakMeterDir" && entry.type.value != "PitchArrowDir")
             {
-                return this;
+                if (!(this is WorldInstance wiRev0Read && wiRev0Read.revision == 0))
+                    return this;
             }
 
             anim = anim.Read(reader, parent, entry);
@@ -94,7 +96,9 @@ namespace MiloLib.Assets.Rnd
 
             if (entry.isProxy && entry.type.value != "Character" && entry.type.value != "RndDir" && entry.type.value != "BandCrowdMeterDir" && entry.type.value != "CrowdMeterIcon" && entry.type.value != "EndingBonusDir" && entry.type.value != "UnisonIcon" && entry.type.value != "BandScoreboard" && entry.type.value != "BandStarDisplay" && entry.type.value != "PanelDir" && entry.type.value != "MoveDir" && entry.type.value != "SkeletonDir" && entry.type.value != "WorldDir" && entry.type.value != "VocalTrackDir" && entry.type.value != "OvershellDir" && entry.type.value != "BandCharacter" && entry.type.value != "GemTrackDir" && entry.type.value != "OverdriveMeterDir" && entry.type.value != "StreakMeterDir" && entry.type.value != "PitchArrowDir")
             {
-                return;
+                // hack
+                if (!(this is WorldInstance rev0WorldInstance && rev0WorldInstance.revision == 0))
+                    return;
             }
 
             anim.Write(writer);
