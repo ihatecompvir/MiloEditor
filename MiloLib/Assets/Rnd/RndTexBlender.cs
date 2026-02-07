@@ -50,7 +50,7 @@ namespace MiloLib.Assets.Rnd
                 controllerInfluence = reader.ReadFloat();
 
             if (standalone)
-                if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");
+                if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw MiloLib.Exceptions.MiloAssetReadException.EndBytesNotFound(parent, entry, reader.BaseStream.Position);
 
             return this;
         }
@@ -60,13 +60,15 @@ namespace MiloLib.Assets.Rnd
             writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
 
             base.Write(writer, false, parent, entry);
-            draw.Write(writer, false, true);
+            draw.Write(writer, false, parent, true);
 
             Symbol.Write(writer, outputTexture);
             Symbol.Write(writer, baseMap);
             Symbol.Write(writer, nearMap);
             Symbol.Write(writer, farMap);
-            writer.WriteUInt32((uint)controllerList.Count);
+            
+            controllerCount = (uint)controllerList.Count;
+            writer.WriteUInt32(controllerCount);
             for (int i = 0; i < controllerCount; i++)
             {
                 Symbol.Write(writer, controllerList[i]);

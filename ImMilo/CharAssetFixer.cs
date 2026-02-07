@@ -90,7 +90,7 @@ public static class CharAssetFixer
             compression = MiloFile.Type.Uncompressed;
         }
         
-        file.Save(newPath, compression, 2064U, Endian.LittleEndian, file.endian);
+        file.Save(newPath, compression, null, Endian.LittleEndian, file.endian);
     }
 
     public static void FixCharAssetFolder(string path)
@@ -193,7 +193,7 @@ public static class CharAssetFixer
             compression = MiloFile.Type.Uncompressed;
         }
         
-        file.Save(newPath, compression, 2064U, Endian.LittleEndian, file.endian);
+        file.Save(newPath, compression, null, Endian.LittleEndian, file.endian);
     }
 
     public static void FixInstrumentFolder(string path)

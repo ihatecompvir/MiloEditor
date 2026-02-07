@@ -341,6 +341,15 @@ namespace MiloLib.Utils
         }
 
         /// <summary>
+        ///     Writes a span of bytes to the stream.
+        /// </summary>
+        /// <param name="buffer">The span to write.</param>
+        public void WriteBlock(ReadOnlySpan<byte> buffer)
+        {
+            _stream.Write(buffer);
+        }
+
+        /// <summary>
         ///     Writes an array of bytes to the stream.
         /// </summary>
         /// <param name="data">The bytes to write.</param>

@@ -1,5 +1,6 @@
 ﻿using MiloLib.Classes;
 using MiloLib.Utils;
+using System.Linq;
 
 namespace MiloLib.Assets.UI
 {
@@ -75,7 +76,7 @@ namespace MiloLib.Assets.UI
             }
 
             if (standalone)
-                if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");
+                if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw MiloLib.Exceptions.MiloAssetReadException.EndBytesNotFound(parent, entry, reader.BaseStream.Position);
 
             return this;
         }
@@ -100,6 +101,15 @@ namespace MiloLib.Assets.UI
             if (revision >= 2)
                 writer.WriteFloat(mDisabledAlphaScale);
 
+            while (colorPtrs.Count < 15)
+            {
+                colorPtrs.Add(new Symbol(0, ""));
+            }
+            if (colorPtrs.Count > 15)
+            {
+                colorPtrs = colorPtrs.Take(15).ToList();
+            }
+            
             for (int i = 0; i < 3; i++)
             {
                 for (int j = 0; j < 5; j++)

@@ -43,10 +43,14 @@ class Program
             return;
         }
 
-        Console.WriteLine($"Scanning for 'milo_*' files in '{folderPath}'...");
+        Console.WriteLine($"Scanning for 'milo_*', 'rnd_*', and 'gh' files in '{folderPath}'...");
         var filesToProcess = Directory.EnumerateFiles(folderPath, "*", SearchOption.AllDirectories)
-    .Where(f => Path.GetExtension(f).StartsWith(".milo_"))
-    .ToArray();
+            .Where(f =>
+            {
+                var ext = Path.GetExtension(f);
+                return ext.StartsWith(".milo_") || ext.StartsWith(".rnd_") || ext == ".milo" || ext == ".rnd" || ext == ".gh";
+            })
+            .ToArray();
 
         if (filesToProcess.Length == 0)
         {

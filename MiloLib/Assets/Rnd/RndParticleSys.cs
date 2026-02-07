@@ -106,6 +106,8 @@ namespace MiloLib.Assets.Rnd
         [Name("Bounce"), Description("Specify a collide plane to reflect particles. Used to bounce particles off surfaces.")]
         public Symbol bounce = new(0, "");
 
+        public bool useBounce;
+
         [Name("Force Direction"), Description("Force direction in world coordinates, in units per frame added to each particle's velocity. Can be used for gravity.")]
         public Vector3 force = new();
 
@@ -203,6 +205,14 @@ namespace MiloLib.Assets.Rnd
         private uint preservedParticlesCount;
         private List<PreservedParticle> preservedParticles = new();
 
+        public Plane plane;
+
+        private uint planeCount;
+        public List<Plane> planes = new();
+
+        public Vector3 unkVector1 = new();
+        public Vector3 unkVector2 = new();
+
         public RndParticleSys Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
             uint combinedRevision = reader.ReadUInt32();
@@ -252,7 +262,34 @@ namespace MiloLib.Assets.Rnd
             endColorLow.Read(reader);
             endColorHigh.Read(reader);
 
-            bounce = Symbol.Read(reader);
+            if (revision > 25)
+            {
+                bounce = Symbol.Read(reader);
+            }
+            else if (revision > 1)
+            {
+                useBounce = reader.ReadBoolean();
+
+                if (revision > 11)
+                {
+                    plane = plane.Read(reader);
+                }
+                else
+                {
+                    unkVector1.Read(reader);
+                    unkVector2.Read(reader);
+                }
+            }
+            else
+            {
+                planeCount = reader.ReadUInt32();
+                for (int i = 0; i < planeCount; i++)
+                {
+                    Plane plane = new Plane();
+                    plane.Read(reader);
+                    planes.Add(plane);
+                }
+            }
 
             force.Read(reader);
 
@@ -328,7 +365,14 @@ namespace MiloLib.Assets.Rnd
                 perspectiveStretch = reader.ReadBoolean();
             }
 
-            relativeMotion = reader.ReadFloat();
+            if (revision > 19)
+            {
+                relativeMotion = reader.ReadFloat();
+            }
+            else if (revision > 12)
+            {
+                relativeMotion = reader.ReadBoolean() ? 1.0f : 0.0f;
+            }
 
             if (26 < revision)
                 relativeParent = Symbol.Read(reader);
@@ -362,7 +406,7 @@ namespace MiloLib.Assets.Rnd
             }
 
             if (standalone)
-                if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");
+                if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw MiloLib.Exceptions.MiloAssetReadException.EndBytesNotFound(parent, entry, reader.BaseStream.Position);
             return this;
         }
 
@@ -370,12 +414,16 @@ namespace MiloLib.Assets.Rnd
         {
             writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
 
-            obj1.Write(writer);
-            obj2.Write(writer);
+            // Match Read: only write these if revision is greater than 22
+            if (revision > 22)
+            {
+                obj1.Write(writer, parent);
+                obj2.Write(writer, parent);
+            }
 
             anim.Write(writer);
-            trans.Write(writer, false, true);
-            draw.Write(writer, false, true);
+            trans.Write(writer, false, parent, true);
+            draw.Write(writer, false, parent, true);
 
             life.Write(writer);
 
@@ -409,7 +457,31 @@ namespace MiloLib.Assets.Rnd
             endColorLow.Write(writer);
             endColorHigh.Write(writer);
 
-            Symbol.Write(writer, bounce);
+            if (revision > 25)
+            {
+                Symbol.Write(writer, bounce);
+            }
+            else if (revision > 1)
+            {
+                writer.WriteBoolean(useBounce);
+                if (revision > 11)
+                {
+                    plane.Write(writer);
+                }
+                else
+                {
+                    unkVector1.Write(writer);
+                    unkVector2.Write(writer);
+                }
+            }
+            else
+            {
+                writer.WriteUInt32((uint)planes.Count);
+                foreach (var plane in planes)
+                {
+                    plane.Write(writer);
+                }
+            }
 
             force.Write(writer);
 
@@ -510,6 +582,7 @@ namespace MiloLib.Assets.Rnd
                 writer.WriteBoolean(preserveParticles);
                 if (preserveParticles)
                 {
+                    preservedParticlesCount = (uint)preservedParticles.Count;
                     writer.WriteUInt32(preservedParticlesCount);
                     foreach (var particle in preservedParticles)
                     {

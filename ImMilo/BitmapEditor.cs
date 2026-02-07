@@ -105,6 +105,261 @@ public static class BitmapEditor
                     supportedEncoding = true;
                 }
             }
+            else if (texture.bitmap.encoding == RndBitmap.TextureEncoding.TPL_CMP ||
+                     texture.bitmap.encoding == RndBitmap.TextureEncoding.TPL_CMP_ALPHA ||
+                     texture.bitmap.encoding == RndBitmap.TextureEncoding.TPL_CMP_2)
+            {
+                // Handle Wii TPL textures using WiiTextureCodec
+                if (texture.bitmap.textures.Count == 0 || texture.bitmap.textures[0].Count == 0)
+                {
+                    throw new Exception("No texture data available for TPL texture.");
+                }
+
+                // Get raw texture data (first mipmap)
+                byte[] rawData = texture.bitmap.textures[0].ToArray();
+                int width = texture.bitmap.width;
+                int height = texture.bitmap.height;
+                int bpp = texture.bitmap.bpp;
+
+                byte[] rgbaData;
+
+                // Check if this texture has a separate alpha channel
+                if (bpp == 4 && texture.bitmap.wiiAlphaNum == 4)
+                {
+                    // Hidden alpha texture after RGB data
+                    int dxSize = (width * height * bpp) / 8;
+
+                    byte[] rgbData = new byte[dxSize];
+                    byte[] alphaData = new byte[dxSize];
+
+                    Array.Copy(rawData, 0, rgbData, 0, rgbData.Length);
+                    Array.Copy(rawData, rawData.Length - rgbData.Length, alphaData, 0, alphaData.Length);
+
+                    // Decode both RGB and alpha as DXT1/CMP
+                    byte[] decodedRgb = WiiTextureCodec.DecodeCMP(rgbData, width, height);
+                    byte[] decodedAlpha = WiiTextureCodec.DecodeCMP(alphaData, width, height);
+
+                    // Combine: use green channel from alpha texture as final alpha channel
+                    rgbaData = new byte[decodedRgb.Length];
+                    for (int i = 0; i < decodedRgb.Length; i += 4)
+                    {
+                        rgbaData[i + 0] = decodedRgb[i + 0];     // R
+                        rgbaData[i + 1] = decodedRgb[i + 1];     // G
+                        rgbaData[i + 2] = decodedRgb[i + 2];     // B
+                        rgbaData[i + 3] = decodedAlpha[i + 1];   // A from green channel of alpha texture
+                    }
+                }
+                else if (bpp == 8)
+                {
+                    // 8bpp: data is split in half - first half RGB, second half alpha
+                    int halfSize = rawData.Length / 2;
+                    byte[] rgbData = new byte[halfSize];
+                    byte[] alphaData = new byte[halfSize];
+
+                    Array.Copy(rawData, 0, rgbData, 0, halfSize);
+                    Array.Copy(rawData, halfSize, alphaData, 0, halfSize);
+
+                    // Decode both RGB and alpha as DXT1/CMP
+                    byte[] decodedRgb = WiiTextureCodec.DecodeCMP(rgbData, width, height);
+                    byte[] decodedAlpha = WiiTextureCodec.DecodeCMP(alphaData, width, height);
+
+                    // Combine: use green channel from alpha texture as final alpha channel
+                    rgbaData = new byte[decodedRgb.Length];
+                    for (int i = 0; i < decodedRgb.Length; i += 4)
+                    {
+                        rgbaData[i + 0] = decodedRgb[i + 0];     // R
+                        rgbaData[i + 1] = decodedRgb[i + 1];     // G
+                        rgbaData[i + 2] = decodedRgb[i + 2];     // B
+                        rgbaData[i + 3] = decodedAlpha[i + 1];   // A from green channel of alpha texture
+                    }
+                }
+                else
+                {
+                    // Standard CMP without separate alpha (bpp == 4)
+                    rgbaData = WiiTextureCodec.DecodeCMP(rawData, width, height);
+                }
+
+                // Veldrid expects B8_G8_R8_A8_UNorm (BGRA order)
+                // Convert from RGBA to BGRA
+                byte[] bgraData = new byte[rgbaData.Length];
+                for (int i = 0; i < rgbaData.Length; i += 4)
+                {
+                    bgraData[i + 0] = rgbaData[i + 2];
+                    bgraData[i + 1] = rgbaData[i + 1];
+                    bgraData[i + 2] = rgbaData[i + 0];
+                    bgraData[i + 3] = rgbaData[i + 3];
+                }
+
+                previewTexture = Program.gd.ResourceFactory.CreateTexture(TextureDescription.Texture2D(
+                    (uint)width, (uint)height, 1, 1,
+                    PixelFormat.B8_G8_R8_A8_UNorm,
+                    TextureUsage.Sampled));
+
+                Program.gd.UpdateTexture(
+                    previewTexture,
+                    bgraData,
+                    0, 0, 0,
+                    (uint)width, (uint)height, 1,
+                    0, 0);
+
+                previewTextureView = Program.gd.ResourceFactory.CreateTextureView(previewTexture);
+                texID = Program.controller.GetOrCreateImGuiBinding(Program.gd.ResourceFactory, previewTextureView);
+                supportedEncoding = true;
+            }
+            else if (texture.bitmap.encoding == RndBitmap.TextureEncoding.RGBA ||
+                     texture.bitmap.encoding == RndBitmap.TextureEncoding.ARGB)
+            {
+                // Handle uncompressed RGBA/ARGB textures
+                if (texture.bitmap.textures.Count == 0 || texture.bitmap.textures[0].Count == 0)
+                {
+                    throw new Exception("No texture data available for RGBA/ARGB texture.");
+                }
+
+                // Get raw pixel data (first mipmap)
+                byte[] rawData = texture.bitmap.textures[0].ToArray();
+                int width = texture.bitmap.width;
+                int height = texture.bitmap.height;
+                int bpp = texture.bitmap.bpp;
+                byte[] expandedData;
+
+                if (bpp == 8 || bpp == 4)
+                {
+                    // Check if we have a color palette
+                    if (texture.bitmap.colorPalette == null || texture.bitmap.colorPalette.Count == 0)
+                    {
+                        throw new Exception($"Paletted texture ({bpp}bpp) has no color palette data.");
+                    }
+
+                    int paletteColorCount = 1 << bpp;
+                    int expectedPaletteSize = paletteColorCount * 4;
+
+                    if (texture.bitmap.colorPalette.Count != expectedPaletteSize)
+                    {
+                        throw new Exception($"Expected {expectedPaletteSize} bytes in palette for {bpp}bpp, but got {texture.bitmap.colorPalette.Count}.");
+                    }
+
+                    int pixelCount = width * height;
+                    expandedData = new byte[pixelCount * 4];
+
+                    if (bpp == 8)
+                    {
+                        for (int i = 0; i < pixelCount; i++)
+                        {
+                            byte originalIndex = rawData[i];
+
+                            int paletteIndex = (0xE7 & originalIndex) |      
+                                             ((0x08 & originalIndex) << 1) | 
+                                             ((0x10 & originalIndex) >> 1);  
+
+                            int paletteOffset = paletteIndex * 4;
+
+                            byte r = texture.bitmap.colorPalette[paletteOffset + 0];
+                            byte g = texture.bitmap.colorPalette[paletteOffset + 1];
+                            byte b = texture.bitmap.colorPalette[paletteOffset + 2];
+                            byte a = texture.bitmap.colorPalette[paletteOffset + 3];
+
+                            a = ((a & 0x80) != 0) ? (byte)0xFF : (byte)(a << 1);
+
+                            expandedData[i * 4 + 0] = r;
+                            expandedData[i * 4 + 1] = g;
+                            expandedData[i * 4 + 2] = b;
+                            expandedData[i * 4 + 3] = a;
+                        }
+                    }
+                    else // 4bpp
+                    {
+                        for (int i = 0; i < rawData.Length; i++)
+                        {
+                            byte packedIndices = rawData[i];
+
+                            byte indexLow = (byte)(packedIndices & 0x0F);        
+                            byte indexHigh = (byte)((packedIndices >> 4) & 0x0F);
+
+                            int paletteOffset1 = indexLow * 4;
+                            int pixel1Offset = (i * 2) * 4;
+
+                            if (pixel1Offset + 3 < expandedData.Length)
+                            {
+                                byte r = texture.bitmap.colorPalette[paletteOffset1 + 0];
+                                byte g = texture.bitmap.colorPalette[paletteOffset1 + 1];
+                                byte b = texture.bitmap.colorPalette[paletteOffset1 + 2];
+                                byte a = texture.bitmap.colorPalette[paletteOffset1 + 3];
+
+                                // PS2 alpha fix
+                                a = ((a & 0x80) != 0) ? (byte)0xFF : (byte)(a << 1);
+
+                                expandedData[pixel1Offset + 0] = r;
+                                expandedData[pixel1Offset + 1] = g;
+                                expandedData[pixel1Offset + 2] = b;
+                                expandedData[pixel1Offset + 3] = a;
+                            }
+
+                            int paletteOffset2 = indexHigh * 4;
+                            int pixel2Offset = (i * 2 + 1) * 4;
+
+                            if (pixel2Offset + 3 < expandedData.Length)
+                            {
+                                byte r = texture.bitmap.colorPalette[paletteOffset2 + 0];
+                                byte g = texture.bitmap.colorPalette[paletteOffset2 + 1];
+                                byte b = texture.bitmap.colorPalette[paletteOffset2 + 2];
+                                byte a = texture.bitmap.colorPalette[paletteOffset2 + 3];
+
+                                // PS2 alpha fix
+                                a = ((a & 0x80) != 0) ? (byte)0xFF : (byte)(a << 1);
+
+                                expandedData[pixel2Offset + 0] = r;
+                                expandedData[pixel2Offset + 1] = g;
+                                expandedData[pixel2Offset + 2] = b;
+                                expandedData[pixel2Offset + 3] = a;
+                            }
+                        }
+                    }
+
+                    rawData = expandedData;
+                }
+                else if (bpp != 32)
+                {
+                    throw new Exception($"Unsupported bpp for RGBA/ARGB: {bpp}. Supported values: 4, 8, 32.");
+                }
+
+                byte[] convertedData = new byte[rawData.Length];
+
+                for (int i = 0; i < rawData.Length; i += 4)
+                {
+                    if (texture.bitmap.encoding == RndBitmap.TextureEncoding.RGBA)
+                    {
+                        // RGBA --> BGRA: swap R and B
+                        convertedData[i + 0] = rawData[i + 2];
+                        convertedData[i + 1] = rawData[i + 1];
+                        convertedData[i + 2] = rawData[i + 0];
+                        convertedData[i + 3] = rawData[i + 3];
+                    }
+                    else // ARGB
+                    {
+                        // ARGB <-- BGRA: rearrange channels
+                        convertedData[i + 0] = rawData[i + 3];
+                        convertedData[i + 1] = rawData[i + 2];
+                        convertedData[i + 2] = rawData[i + 1];
+                        convertedData[i + 3] = rawData[i + 0];
+                    }
+                }
+
+                previewTexture = Program.gd.ResourceFactory.CreateTexture(TextureDescription.Texture2D(
+                    (uint)width, (uint)height, 1, 1,
+                    PixelFormat.B8_G8_R8_A8_UNorm,
+                    TextureUsage.Sampled));
+
+                Program.gd.UpdateTexture(
+                    previewTexture,
+                    convertedData,
+                    0, 0, 0,
+                    (uint)width, (uint)height, 1,
+                    0, 0);
+
+                previewTextureView = Program.gd.ResourceFactory.CreateTextureView(previewTexture);
+                texID = Program.controller.GetOrCreateImGuiBinding(Program.gd.ResourceFactory, previewTextureView);
+                supportedEncoding = true;
+            }
             else
             {
                 supportedEncoding = false;

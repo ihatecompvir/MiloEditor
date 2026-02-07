@@ -16,7 +16,7 @@ namespace MiloLib.Assets.Ham
         }
 
         public int revision;
-        public Symbol name;
+        public Symbol name = new Symbol(0, "");
         public Difficulty difficulty;
 
         public List<Symbol> genreFlags = new List<Symbol>();
@@ -25,7 +25,7 @@ namespace MiloLib.Assets.Ham
 
         bool unkc;
 
-        public Symbol displayName;
+        public Symbol displayName = new Symbol(0, "");
 
         public List<MoveVariant> moveVariants = new List<MoveVariant>();
 

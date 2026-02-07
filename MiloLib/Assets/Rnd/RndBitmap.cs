@@ -53,11 +53,6 @@ namespace MiloLib.Assets.Rnd
 
             revision = reader.ReadByte();
 
-            if (revision > 2)
-            {
-                throw new UnsupportedAssetRevisionException("RndBitmap", revision);
-            }
-
             if (revision == 2)
             {
                 uknownData = reader.ReadUInt32();
@@ -146,6 +141,15 @@ namespace MiloLib.Assets.Rnd
             else
             {
                 writer.WriteBlock(new byte[17]);
+            }
+
+            // palettes
+            if (encoding == TextureEncoding.RGBA && (bpp == 4 || bpp == 8))
+            {
+                foreach (byte paletteByte in colorPalette)
+                {
+                    writer.WriteByte(paletteByte);
+                }
             }
 
 

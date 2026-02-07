@@ -114,10 +114,10 @@ namespace MiloLib.Assets.Rnd
                 int zBits = ToSNormBits(z, 10);
                 int wBits = ToSNormBits(w, 2);
 
-                uint value = (uint)xBits
-                           | (uint)(yBits << 10)
-                           | (uint)(zBits << 20)
-                           | (uint)(wBits << 30);
+                uint value = (uint)(xBits & 0x3FF)
+                           | (uint)((yBits & 0x3FF) << 10)
+                           | (uint)((zBits & 0x3FF) << 20)
+                           | (uint)((wBits & 0x003) << 30);
 
                 writer.WriteUInt32(value);
             }
@@ -172,9 +172,9 @@ namespace MiloLib.Assets.Rnd
                 int yBits = ToSNormBits(y, 11);
                 int zBits = ToSNormBits(z, 10);
 
-                uint value = (uint)xBits
-                           | (uint)(yBits << 11)
-                           | (uint)(zBits << 22);
+                uint value = (uint)(xBits & 0x7FF)
+                           | (uint)((yBits & 0x7FF) << 11)
+                           | (uint)((zBits & 0x3FF) << 22);
 
                 writer.WriteUInt32(value);
             }

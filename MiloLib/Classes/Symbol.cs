@@ -27,32 +27,28 @@ public class Symbol
 
     public override string ToString()
     {
-        if(String.IsNullOrEmpty(chars)) {
+        if (String.IsNullOrEmpty(chars))
+        {
             return "N/A";
         }
         else return chars;
     }
 
-    // TODO: move the register provider to a more global place, this is shit
-
     public static Symbol Read(EndianReader reader)
     {
-        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         uint length = reader.ReadUInt32();
 
         if (length > 512)
-        {
-            throw new InvalidDataException($"Symbol length is too high: {length}");
-        }
+            throw new InvalidDataException($"Symbol length too high: {length}");
 
-        // use Latin1 encoding to support extended characters
-        string value = reader.ReadBytesWithEncoding((int)length, Encoding.Latin1);
+        byte[] bytes = reader.ReadBlock((int)length);
+        string value = Encoding.Latin1.GetString(bytes);
+
         return new Symbol(length, value);
     }
 
     public static void Write(EndianWriter writer, Symbol lengthString)
     {
-        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         byte[] bytes = Encoding.Latin1.GetBytes(lengthString.chars);
         writer.WriteUInt32((uint)bytes.Length);
         writer.WriteBlock(bytes);

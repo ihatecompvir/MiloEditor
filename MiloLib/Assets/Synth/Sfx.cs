@@ -45,7 +45,7 @@ namespace MiloLib.Assets
         private ushort revision;
 
         [Name("Send"), Description("Effect chain to use"), MinVersion(4), MaxVersion(8)]
-        public Symbol sendObj;
+        public Symbol sendObj = new(0, "");
 
         [Name("Fader Group"), Description("Group for controlling levels"), MinVersion(4), MaxVersion(11)]
         public FaderGroup faderGroup = new();
@@ -137,14 +137,14 @@ namespace MiloLib.Assets
             if (revision >= 9)
                 faderGroup = faderGroup.Read(reader);
 
-            if (revision >= 0xC)
+            if (revision >= 11)
             {
                 reverbMixDb = reader.ReadFloat();
                 reverbSendEnable = reader.ReadBoolean();
             }
 
             if (standalone)
-                if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");
+                if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw MiloLib.Exceptions.MiloAssetReadException.EndBytesNotFound(parent, entry, reader.BaseStream.Position);
 
             return this;
         }
@@ -156,7 +156,7 @@ namespace MiloLib.Assets
             if (revision < 6)
             {
                 if (1 < revision)
-                    objFields.Write(writer);
+                    objFields.Write(writer, parent);
             }
             else
             {
@@ -241,7 +241,7 @@ namespace MiloLib.Assets
                 writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
 
                 if (2 < revision)
-                    base.Write(writer, standalone, parent, entry);
+                    base.Write(writer, false, parent, entry);
 
                 writer.WriteFloat(avgVol);
                 writer.WriteFloat(volSpread);

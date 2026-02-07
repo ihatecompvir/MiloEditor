@@ -10,7 +10,7 @@ namespace MiloLib.Assets.Ham
         public Vector3 positionOffset;
         MoveParent moveParent;
 
-        Symbol index;
+        Symbol index = new Symbol(0, "");
 
         public List<MoveCandidate> prevCandidates = new List<MoveCandidate>();
         public List<MoveCandidate> nextCandidates = new List<MoveCandidate>();

@@ -1,4 +1,5 @@
-﻿using MiloLib.Classes;
+﻿using MiloLib.Assets.World;
+using MiloLib.Classes;
 using MiloLib.Utils;
 using System;
 using System.Collections.Generic;
@@ -183,10 +184,12 @@ namespace MiloLib.Assets
             {
                 if (revision > 19)
                 {
-                    if(revision < 28) {
+                    if (revision < 28)
+                    {
                         inlineProxy = reader.ReadBoolean();
                     }
-                    else {
+                    else
+                    {
                         inlineProxy = Convert.ToBoolean(reader.ReadByte());
                     }
                 }
@@ -301,7 +304,11 @@ namespace MiloLib.Assets
             }
 
 
-            if (entry.type.value == "WorldInstance")
+            if (entry.type.value == "WorldInstance" &&
+            !(this.referenceTypes.Count > 0 &&
+                this.referenceTypesAlt.Count > 0 &&
+                this.referenceTypes[0] == ReferenceType.kInlineCached &&
+                this.referenceTypesAlt[0] == ReferenceType.kInlineCached))
             {
                 hasPersistentObjects = reader.ReadBoolean();
                 if (entry.isProxy)
@@ -328,7 +335,7 @@ namespace MiloLib.Assets
             if (standalone)
             {
                 // read past padding
-                if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");
+                if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw MiloLib.Exceptions.MiloAssetReadException.EndBytesNotFound(parent, entry, reader.BaseStream.Position);
             }
 
             return this;
@@ -342,7 +349,7 @@ namespace MiloLib.Assets
             {
                 if (revision >= 2 && revision < 17)
                 {
-                    objFields.Write(writer);
+                    objFields.Write(writer, parent);
                 }
             }
             else
@@ -468,7 +475,7 @@ namespace MiloLib.Assets
             {
                 if (revision > 16)
                 {
-                    objFields.Write(writer);
+                    objFields.Write(writer, parent);
                 }
             }
             else

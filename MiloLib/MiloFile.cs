@@ -64,6 +64,12 @@ namespace MiloLib
         private uint startOffset;
 
         /// <summary>
+        /// Gets the starting offset that was read from the file when it was loaded.
+        /// Returns 0 if the file was created new (not loaded from disk).
+        /// </summary>
+        public uint StartOffset => startOffset;
+
+        /// <summary>
         /// The uncompressed size of the largest block in the Milo file.
         /// </summary>
         private uint largestBlock;
@@ -88,10 +94,14 @@ namespace MiloLib
         /// </summary>
         public MiloFile(string path)
         {
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
             filePath = path;
 
-            using (EndianReader reader = new EndianReader(File.OpenRead(path), Endian.LittleEndian))
+            // buffer entire file into memory first
+            byte[] fileBuffer = File.ReadAllBytes(path);
+
+            using (EndianReader reader = new EndianReader(new MemoryStream(fileBuffer), Endian.LittleEndian))
             {
                 compressionType = (Type)reader.ReadUInt32();
 
@@ -101,6 +111,7 @@ namespace MiloLib
                     // this might be a headerless milo (e.g. Phase .milo_pc) so treat it as such and just start reading the root directory
                     reader.SeekTo(0);
                     dirMeta = new DirectoryMeta().Read(reader);
+                    endian = reader.Endianness;
                     return;
                 }
 
@@ -138,6 +149,7 @@ namespace MiloLib
                         DirectoryMeta meta = new DirectoryMeta();
                         meta.platform = DetectPlatform();
                         dirMeta = meta.Read(decompressedReader);
+                        endian = decompressedReader.Endianness;
                         break;
                     case Type.CompressedZlibAlt:
                         reader.SeekTo(startOffset);
@@ -190,6 +202,7 @@ namespace MiloLib
                         meta = new DirectoryMeta();
                         meta.platform = DetectPlatform();
                         dirMeta = meta.Read(decompressedReader);
+                        endian = decompressedReader.Endianness;
                         break;
                     case Type.CompressedGzip:
                         reader.SeekTo(startOffset);
@@ -212,6 +225,7 @@ namespace MiloLib
                         meta = new DirectoryMeta();
                         meta.platform = DetectPlatform();
                         dirMeta = meta.Read(decompressedReader);
+                        endian = decompressedReader.Endianness;
                         break;
                     case Type.Uncompressed:
                         reader.SeekTo(startOffset);
@@ -221,6 +235,7 @@ namespace MiloLib
                         meta = new DirectoryMeta();
                         meta.platform = DetectPlatform();
                         dirMeta = meta.Read(reader);
+                        endian = reader.Endianness;
                         break;
                     default:
                         break;
@@ -325,16 +340,21 @@ namespace MiloLib
         /// </summary>
         /// <param name="path">The path at which the Milo scene will be saved.</param>
         /// <param name="type">The compression type to use.</param>
-        /// <param name="startingOffset">The offset at which the root directory starts.</param>
+        /// <param name="startingOffset">The offset at which the root directory starts. If null, uses the original startOffset from the loaded file, or 0x810 for new files.</param>
         /// <param name="headerEndian">The endianness of the header.</param>
         /// <param name="bodyEndian">The endianness of the body. Certain games require little endian bodies, such as GH2.</param>
-        public void Save(string? path, Type? type, uint startingOffset = 0x810, Endian headerEndian = Endian.LittleEndian, Endian bodyEndian = Endian.BigEndian)
+        public void Save(string? path, Type? type, uint? startingOffset = null, Endian headerEndian = Endian.LittleEndian, Endian bodyEndian = Endian.BigEndian)
         {
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
             endian = bodyEndian;
             if (path == null)
             {
                 path = filePath;
             }
+
+            // Use the original startOffset if not specified, or 0x810 for new files
+            uint actualStartingOffset = startingOffset ?? (startOffset != 0 ? startOffset : 0x810);
 
             using (FileStream fs = new FileStream(path, FileMode.Create, FileAccess.ReadWrite, FileShare.None))
             {
@@ -349,14 +369,14 @@ namespace MiloLib
                     type = compressionType;
                 }
                 writer.WriteUInt32((uint)type);
-                writer.WriteUInt32(startingOffset);
+                writer.WriteUInt32(actualStartingOffset);
                 writer.WriteUInt32(1);
 
                 // block sizes, write nothing for now
                 writer.WriteUInt32(0);
                 writer.WriteUInt32(0);
 
-                writer.WriteBlock(new byte[startingOffset - (int)writer.BaseStream.Position]);
+                writer.WriteBlock(new byte[actualStartingOffset - (int)writer.BaseStream.Position]);
 
                 // switch to big endian, only the header is little
                 writer.Endianness = bodyEndian;
@@ -371,7 +391,7 @@ namespace MiloLib
 
                 // handler fired after any asset is saved
                 EventHandler<DirectoryMeta.Entry.EntryOperationEventArgs> handler = (sender, args) =>
-                        WriteHandler(sender, args, startingOffset, uncompressedBlockSizes, ref bytesWritten, type);
+                        WriteHandler(sender, args, actualStartingOffset, uncompressedBlockSizes, ref bytesWritten, type);
 
                 // recursively traverse all entries to add our handler
                 foreach (var entry in dirMeta.entries)

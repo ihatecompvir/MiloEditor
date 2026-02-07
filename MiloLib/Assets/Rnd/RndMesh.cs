@@ -1,6 +1,8 @@
 ﻿using MiloLib.Classes;
 using MiloLib.Utils;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using System.Reflection.PortableExecutable;
 using System.Xml.Linq;
@@ -864,7 +866,7 @@ namespace MiloLib.Assets.Rnd
 
 
             if (standalone)
-                if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");
+                if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw MiloLib.Exceptions.MiloAssetReadException.EndBytesNotFound(parent, entry, reader.BaseStream.Position);
 
             return this;
         }
@@ -875,8 +877,8 @@ namespace MiloLib.Assets.Rnd
 
             base.Write(writer, false, parent, entry);
 
-            trans.Write(writer, false, true);
-            draw.Write(writer, false, true);
+            trans.Write(writer, false, parent, true);
+            draw.Write(writer, false, parent, true);
             Symbol.Write(writer, mat);
 
             if (revision == 27)
@@ -940,24 +942,48 @@ namespace MiloLib.Assets.Rnd
                 face.Write(writer);
             }
 
-            writer.WriteUInt32((uint)groupSizes.Count);
-            foreach (byte groupSize in groupSizes)
+            if (revision > 0x17)
             {
-                writer.WriteByte(groupSize);
+                groupSizesCount = (uint)groupSizes.Count;
+                writer.WriteUInt32(groupSizesCount);
+                foreach (byte groupSize in groupSizes)
+                {
+                    writer.WriteByte(groupSize);
+                }
+            }
+            else if (revision > 0x15)
+            {
+                // todo - matches Read behavior (does nothing)
+            }
+            else if (revision > 0x10)
+            {
+                groupSizesCount = (uint)groupSizes.Count;
+                writer.WriteUInt32(groupSizesCount);
+                foreach (byte groupSize in groupSizes)
+                {
+                    writer.WriteByte(groupSize);
+                }
             }
 
-            if (boneTransforms.Count > 0)
+            
+            if (revision >= 33)
             {
-                if (revision >= 33)
+                writer.WriteUInt32((uint)boneTransforms.Count);
+                foreach (BoneTransform boneTransform in boneTransforms)
                 {
-                    writer.WriteUInt32((uint)boneTransforms.Count);
-                    foreach (BoneTransform boneTransform in boneTransforms)
-                    {
-                        boneTransform.Write(writer, revision);
-                    }
+                    boneTransform.Write(writer, revision);
                 }
-                else
+            }
+            else
+            {
+                
+                if (boneTransforms.Count > 0)
                 {
+                    while (boneTransforms.Count < 4)
+                    {
+                        boneTransforms.Add(new BoneTransform());
+                    }
+                    
                     for (int i = 0; i < 4; i++)
                     {
                         Symbol.Write(writer, boneTransforms[i].name);
@@ -967,10 +993,10 @@ namespace MiloLib.Assets.Rnd
                         boneTransforms[i].transform.Write(writer);
                     }
                 }
-            }
-            else
-            {
-                writer.WriteUInt32(0);
+                else
+                {
+                    writer.WriteUInt32(0);
+                }
             }
 
             if (revision > 34)
@@ -985,9 +1011,13 @@ namespace MiloLib.Assets.Rnd
             if (altRevision > 3)
                 writer.WriteBoolean(unkBool3);
 
-            if (groupSizes.Count > 0 && groupSizes[0] > 0 && parent.revision < 25)
+            if (groupSizesCount > 0 && groupSizes.Count > 0 && groupSizes[0] > 0 && parent.revision < 25)
             {
-                for (int i = 0; i < groupSizes.Count; i++)
+                while (groupSections.Count < groupSizesCount)
+                {
+                    groupSections.Add(new GroupSection());
+                }
+                for (int i = 0; i < groupSizesCount; i++)
                 {
                     groupSections[i].Write(writer, revision);
                 }

@@ -38,11 +38,6 @@ namespace MiloLib.Assets.Band
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
             else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
 
-            if (revision != 3)
-            {
-                throw new UnsupportedAssetRevisionException("BandSongPref", revision);
-            }
-
             base.Read(reader, false, parent, entry);
 
             part2Instrument = Symbol.Read(reader);
@@ -51,7 +46,7 @@ namespace MiloLib.Assets.Band
             animationGenre = Symbol.Read(reader);
 
             if (standalone)
-                if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");
+                if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw MiloLib.Exceptions.MiloAssetReadException.EndBytesNotFound(parent, entry, reader.BaseStream.Position);
 
 
             return this;
@@ -60,7 +55,7 @@ namespace MiloLib.Assets.Band
         public override void Write(EndianWriter writer, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry? entry)
         {
             writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
-            objFields.Write(writer);
+            objFields.Write(writer, parent);
 
             Symbol.Write(writer, part2Instrument);
             Symbol.Write(writer, part3Instrument);

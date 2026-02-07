@@ -193,7 +193,7 @@ namespace MiloLib.Assets.UI
             }
 
             if (standalone)
-                if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");
+                if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw MiloLib.Exceptions.MiloAssetReadException.EndBytesNotFound(parent, entry, reader.BaseStream.Position);
 
             return this;
         }
@@ -259,8 +259,8 @@ namespace MiloLib.Assets.UI
                 if (revision <= 6)
                 {
                     // Write Trans and Drawable members
-                    trans.Write(writer, false, true);
-                    draw.Write(writer, false, true);
+                    trans.Write(writer, false, parent, true);
+                    draw.Write(writer, false, parent, true);
                 }
                 else
                 {
@@ -295,7 +295,7 @@ namespace MiloLib.Assets.UI
                 }
 
                 if (revision <= 6) Symbol.Write(writer, new Symbol(0, ""));
-                writer.WriteBoolean(unkBool87);
+                if (revision != 0) writer.WriteBoolean(unkBool87);
 
                 if (revision <= 6) Symbol.Write(writer, textToken);
 
@@ -356,12 +356,6 @@ namespace MiloLib.Assets.UI
                     writer.WriteFloat(unkFloatColB);
                     writer.WriteFloat(unkFloatColA);
                 }
-            }
-
-            if (revision < 0xD)
-            {
-                int capsmode = unkBool87 ? 2 : 0;
-                writer.WriteInt32((int)capsMode);
             }
 
             if (revision == 0xF)

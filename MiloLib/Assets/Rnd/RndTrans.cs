@@ -60,8 +60,6 @@ namespace MiloLib.Assets.Rnd
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
             else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
 
-            // if a RndTrans is read as a standalone object, it has the Object fields
-            // otherwise it does not
             if (standalone)
                 objFields = objFields.Read(reader, parent, entry);
 
@@ -103,18 +101,18 @@ namespace MiloLib.Assets.Rnd
 
 
             if (standalone)
-                if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");
+                if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw MiloLib.Exceptions.MiloAssetReadException.EndBytesNotFound(parent, entry, reader.BaseStream.Position);
 
             return this;
         }
 
-        public void Write(EndianWriter writer, bool standalone, bool skipMetadata = false)
+        public void Write(EndianWriter writer, bool standalone, DirectoryMeta parent, bool skipMetadata = false)
         {
             writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
 
             if (standalone && !skipMetadata)
             {
-                base.objFields.Write(writer);
+                base.objFields.Write(writer, parent);
             }
 
             localXfm.Write(writer);
@@ -122,10 +120,37 @@ namespace MiloLib.Assets.Rnd
 
             if (revision < 9)
             {
-                writer.WriteUInt32((uint)transObjects.Count);
-                foreach (var obj in transObjects)
+                if (parent.revision <= 6)
                 {
-                    Symbol.Write(writer, obj);
+                    if (transObjectsNullTerminated.Count == 0 && transObjects.Count > 0)
+                    {
+                        foreach (var sym in transObjects)
+                        {
+                            transObjectsNullTerminated.Add(sym.value);
+                        }
+                    }
+                    transCount = (uint)transObjectsNullTerminated.Count;
+                    writer.WriteUInt32(transCount);
+                    foreach (var obj in transObjectsNullTerminated)
+                    {
+                        writer.WriteUTF8(obj);
+                    }
+                }
+                else
+                {
+                    if (transObjects.Count == 0 && transObjectsNullTerminated.Count > 0)
+                    {
+                        foreach (var str in transObjectsNullTerminated)
+                        {
+                            transObjects.Add(new Symbol((uint)str.Length, str));
+                        }
+                    }
+                    transCount = (uint)transObjects.Count;
+                    writer.WriteUInt32(transCount);
+                    foreach (var obj in transObjects)
+                    {
+                        Symbol.Write(writer, obj);
+                    }
                 }
             }
 

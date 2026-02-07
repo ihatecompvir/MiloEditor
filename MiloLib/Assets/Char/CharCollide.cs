@@ -111,7 +111,7 @@ namespace MiloLib.Assets.Char
                 meshYBias = reader.ReadBoolean();
             }
             if (standalone)
-                if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");
+                if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw MiloLib.Exceptions.MiloAssetReadException.EndBytesNotFound(parent, entry, reader.BaseStream.Position);
 
             return this;
         }
@@ -121,7 +121,7 @@ namespace MiloLib.Assets.Char
             writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
 
             base.Write(writer, false, parent, entry);
-            trans.Write(writer, false, true);
+            trans.Write(writer, false, parent, true);
 
             writer.WriteUInt32((uint)shape);
 
@@ -144,10 +144,16 @@ namespace MiloLib.Assets.Char
                 writer.WriteFloat(curLength[1]);
                 unknownTransform.Write(writer);
                 Symbol.Write(writer, mesh);
-                foreach (var unkStruct in structs)
+                
+                while (structs.Count < 8)
                 {
-                    unkStruct.Write(writer);
+                    structs.Add(new CharCollideStruct());
                 }
+                for (int i = 0; i < 8; i++)
+                {
+                    structs[i].Write(writer);
+                }
+                
                 writer.WriteBlock(sha1Digest);
                 writer.WriteBoolean(meshYBias);
             }

@@ -296,17 +296,25 @@ namespace MiloLib.Assets.Rnd
         public int unkInt2;
         public int unkInt3;
 
+        public byte unkByte1;
         public bool unkBool2;
         public HmxColor3 unkColor3 = new();
         public float unkFloat3;
 
         public Symbol unkSym3 = new Symbol(0, "");
 
+        public ushort unkShort2;
+        public ushort unkShort3;
+        public ushort unkShort4;
+
+        public int unkInt4;
+        public uint unkUInt1;
 
 
 
 
-        public RndMat Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
+
+		public RndMat Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
         {
             uint combinedRevision = reader.ReadUInt32();
             if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
@@ -331,16 +339,16 @@ namespace MiloLib.Assets.Rnd
 
             if (revision <= 21)
             {
-                reader.ReadByte();
-                reader.ReadUInt16();
-                reader.ReadInt32();
-                reader.ReadUInt16();
-                reader.ReadUInt32();
-                reader.ReadUInt16();
+                unkByte1 = reader.ReadByte();
+				unkShort2 = reader.ReadUInt16();
+                unkInt4 = reader.ReadInt32();
+                unkShort3 = reader.ReadUInt16();
+                unkUInt1 = reader.ReadUInt32();
+                unkShort4 = reader.ReadUInt16();
 
                 if (standalone)
                 {
-                    if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");
+                    if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw MiloLib.Exceptions.MiloAssetReadException.EndBytesNotFound(parent, entry, reader.BaseStream.Position);
                 }
                 return this;
             }
@@ -414,7 +422,7 @@ namespace MiloLib.Assets.Rnd
             {
                 if (standalone)
                 {
-                    if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");
+                    if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw MiloLib.Exceptions.MiloAssetReadException.EndBytesNotFound(parent, entry, reader.BaseStream.Position);
                 }
                 return this;
             }
@@ -513,179 +521,200 @@ namespace MiloLib.Assets.Rnd
 
             if (standalone)
             {
-                if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");
+                if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw MiloLib.Exceptions.MiloAssetReadException.EndBytesNotFound(parent, entry, reader.BaseStream.Position);
             }
             return this;
 
         }
-        public override void Write(EndianWriter writer, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry? entry)
-        {
-            writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
+		public override void Write(EndianWriter writer, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry? entry)
+		{
+			writer.WriteUInt32(
+				BitConverter.IsLittleEndian
+					? (uint)((altRevision << 16) | revision)
+					: (uint)((revision << 16) | altRevision)
+			);
 
-            base.Write(writer, false, parent, entry);
+			if (revision > 9 && revision <= 21)
+			{
+				textureCount = (uint)textures.Count;
+				writer.WriteUInt32(textureCount);
+				foreach (var tex in textures)
+					tex.Write(writer);
+			}
 
-            writer.WriteInt32((int)blend);
-            color.Write(writer);
-            writer.WriteBoolean(preLit);
-            writer.WriteBoolean(useEnviron);
-            writer.WriteInt32((int)zMode);
-            writer.WriteBoolean(alphaCut);
-            if (revision > 0x25)
-                writer.WriteInt32(alphaThreshold);
-            writer.WriteBoolean(alphaWrite);
-            writer.WriteInt32((int)texGen);
-            writer.WriteInt32((int)texWrap);
-            texXfm.Write(writer);
-            Symbol.Write(writer, diffuseTex);
-            Symbol.Write(writer, nextPass);
-            writer.WriteBoolean(intensify);
+			base.Write(writer, false, parent, entry);
 
-            writer.WriteBoolean(cull);
-            writer.WriteFloat(emissiveMultiplier);
-            specularRGB.Write(writer);
-            writer.WriteFloat(specularPower);
-            Symbol.Write(writer, normalMap);
-            Symbol.Write(writer, emissiveMap);
-            Symbol.Write(writer, specularMap);
-            if (revision < 51)
-            {
-                Symbol.Write(writer, unkSymbol2);
-            }
-            Symbol.Write(writer, environMap);
+			writer.WriteInt32((int)blend);
+			color.Write(writer);
 
-            if (revision > 25)
-            {
-                if (revision == 68)
-                    writer.WriteUInt16(unkShort);
-            }
-
-            writer.WriteBoolean(perPixelLit);
-
-            if (revision >= 27 && revision < 50)
-            {
-                writer.WriteBoolean(unkBool1);
-            }
-
-            writer.WriteInt32((int)stencilMode);
-            if (revision < 33)
-            {
-            }
-            else
-            {
-                Symbol.Write(writer, fur);
-            }
-
-            if (revision >= 34 && revision < 49)
-            {
-                writer.WriteBoolean(unkBool2);
-                unkColor3.Write(writer);
-                writer.WriteFloat(unkFloat3);
-
-                if (revision > 34)
-                {
-                    Symbol.Write(writer, unkSym3);
-                }
-            }
-
-            if (revision <= 28)
-            {
-                if (standalone)
-                {
-                    writer.WriteUInt32(writer.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD);
-                }
-                return;
-            }
-
-            writer.WriteFloat(deNormal);
-            writer.WriteFloat(anisotropy);
-            writer.WriteFloat(normalDetailTiling);
-            writer.WriteFloat(normalDetailStrength);
-            Symbol.Write(writer, normalDetailMap);
-
-            writer.WriteBoolean(pointLights);
-            if (revision < 0x3F)
-                writer.WriteBoolean(projLights);
-            writer.WriteBoolean(fog);
-            writer.WriteBoolean(fadeout);
-            writer.WriteBoolean(colorAdjust);
-
-            if (revision > 47)
-            {
-                rimRGB.Write(writer);
-                writer.WriteFloat(rimPower);
-
-                Symbol.Write(writer, rimMap);
-                writer.WriteBoolean(rimAlwaysShow);
-            }
-
-            if (revision > 48)
-                writer.WriteBoolean(screenAligned);
-
-            if (revision > 0x32)
-            {
-                writer.WriteInt32((int)shaderVariation);
-                specular2RGB.Write(writer);
-                writer.WriteFloat(specular2Power);
-            }
-
-            if (revision >= 52 && revision <= 67)
-            {
-                if (revision < 0x35)
-                    writer.WriteBoolean(unkBool);
-                else
-                    writer.WriteInt32(unkInt3);
-
-                if (revision >= 53 && revision <= 59)
-                {
-                    unkColor2.Write(writer);
-                }
-
-                if (revision >= 0x3C)
-                {
-                    writer.WriteUInt32((uint)colors.Count);
-                    foreach (var color in colors)
-                    {
-                        color.Write(writer);
-                    }
-                }
-
-            }
-
-            if (revision >= 54 && revision <= 61)
-            {
-                Symbol.Write(writer, unkSym2);
-            }
-
-            if (revision >= 55 && revision <= 62)
-                writer.WriteBoolean(perfSettings.ps3ForceTrilinear);
-
-            if (revision == 0x38)
-            {
-                writer.WriteInt32(unkInt1);
-                writer.WriteInt32(unkInt2);
-            }
-
-            if (revision > 0x3E)
-            {
-                perfSettings.Write(writer, revision);
-            }
-
-            if (revision > 0x3F)
-            {
-                writer.WriteBoolean(refractEnabled);
-                writer.WriteFloat(refractStrength);
-                Symbol.Write(writer, refractNormalMap);
-            }
+			if (revision <= 21)
+			{
+				writer.WriteByte(unkByte1);
+                writer.WriteUInt16(unkShort2);
+                writer.WriteInt32(unkInt4);
+                writer.WriteUInt16(unkShort3);
+                writer.WriteUInt32(unkUInt1);
+                writer.WriteUInt16(unkShort4);
 
 
+				if (standalone)
+					writer.WriteUInt32(writer.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD);
 
-            if (standalone)
-            {
-                writer.WriteUInt32(writer.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD);
-            }
-        }
+				return;
+			}
 
-        public static RndMat New(ushort revision, ushort altRevision)
+			writer.WriteBoolean(preLit);
+			writer.WriteBoolean(useEnviron);
+			writer.WriteInt32((int)zMode);
+			writer.WriteBoolean(alphaCut);
+
+			if (revision > 0x25)
+				writer.WriteInt32(alphaThreshold);
+
+			writer.WriteBoolean(alphaWrite);
+			writer.WriteInt32((int)texGen);
+			writer.WriteInt32((int)texWrap);
+			texXfm.Write(writer);
+
+			Symbol.Write(writer, diffuseTex);
+			Symbol.Write(writer, nextPass);
+			writer.WriteBoolean(intensify);
+
+			writer.WriteBoolean(cull);
+			writer.WriteFloat(emissiveMultiplier);
+			specularRGB.Write(writer);
+			writer.WriteFloat(specularPower);
+
+			Symbol.Write(writer, normalMap);
+			Symbol.Write(writer, emissiveMap);
+			Symbol.Write(writer, specularMap);
+
+			if (revision < 51)
+				Symbol.Write(writer, unkSymbol2);
+
+			Symbol.Write(writer, environMap);
+
+			if (revision > 25)
+			{
+				if (revision == 68)
+					writer.WriteUInt16(unkShort);
+			}
+
+			writer.WriteBoolean(perPixelLit);
+
+			if (revision >= 27 && revision < 50)
+				writer.WriteBoolean(unkBool1);
+
+			if (revision > 27)
+				writer.WriteInt32((int)stencilMode);
+
+			if (revision >= 33)
+				Symbol.Write(writer, fur);
+
+			if (revision >= 34 && revision < 49)
+			{
+				writer.WriteBoolean(unkBool2);
+				unkColor3.Write(writer);
+				writer.WriteFloat(unkFloat3);
+
+				if (revision > 34)
+					Symbol.Write(writer, unkSym3);
+			}
+
+			if (revision <= 28)
+			{
+				if (standalone)
+					writer.WriteUInt32(writer.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD);
+				return;
+			}
+
+			if (revision > 35)
+			{
+				writer.WriteFloat(deNormal);
+				writer.WriteFloat(anisotropy);
+			}
+
+			if (revision > 38)
+			{
+				writer.WriteFloat(normalDetailTiling);
+				writer.WriteFloat(normalDetailStrength);
+				Symbol.Write(writer, normalDetailMap);
+			}
+
+			writer.WriteBoolean(pointLights);
+
+			if (revision < 0x3F)
+				writer.WriteBoolean(projLights);
+
+			writer.WriteBoolean(fog);
+			writer.WriteBoolean(fadeout);
+			writer.WriteBoolean(colorAdjust);
+
+			if (revision > 47)
+			{
+				rimRGB.Write(writer);
+				writer.WriteFloat(rimPower);
+				Symbol.Write(writer, rimMap);
+				writer.WriteBoolean(rimAlwaysShow);
+			}
+
+			if (revision > 48)
+				writer.WriteBoolean(screenAligned);
+
+			if (revision > 0x32)
+			{
+				writer.WriteInt32((int)shaderVariation);
+				specular2RGB.Write(writer);
+				writer.WriteFloat(specular2Power);
+			}
+
+			if (revision >= 52 && revision <= 67)
+			{
+				if (revision < 0x35)
+					writer.WriteBoolean(unkBool);
+				else
+					writer.WriteInt32(unkInt3);
+
+				if (revision >= 53 && revision <= 59)
+					unkColor2.Write(writer);
+
+				if (revision >= 0x3C)
+				{
+					// Ensure colorsCount matches the actual list size
+					colorsCount = (uint)colors.Count;
+					writer.WriteUInt32(colorsCount);
+					foreach (var c in colors)
+						c.Write(writer);
+				}
+			}
+
+			if (revision >= 54 && revision <= 61)
+				Symbol.Write(writer, unkSym2);
+
+			if (revision >= 55 && revision <= 62)
+				writer.WriteBoolean(perfSettings.ps3ForceTrilinear);
+
+			if (revision == 0x38)
+			{
+				writer.WriteInt32(unkInt1);
+				writer.WriteInt32(unkInt2);
+			}
+
+			if (revision > 0x3E)
+				perfSettings.Write(writer, revision);
+
+			if (revision > 0x3F)
+			{
+				writer.WriteBoolean(refractEnabled);
+				writer.WriteFloat(refractStrength);
+				Symbol.Write(writer, refractNormalMap);
+			}
+
+			if (standalone)
+				writer.WriteUInt32(writer.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD);
+		}
+
+		public static RndMat New(ushort revision, ushort altRevision)
         {
             RndMat rndMat = new RndMat();
             rndMat.revision = revision;

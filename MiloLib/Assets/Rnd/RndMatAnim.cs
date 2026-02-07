@@ -58,6 +58,18 @@ namespace MiloLib.Assets.Rnd
         [MaxVersion(3)]
         public List<ColorKey> colorKeys3 = new();
 
+        private uint vec3KeysCount1;
+        public List<Vec3Key> vec3Keys1 = new();
+        private uint vec3KeysCount2;
+        public List<Vec3Key> vec3Keys2 = new();
+        private uint vec3KeysCount3;
+        public List<Vec3Key> vec3Keys3 = new();
+
+        private uint symbolKeysCount;
+        public List<SymbolKey> symbolKeys = new();
+
+        private uint stageCount;
+
 
 
 
@@ -76,6 +88,49 @@ namespace MiloLib.Assets.Rnd
             anim = anim.Read(reader, parent, entry);
 
             material = Symbol.Read(reader);
+
+            if (revision < 7)
+            {
+                stageCount = reader.ReadUInt32();
+                for (int i = 0; i < stageCount; i++)
+                {
+                    if (revision != 0)
+                    {
+                        vec3KeysCount1 = reader.ReadUInt32();
+                        for (int j = 0; j < vec3KeysCount1; j++)
+                        {
+                            Vec3Key vec3Key = new();
+                            vec3Key.Read(reader);
+                            vec3Keys1.Add(vec3Key);
+                        }
+                        vec3KeysCount2 = reader.ReadUInt32();
+                        for (int j = 0; j < vec3KeysCount2; j++)
+                        {
+                            Vec3Key vec3Key = new();
+                            vec3Key.Read(reader);
+                            vec3Keys2.Add(vec3Key);
+                        }
+                        vec3KeysCount3 = reader.ReadUInt32();
+                        for (int j = 0; j < vec3KeysCount3; j++)
+                        {
+                            Vec3Key vec3Key = new();
+                            vec3Key.Read(reader);
+                            vec3Keys3.Add(vec3Key);
+                        }
+
+                    }
+                    if (revision > 1)
+                    {
+                        symbolKeysCount = reader.ReadUInt32();
+                        for (int j = 0; j < symbolKeysCount; j++)
+                        {
+                            SymbolKey symbolKey = new();
+                            symbolKey.Read(reader);
+                            symbolKeys.Add(symbolKey);
+                        }
+                    }
+                }
+            }
 
             keysOwner = Symbol.Read(reader);
 
@@ -165,7 +220,7 @@ namespace MiloLib.Assets.Rnd
             }
 
             if (standalone)
-                if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");
+                if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw MiloLib.Exceptions.MiloAssetReadException.EndBytesNotFound(parent, entry, reader.BaseStream.Position);
 
             return this;
         }
@@ -176,12 +231,54 @@ namespace MiloLib.Assets.Rnd
 
             if (revision > 5)
             {
-                base.objFields.Write(writer);
+                base.objFields.Write(writer, parent);
             }
 
             anim.Write(writer);
 
             Symbol.Write(writer, material);
+
+            if (revision < 7)
+            {
+                writer.WriteUInt32(stageCount);
+
+                for (int i = 0; i < stageCount; i++)
+                {
+                    if (revision != 0)
+                    {
+                        vec3KeysCount1 = (uint)vec3Keys1.Count;
+                        writer.WriteUInt32(vec3KeysCount1);
+                        foreach (Vec3Key vec3Key in vec3Keys1)
+                        {
+                            vec3Key.Write(writer);
+                        }
+
+                        vec3KeysCount2 = (uint)vec3Keys2.Count;
+                        writer.WriteUInt32(vec3KeysCount2);
+                        foreach (Vec3Key vec3Key in vec3Keys2)
+                        {
+                            vec3Key.Write(writer);
+                        }
+
+                        vec3KeysCount3 = (uint)vec3Keys3.Count;
+                        writer.WriteUInt32(vec3KeysCount3);
+                        foreach (Vec3Key vec3Key in vec3Keys3)
+                        {
+                            vec3Key.Write(writer);
+                        }
+                    }
+
+                    if (revision > 1)
+                    {
+                        symbolKeysCount = (uint)symbolKeys.Count;
+                        writer.WriteUInt32(symbolKeysCount);
+                        foreach (SymbolKey symbolKey in symbolKeys)
+                        {
+                            symbolKey.Write(writer);
+                        }
+                    }
+                }
+            }
 
             Symbol.Write(writer, keysOwner);
 

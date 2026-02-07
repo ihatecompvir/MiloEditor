@@ -543,7 +543,7 @@ public static partial class Program
             {
                 currentScene.endian = settings.endianness;
                 currentScene.dirMeta.platform = settings.platform;
-                currentScene.Save(path, settings.compressionType, 2064U, Endian.LittleEndian, currentScene.endian);
+                currentScene.Save(path, settings.compressionType, null, Endian.LittleEndian, currentScene.endian);
             }
             catch (Exception e)
             {
@@ -563,7 +563,7 @@ public static partial class Program
                 // TODO: Find a better way to do this.
                 compression = MiloFile.Type.Uncompressed;
             }
-            currentScene.Save(null, compression, 2064U, Endian.LittleEndian, currentScene.endian);
+            currentScene.Save(null, compression, null, Endian.LittleEndian, currentScene.endian);
         }
         catch (Exception e)
         {

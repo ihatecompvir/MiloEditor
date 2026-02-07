@@ -1,6 +1,7 @@
 ﻿using MiloBench;
 using MiloLib;
 using MiloLib.Assets;
+using MiloLib.Utils;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -22,8 +23,8 @@ public class MiloVerifier
             var originalHashes = new Dictionary<string, string>();
             PopulateHashesRecursively(originalMilo.dirMeta, originalHashes);
 
-            // save to temp file
-            originalMilo.Save(tempFilePath, originalMilo.compressionType, bodyEndian: originalMilo.endian);
+            // save to temp file, preserving all original file properties
+            originalMilo.Save(tempFilePath, originalMilo.compressionType, null, Endian.LittleEndian, originalMilo.endian);
 
             // read back the newlty saved milo
             var savedMilo = new MiloFile(tempFilePath);

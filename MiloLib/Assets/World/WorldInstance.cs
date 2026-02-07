@@ -85,8 +85,8 @@ namespace MiloLib.Assets.World
                     writer.WriteBlock(new byte[13]);
 
                     anim.Write(writer);
-                    draw.Write(writer, false, true);
-                    trans.Write(writer, false, true);
+                    draw.Write(writer, false, parent, true);
+                    trans.Write(writer, false, parent, true);
 
                     Symbol.Write(writer, environ);
                     Symbol.Write(writer, unkSym);
@@ -157,7 +157,7 @@ namespace MiloLib.Assets.World
             base.Read(reader, false, parent, entry);
 
             if (standalone && !entry.isProxy)
-                if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");
+                if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw MiloLib.Exceptions.MiloAssetReadException.EndBytesNotFound(parent, entry, reader.BaseStream.Position);
 
             return this;
         }

@@ -12,12 +12,18 @@ namespace MiloLib.Assets.Char
             public Vector3 force = new();
             public Vector3 lastFriction = new();
             public Vector3 lastZ = new();
+            [Name("Bone"), Description("hair bone we set the transform of")]
             public Symbol bone = new(0, "");
+            [Name("Length"), Description("the length of this strand bone")]
             public float length;
             private uint collidesCount;
+            [Name("Collides"), Description("things to collide against")]
             public List<Symbol> collides = new();
+            [Name("Radius"), Description("collision radius")]
             public float radius;
+            [Name("Outer Radius"), Description("if > radius, is the distance the hair bone should start aligning itself with the collision primitive, so that once touching it, it will be totally flattened against it.")]
             public float outerRadius;
+            [Name("Side Length"), Description("if >= 0 the base length to the side modified by min_slack and max_slack")]
             public float sideLength;
             public Vector3 unk5c = new();
 
@@ -132,7 +138,9 @@ namespace MiloLib.Assets.Char
 
         public class Strand
         {
+            [Name("Root"), Description("The root Trans for the hair strand")]
             public Symbol root = new(0, "");
+            [Name("Angle"), Description("Angle in degrees of starting flip")]
             public float angle;
             private uint pointCount;
             public List<Point> points = new();
@@ -236,7 +244,7 @@ namespace MiloLib.Assets.Char
                 wind = Symbol.Read(reader);
 
             if (standalone)
-                if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw new Exception("Got to end of standalone asset but didn't find the expected end bytes, read likely did not succeed");
+                if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw MiloLib.Exceptions.MiloAssetReadException.EndBytesNotFound(parent, entry, reader.BaseStream.Position);
 
             return this;
         }
