@@ -807,12 +807,12 @@ namespace MiloLib.Assets
         /// <summary>
         /// The amount of strings in the string table. Usually calculated as (numEntries * 2) + 2.
         /// </summary>
-        private uint stringTableCount;
+        public uint stringTableCount;
 
         /// <summary>
         /// The size of the string table. Not sure how this is calculated, but the game will fix it itself if it's not right.
         /// </summary>
-        private uint stringTableSize;
+        public uint stringTableSize;
 
         private uint externalResourceCount;
 
@@ -958,7 +958,7 @@ namespace MiloLib.Assets
                 Symbol.Write(writer, type);
                 Symbol.Write(writer, name);
 
-                writer.WriteInt32((entries.Count * 2) + 4);
+                writer.WriteInt32((entries.Count + 1) * 2);
                 writer.WriteUInt32(stringTableSize);
 
                 if (revision >= 32)
@@ -1095,6 +1095,179 @@ namespace MiloLib.Assets
 
             entry.OnAfterWrite(writer);
         }
+
+        /// <summary>
+        /// Creates a default-constructed object instance for the given entry type name.
+        /// Returns null if the type is not recognized.
+        /// </summary>
+        public static Object CreateDefaultObject(string typeName)
+        {
+            if (EntryObjectFactories.TryGetValue(typeName, out var factory))
+                return factory();
+            return null;
+        }
+
+        /// <summary>
+        /// Returns a sorted array of all supported entry type names (from EntryReadActions).
+        /// </summary>
+        public static string[] GetSupportedEntryTypes()
+        {
+            var types = EntryReadActions.Keys.ToArray();
+            Array.Sort(types, StringComparer.OrdinalIgnoreCase);
+            return types;
+        }
+
+        /// <summary>
+        /// Returns a sorted array of all supported directory type names (from DirectoryFactories).
+        /// </summary>
+        public static string[] GetSupportedDirectoryTypes()
+        {
+            var types = DirectoryFactories.Keys.ToArray();
+            Array.Sort(types, StringComparer.OrdinalIgnoreCase);
+            return types;
+        }
+
+        /// <summary>
+        /// Returns true if the given type name is a directory type (has an entry in DirectoryFactories).
+        /// </summary>
+        public static bool IsDirectoryType(string typeName)
+        {
+            return DirectoryFactories.ContainsKey(typeName);
+        }
+
+        // factories for constructing various objs
+        private static readonly Dictionary<string, Func<Object>> EntryObjectFactories = new Dictionary<string, Func<Object>>
+        {
+            { "AnimFilter", () => new RndAnimFilter() },
+            { "BandButton", () => new BandButton() },
+            { "BandCamShot", () => new BandCamShot() },
+            { "BandCharDesc", () => new BandCharDesc() },
+            { "BandConfiguration", () => new BandConfiguration() },
+            { "BandDirector", () => new BandDirector() },
+            { "BandFaceDeform", () => new BandFaceDeform() },
+            { "BandLabel", () => new BandLabel() },
+            { "BandList", () => new BandList() },
+            { "BandPlacer", () => new BandPlacer() },
+            { "BandScreen", () => new Object() },
+            { "BandSongPref", () => new BandSongPref() },
+            { "BandSwatch", () => new BandSwatch() },
+            { "BustAMoveData", () => new BustAMoveData() },
+            { "Cam", () => new RndCam() },
+            { "CamShot", () => new CamShot() },
+            { "CharClipGroup", () => new CharClipGroup() },
+            { "CharCollide", () => new CharCollide() },
+            { "CharForeTwist", () => new CharForeTwist() },
+            { "CharGuitarString", () => new CharGuitarString() },
+            { "CharHair", () => new CharHair() },
+            { "CharIKMidi", () => new CharIKMidi() },
+            { "CharIKRod", () => new CharIKRod() },
+            { "CharInterest", () => new CharInterest() },
+            { "CharMeshHide", () => new CharMeshHide() },
+            { "CharPosConstraint", () => new CharPosConstraint() },
+            { "CharServoBone", () => new CharServoBone() },
+            { "CharUpperTwist", () => new CharUpperTwist() },
+            { "CharWalk", () => new CharWalk() },
+            { "CharWeightSetter", () => new CharWeightSetter() },
+            { "CheckboxDisplay", () => new CheckboxDisplay() },
+            { "ColorPalette", () => new ColorPalette() },
+            { "DancerSequence", () => new DancerSequence() },
+            { "Environ", () => new RndEnviron() },
+            { "EventTrigger", () => new EventTrigger() },
+            { "FileMerger", () => new FileMerger() },
+            { "Font", () => new RndFont() },
+            { "Fur", () => new RndFur() },
+            { "Group", () => new RndGroup() },
+            { "View", () => new RndGroup() },
+            { "HamBattleData", () => new HamBattleData() },
+            { "HamMove", () => new HamMove() },
+            { "HamPartyJumpData", () => new HamPartyJumpData() },
+            { "HamSupereasyData", () => new HamSupereasyData() },
+            { "InlineHelp", () => new InlineHelp() },
+            { "InterstitialPanel", () => new Object() },
+            { "Light", () => new RndLight() },
+            { "Mat", () => new RndMat() },
+            { "MatAnim", () => new RndMatAnim() },
+            { "Mesh", () => new RndMesh() },
+            { "MotionBlur", () => new RndMotionBlur() },
+            { "MoveGraph", () => new MoveGraph() },
+            { "MsgSource", () => new Object() },
+            { "Object", () => new Object() },
+            { "OutfitConfig", () => new OutfitConfig() },
+            { "P9Director", () => new P9Director() },
+            { "ParticleSys", () => new RndParticleSys() },
+            { "ParticleSysAnim", () => new RndParticleSysAnim() },
+            { "PollAnim", () => new RndPollAnim() },
+            { "PostProc", () => new RndPostProc() },
+            { "PracticeSection", () => new PracticeSection() },
+            { "PropAnim", () => new RndPropAnim() },
+            { "RandomGroupSeq", () => new RandomGroupSeq() },
+            { "ScreenMask", () => new RndScreenMask() },
+            { "Text", () => new RndText() },
+            { "Set", () => new RndSet() },
+            { "Sfx", () => new Sfx() },
+            { "SpotlightDrawer", () => new SpotlightDrawer() },
+            { "SynthSample", () => new SynthSample() },
+            { "Tex", () => new RndTex() },
+            { "TexBlendController", () => new RndTexBlendController() },
+            { "TexBlender", () => new RndTexBlender() },
+            { "TexMovie", () => new RndTexMovie() },
+            { "TrackWidget", () => new TrackWidget() },
+            { "TrainerChallenge", () => new Object() },
+            { "Trans", () => new RndTrans() },
+            { "TransAnim", () => new RndTransAnim() },
+            { "TransProxy", () => new RndTransProxy() },
+            { "UIButton", () => new UIButton() },
+            { "UIColor", () => new UIColor() },
+            { "UIComponent", () => new UIComponent() },
+            { "UIGuide", () => new UIGuide() },
+            { "UILabel", () => new UILabel() },
+            { "UIList", () => new UIList() },
+            { "UIListArrow", () => new UIListArrow() },
+            { "UIListCustom", () => new UIListCustom() },
+            { "UIListHighlight", () => new UIListHighlight() },
+            { "UIListLabel", () => new UIListLabel() },
+            { "UIListMesh", () => new UIListMesh() },
+            { "UIListSlot", () => new UIListSlot() },
+            { "UIListWidget", () => new UIListWidget() },
+            { "UIPanel", () => new Object() },
+            { "UIPicture", () => new UIPicture() },
+            { "UISlider", () => new UISlider() },
+            { "UITrigger", () => new UITrigger() },
+            { "Wind", () => new RndWind() },
+            { "WorldCrowd", () => new WorldCrowd() },
+            { "WorldReflection", () => new WorldReflection() },
+            // Directory types (use revision 0 as default)
+            { "BandCharacter", () => new BandCharacter(0) },
+            { "BandCrowdMeterDir", () => new BandCrowdMeterDir(0) },
+            { "BandScoreboard", () => new BandScoreboard(0) },
+            { "BandStarDisplay", () => new BandStarDisplay(0) },
+            { "Character", () => new Character(0) },
+            { "CharBoneDir", () => new CharBoneDir(0) },
+            { "CharClipSet", () => new CharClipSet(0) },
+            { "CompositeCharacter", () => new CompositeCharacter(0) },
+            { "CrowdMeterIcon", () => new BandCrowdMeterIcon(0) },
+            { "EndingBonusDir", () => new RndDir(0) },
+            { "GemTrackDir", () => new GemTrackDir(0) },
+            { "MoveDir", () => new MoveDir(0) },
+            { "ObjectDir", () => new ObjectDir(0) },
+            { "OverdriveMeterDir", () => new OverdriveMeterDir(0) },
+            { "OvershellDir", () => new OvershellDir(0) },
+            { "P9Character", () => new P9Character(0) },
+            { "PanelDir", () => new PanelDir(0) },
+            { "PitchArrowDir", () => new PitchArrowDir(0) },
+            { "RndDir", () => new RndDir(0) },
+            { "SkeletonDir", () => new SkeletonDir(0) },
+            { "StreakMeterDir", () => new StreakMeterDir(0) },
+            { "SynthDir", () => new SynthDir(0) },
+            { "TrackDir", () => new TrackDir(0) },
+            { "TrackPanelDir", () => new TrackPanelDir(0) },
+            { "UILabelDir", () => new UILabelDir(0) },
+            { "UIListDir", () => new UIListDir(0) },
+            { "UnisonIcon", () => new UnisonIcon(0) },
+            { "VocalTrackDir", () => new VocalTrackDir(0) },
+            { "WorldDir", () => new WorldDir(0) },
+            { "WorldInstance", () => new WorldInstance(0) },
+        };
 
         public static DirectoryMeta New(string type, string name, uint sceneRevision, ushort rootDirRevision)
         {

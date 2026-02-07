@@ -293,12 +293,13 @@ public partial class Program
         }
     }
 
-    class AddSubDirPrompt : Prompt<(string, string)?>
+    class AddSubDirPrompt : Prompt<(string name, string type, int revision)?>
     {
         private string newName = "";
-        private static readonly List<string> Types = ["ObjectDir", "WorldDir", "RndDir", "PanelDir"];
+        private static readonly string[] Types = DirectoryMeta.GetSupportedDirectoryTypes();
         private int curType = 0;
-        
+        private int revision = 25;
+
         public AddSubDirPrompt()
         {
             Title = "Add Inlined Subdirectory";
@@ -309,12 +310,13 @@ public partial class Program
             if (BeginModal())
             {
                 ImGui.InputText("Name", ref newName, 32);
-                ImGui.Combo("Type", ref curType, Types.ToArray(), Types.Count);
-                
+                ImGui.Combo("Type", ref curType, Types, Types.Length);
+                ImGui.InputInt("Revision", ref revision);
+
                 ImGui.Separator();
                 if (ImGui.Button("OK"))
                 {
-                    Complete((newName, Types[curType]));
+                    Complete((newName, Types[curType], revision));
                 }
                 ImGui.SameLine();
                 if (ImGui.Button("Cancel"))
@@ -329,16 +331,84 @@ public partial class Program
     static async void PromptAddSubdir(DirectoryMeta dirEntry)
     {
         ObjectDir dir = (ObjectDir)dirEntry.directory;
-        
+
         var promptInput = await ShowGenericPrompt(new AddSubDirPrompt());
         if (promptInput != null)
         {
-            var (newName, newType) = promptInput.Value;
-            var newDir = DirectoryMeta.New(newType, newName, 27, 25); // this is how it's done in MiloEditor
+            var (newName, newType, revision) = promptInput.Value;
+            var newDir = DirectoryMeta.New(newType, newName, dirEntry.revision, (ushort)revision);
             dir.inlineSubDirs.Add(newDir);
             dir.inlineSubDirNames.Add($"{newName}.milo");
             dir.referenceTypes.Add(ObjectDir.ReferenceType.kInlineCached);
             dir.referenceTypesAlt.Add(ObjectDir.ReferenceType.kInlineCached);
+        }
+    }
+
+    class NewAssetPrompt : Prompt<(string type, string name, int revision)?>
+    {
+        private string newName = "";
+        private static readonly string[] Types = DirectoryMeta.GetSupportedEntryTypes();
+        private int curType = 0;
+        private int revision = 0;
+
+        public NewAssetPrompt()
+        {
+            Title = "New Asset";
+        }
+
+        public override void Show()
+        {
+            if (BeginModal())
+            {
+                ImGui.InputText("Name", ref newName, 64);
+                ImGui.Combo("Type", ref curType, Types, Types.Length);
+                ImGui.InputInt("Revision", ref revision);
+
+                ImGui.Separator();
+                if (ImGui.Button("OK"))
+                {
+                    Complete((Types[curType], newName, revision));
+                }
+                ImGui.SameLine();
+                if (ImGui.Button("Cancel"))
+                {
+                    Complete(null);
+                }
+                ImGui.EndPopup();
+            }
+        }
+    }
+
+    static async void PromptNewAsset(DirectoryMeta dir)
+    {
+        var promptInput = await ShowGenericPrompt(new NewAssetPrompt());
+        if (promptInput == null)
+            return;
+
+        var (type, name, revision) = promptInput.Value;
+
+        try
+        {
+            var obj = DirectoryMeta.CreateDefaultObject(type);
+            if (obj == null)
+            {
+                OpenErrorModal(new Exception($"Type '{type}' is not supported for creation."), "Failed to create asset.");
+                return;
+            }
+
+            var entry = new DirectoryMeta.Entry(type, name, obj);
+
+            // If this is a directory type, also create the inline directory
+            if (DirectoryMeta.IsDirectoryType(type))
+            {
+                entry.dir = DirectoryMeta.New(type, name, dir.revision, (ushort)revision);
+            }
+
+            dir.entries.Add(entry);
+        }
+        catch (Exception e)
+        {
+            OpenErrorModal(e, "Failed to create asset.");
         }
     }
 
@@ -516,7 +586,10 @@ public partial class Program
                     PromptImportAsset(dir);
                 }
 
-                ImGui.MenuItem(FontAwesome5.PlusCircle + "  New Asset", "", false, false);
+                if (ImGui.MenuItem(FontAwesome5.PlusCircle + "  New Asset"))
+                {
+                    PromptNewAsset(dir);
+                }
                 
                 FindReferencesMenu(dir.name);
                 
