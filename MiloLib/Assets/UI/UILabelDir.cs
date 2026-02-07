@@ -172,7 +172,7 @@ namespace MiloLib.Assets.UI
 
             if (standalone)
             {
-                writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
+                writer.WriteEndBytes();
             }
         }
 

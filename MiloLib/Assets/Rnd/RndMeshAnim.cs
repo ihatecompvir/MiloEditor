@@ -1,4 +1,4 @@
-﻿using MiloLib.Classes;
+using MiloLib.Classes;
 using MiloLib.Utils;
 
 namespace MiloLib.Assets.Rnd
@@ -39,10 +39,13 @@ namespace MiloLib.Assets.Rnd
         {
             writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
 
-            base.Write(writer, false, parent, entry);
+            if (revision != 0)
+                base.Write(writer, false, parent, entry);
+
+            anim.Write(writer);
 
             if (standalone)
-                writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
+                writer.WriteEndBytes();
         }
 
     }

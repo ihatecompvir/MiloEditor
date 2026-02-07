@@ -1,4 +1,4 @@
-﻿using MiloLib.Assets.Rnd;
+using MiloLib.Assets.Rnd;
 using MiloLib.Classes;
 using MiloLib.Utils;
 using System.Reflection.PortableExecutable;
@@ -30,6 +30,9 @@ namespace MiloLib.Assets.UI
         public int dummy;
 
         private uint oldLabelColorNum;
+
+        private ushort oldBandTextCompRevision;
+        private ushort oldBandTextCompAltRevision;
 
         public int unkInt1;
         public int unkInt2;
@@ -200,16 +203,16 @@ namespace MiloLib.Assets.UI
         public void LoadOldBandTextComp(EndianReader reader)
         {
             uint combinedRevision = reader.ReadUInt32();
-            if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
-            else (altRevision, revision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
+            if (BitConverter.IsLittleEndian) (oldBandTextCompRevision, oldBandTextCompAltRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
+            else (oldBandTextCompAltRevision, oldBandTextCompRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
 
-            if (revision > 2)
+            if (oldBandTextCompRevision > 2)
             {
                 return;
             }
             else
             {
-                if (revision < 1)
+                if (oldBandTextCompRevision < 1)
                 {
                     unkInt1 = reader.ReadInt32();
                     unkInt1 = reader.ReadInt32();
@@ -220,7 +223,7 @@ namespace MiloLib.Assets.UI
                 if (oldLabelType == "custom_colors")
                 {
                     oldLabelColorNum = 4;
-                    if (revision >= 2) oldLabelColorNum = reader.ReadUInt32();
+                    if (oldBandTextCompRevision >= 2) oldLabelColorNum = reader.ReadUInt32();
                     for (int i = 0; i < oldLabelColorNum; i++) dummy = reader.ReadInt32();
                 }
             }
@@ -228,14 +231,14 @@ namespace MiloLib.Assets.UI
 
         public void WriteOldBandTextComp(EndianWriter writer)
         {
-            writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
-            if (revision > 2)
+            writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((oldBandTextCompAltRevision << 16) | oldBandTextCompRevision) : (uint)((oldBandTextCompRevision << 16) | oldBandTextCompAltRevision));
+            if (oldBandTextCompRevision > 2)
             {
                 return;
             }
             else
             {
-                if (revision < 1)
+                if (oldBandTextCompRevision < 1)
                 {
                     writer.WriteInt32(unkInt1);
                     writer.WriteInt32(unkInt1);
@@ -245,7 +248,7 @@ namespace MiloLib.Assets.UI
                 Symbol.Write(writer, oldLabelType);
                 if (oldLabelType == "custom_colors")
                 {
-                    if (revision >= 2) writer.WriteUInt32(oldLabelColorNum);
+                    if (oldBandTextCompRevision >= 2) writer.WriteUInt32(oldLabelColorNum);
                     for (int i = 0; i < oldLabelColorNum; i++) writer.WriteInt32(dummy);
                 }
             }
@@ -370,7 +373,7 @@ namespace MiloLib.Assets.UI
             }
 
             if (standalone)
-                writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
+                writer.WriteEndBytes();
         }
 
     }

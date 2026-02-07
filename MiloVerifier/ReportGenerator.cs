@@ -52,7 +52,8 @@ public class ReportGenerator
         sb.AppendLine($"<div class='summary'>Generated on: {DateTime.Now:F}</div>");
 
         var errors = results.Where(r => r.IsError).ToList();
-        var mismatches = results.Where(r => !r.IsError).ToList();
+        var mismatches = results.Where(r => !r.IsError && !r.IsUnsupported).ToList();
+        var unsupported = results.Where(r => r.IsUnsupported).ToList();
         var mismatchedFiles = mismatches.GroupBy(r => r.FilePath).ToList();
 
         if (errors.Any())
@@ -89,6 +90,46 @@ public class ReportGenerator
                     sb.AppendLine($"<td><code>{result.BeforeHash}</code></td>");
                     sb.AppendLine($"<td class='mismatch'><code>{result.AfterHash}</code></td>");
                     sb.AppendLine("</tr>");
+                }
+                sb.AppendLine("</table>");
+                sb.AppendLine("</div>");
+            }
+        }
+
+        sb.AppendLine("<h2>Unsupported Types</h2>");
+        if (!unsupported.Any())
+        {
+            sb.AppendLine("<div class='summary summary-ok'>All object and directory types in the scanned files are supported.</div>");
+        }
+        else
+        {
+            // group by type to show a summary of unique unsupported types with counts
+            var byType = unsupported.GroupBy(r => r.ObjectType).OrderByDescending(g => g.Count()).ToList();
+            sb.AppendLine($"<div class='summary summary-fail'>Found {unsupported.Count} unsupported object(s) across {byType.Count} type(s).</div>");
+
+            sb.AppendLine("<h3>By Type</h3>");
+            sb.AppendLine("<div class='table-container'>");
+            sb.AppendLine("<table>");
+            sb.AppendLine("<tr><th>Type</th><th>Count</th></tr>");
+            foreach (var group in byType)
+            {
+                sb.AppendLine($"<tr><td><code>{HttpUtility.HtmlEncode(group.Key)}</code></td><td>{group.Count()}</td></tr>");
+            }
+            sb.AppendLine("</table>");
+            sb.AppendLine("</div>");
+
+            // detailed list grouped by file
+            var byFile = unsupported.GroupBy(r => r.FilePath).ToList();
+            sb.AppendLine("<h3>By File</h3>");
+            foreach (var group in byFile)
+            {
+                sb.AppendLine($"<h4>File: <code>{HttpUtility.HtmlEncode(group.Key)}</code></h4>");
+                sb.AppendLine("<div class='table-container'>");
+                sb.AppendLine("<table>");
+                sb.AppendLine("<tr><th>Object Name</th><th>Type</th></tr>");
+                foreach (var result in group)
+                {
+                    sb.AppendLine($"<tr><td><code>{HttpUtility.HtmlEncode(result.ObjectName)}</code></td><td><code>{HttpUtility.HtmlEncode(result.ObjectType)}</code></td></tr>");
                 }
                 sb.AppendLine("</table>");
                 sb.AppendLine("</div>");

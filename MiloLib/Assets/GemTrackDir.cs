@@ -1,4 +1,4 @@
-﻿using MiloLib.Assets.Band;
+using MiloLib.Assets.Band;
 using MiloLib.Assets.Rnd;
 using MiloLib.Classes;
 using MiloLib.Utils;
@@ -433,7 +433,7 @@ namespace MiloLib.Assets
 
             if (standalone)
             {
-                writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
+                writer.WriteEndBytes();
             }
         }
 

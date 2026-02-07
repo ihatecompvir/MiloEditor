@@ -1,4 +1,4 @@
-﻿using MiloLib.Assets.Band;
+using MiloLib.Assets.Band;
 using MiloLib.Assets.Band.UI;
 using MiloLib.Assets.Char;
 using MiloLib.Assets.Ham;
@@ -11,6 +11,7 @@ using MiloLib.Classes;
 using MiloLib.Utils;
 using MiloLib.Exceptions;
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -42,8 +43,8 @@ namespace MiloLib.Assets
         private delegate Object EntryReader(EndianReader reader, DirectoryMeta meta, Entry entry);
         private delegate void EntryWriter(EndianWriter writer, Object obj, DirectoryMeta meta, Entry entry);
 
-        // optimization using dictionaries for that sweet O(1) lookup instead of a giant switch statement or if-else chain
-        private static readonly Dictionary<string, DirectoryFactory> DirectoryFactories = new Dictionary<string, DirectoryFactory>
+        // optimization using frozen dictionaries for fast O(1) lookup instead of a giant switch statement or if-else chain
+        private static readonly FrozenDictionary<string, DirectoryFactory> DirectoryFactories = new Dictionary<string, DirectoryFactory>
         {
             { "ObjectDir", (rev) => new ObjectDir(rev) },
             { "EndingBonusDir", (rev) => new RndDir(rev) },
@@ -74,9 +75,9 @@ namespace MiloLib.Assets
             { "PitchArrowDir", (rev) => new PitchArrowDir(rev) },
             { "SynthDir", (rev) => new SynthDir(rev) },
             { "P9Character", (rev) => new P9Character(rev) },
-        };
+        }.ToFrozenDictionary();
 
-        private static readonly Dictionary<string, DirectoryReader> DirectoryReaders = new Dictionary<string, DirectoryReader>
+        private static readonly FrozenDictionary<string, DirectoryReader> DirectoryReaders = new Dictionary<string, DirectoryReader>
         {
             { "ObjectDir", (r, d, m, e) => ((ObjectDir)d).Read(r, true, m, e) },
             { "EndingBonusDir", (r, d, m, e) => ((RndDir)d).Read(r, true, m, e) },
@@ -107,9 +108,9 @@ namespace MiloLib.Assets
             { "PitchArrowDir", (r, d, m, e) => ((PitchArrowDir)d).Read(r, true, m, e) },
             { "SynthDir", (r, d, m, e) => ((SynthDir)d).Read(r, true, m, e) },
             { "P9Character", (r, d, m, e) => ((P9Character)d).Read(r, true, m, e) },
-        };
+        }.ToFrozenDictionary();
 
-        private static readonly Dictionary<string, DirectoryWriter> DirectoryWriters = new Dictionary<string, DirectoryWriter>
+        private static readonly FrozenDictionary<string, DirectoryWriter> DirectoryWriters = new Dictionary<string, DirectoryWriter>
         {
             { "ObjectDir", (w, d, m, e) => ((ObjectDir)d).Write(w, true, m, e) },
             { "RndDir", (w, d, m, e) => ((RndDir)d).Write(w, true, m, e) },
@@ -141,27 +142,27 @@ namespace MiloLib.Assets
             { "OverdriveMeterDir", (w, d, m, e) => ((OverdriveMeterDir)d).Write(w, true, m, e) },
             { "StreakMeterDir", (w, d, m, e) => ((StreakMeterDir)d).Write(w, true, m, e) },
             { "SynthDir", (w, d, m, e) => ((SynthDir)d).Write(w, true, m, e) },
-        };
+        }.ToFrozenDictionary();
 
         // Entry read/write action delegates - these handle the custom logic for each entry type
         private delegate void EntryReadAction(EndianReader reader, DirectoryMeta meta, Entry entry);
         private delegate void EntryWriteAction(EndianWriter writer, DirectoryMeta meta, Entry entry);
 
-        // Dictionary for entry read actions (O(1) lookup)
-        private static readonly Dictionary<string, EntryReadAction> EntryReadActions = new Dictionary<string, EntryReadAction>();
-
-        // Dictionary for entry write actions (O(1) lookup)
-        private static readonly Dictionary<string, EntryWriteAction> EntryWriteActions = new Dictionary<string, EntryWriteAction>();
+        // Frozen dictionaries for entry read/write actions (O(1) lookup, optimized for reads)
+        private static readonly FrozenDictionary<string, EntryReadAction> EntryReadActions;
+        private static readonly FrozenDictionary<string, EntryWriteAction> EntryWriteActions;
 
         // Initialize entry dictionaries in static constructor
         static DirectoryMeta()
         {
-            InitializeEntryReadActions();
-            InitializeEntryWriteActions();
+            EntryReadActions = InitializeEntryReadActions().ToFrozenDictionary();
+            EntryWriteActions = InitializeEntryWriteActions().ToFrozenDictionary();
         }
 
-        private static void InitializeEntryReadActions()
+        private static Dictionary<string, EntryReadAction> InitializeEntryReadActions()
         {
+            var actions = new Dictionary<string, EntryReadAction>();
+
             // simple object entries (don't require special cases or random bullshit - just read the object)
             var simpleObjectReaders = new Dictionary<string, System.Func<EndianReader, DirectoryMeta, Entry, Object>>
             {
@@ -215,6 +216,7 @@ namespace MiloLib.Assets
                 { "Mat", (r, m, e) => new RndMat().Read(r, true, m, e) },
                 { "MatAnim", (r, m, e) => new RndMatAnim().Read(r, true, m, e) },
                 { "Mesh", (r, m, e) => new RndMesh().Read(r, true, m, e) },
+                { "MidiInstrument", (r, m, e) => new MidiInstrument().Read(r, true, m, e) },
                 { "MotionBlur", (r, m, e) => new RndMotionBlur().Read(r, true, m, e) },
                 { "MoveGraph", (r, m, e) => new MoveGraph().Read(r, true, m, e) },
                 { "MsgSource", (r, m, e) => new Object().Read(r, true, m, e) },
@@ -265,7 +267,7 @@ namespace MiloLib.Assets
 
             foreach (var kvp in simpleObjectReaders)
             {
-                EntryReadActions[kvp.Key] = (reader, meta, entry) =>
+                actions[kvp.Key] = (reader, meta, entry) =>
                 {
                     Debug.WriteLine($"Reading entry {kvp.Key} {entry.name.value}");
                     entry.obj = kvp.Value(reader, meta, entry);
@@ -277,7 +279,7 @@ namespace MiloLib.Assets
             // Helper to create simple directory entries (read obj, set isProxy, read dir)
             Action<string, Func<EndianReader, DirectoryMeta, Entry, Object>> AddSimpleDirEntry = (typeName, objReader) =>
             {
-                EntryReadActions[typeName] = (reader, meta, entry) =>
+                actions[typeName] = (reader, meta, entry) =>
                 {
                     Debug.WriteLine($"Reading entry {typeName} {entry.name.value}");
                     entry.isProxy = true;
@@ -317,7 +319,7 @@ namespace MiloLib.Assets
             AddSimpleDirEntry("WorldDir", (r, m, e) => new WorldDir(0).Read(r, true, m, e));
 
             // Character - conditional dir read based on proxyPath
-            EntryReadActions["Character"] = (reader, meta, entry) =>
+            actions["Character"] = (reader, meta, entry) =>
             {
                 Debug.WriteLine($"Reading entry Character {entry.name.value}");
                 entry.isProxy = true;
@@ -333,7 +335,7 @@ namespace MiloLib.Assets
             };
 
             // CharClipSet - conditional dir read based on inlineProxy
-            EntryReadActions["CharClipSet"] = (reader, meta, entry) =>
+            actions["CharClipSet"] = (reader, meta, entry) =>
             {
                 Debug.WriteLine($"Reading entry CharClipSet {entry.name.value}");
                 entry.isProxy = true;
@@ -349,7 +351,7 @@ namespace MiloLib.Assets
             };
 
             // RndDir and EndingBonusDir - conditional dir read based on inlineProxy
-            EntryReadActions["RndDir"] = EntryReadActions["EndingBonusDir"] = (reader, meta, entry) =>
+            actions["RndDir"] = actions["EndingBonusDir"] = (reader, meta, entry) =>
             {
                 Debug.WriteLine($"Reading entry RndDir {entry.name.value}");
                 entry.isProxy = true;
@@ -365,7 +367,7 @@ namespace MiloLib.Assets
             };
 
             // ObjectDir - conditional dir read based on inlineProxy
-            EntryReadActions["ObjectDir"] = (reader, meta, entry) =>
+            actions["ObjectDir"] = (reader, meta, entry) =>
             {
                 Debug.WriteLine($"Reading entry ObjectDir {entry.name.value}");
                 entry.isProxy = true;
@@ -381,7 +383,7 @@ namespace MiloLib.Assets
             };
 
             // WorldInstance - i dont even know
-            EntryReadActions["WorldInstance"] = (reader, meta, entry) =>
+            actions["WorldInstance"] = (reader, meta, entry) =>
             {
                 entry.isProxy = true;
 
@@ -418,7 +420,7 @@ namespace MiloLib.Assets
             };
 
             // OutfitConfig - conditional on revision
-            EntryReadActions["OutfitConfig"] = (reader, meta, entry) =>
+            actions["OutfitConfig"] = (reader, meta, entry) =>
             {
                 if (meta.revision != 28)
                 {
@@ -450,10 +452,14 @@ namespace MiloLib.Assets
                 Debug.WriteLine($"Reading entry OutfitConfig {entry.name.value}");
                 entry.obj = new OutfitConfig().Read(reader, true, meta, entry);
             };
+
+            return actions;
         }
 
-        private static void InitializeEntryWriteActions()
+        private static Dictionary<string, EntryWriteAction> InitializeEntryWriteActions()
         {
+            var actions = new Dictionary<string, EntryWriteAction>();
+
             // Simple object entries (write object only)
             var simpleObjectWriters = new Dictionary<string, System.Action<EndianWriter, Object, DirectoryMeta, Entry>>
             {
@@ -549,14 +555,14 @@ namespace MiloLib.Assets
 
             foreach (var kvp in simpleObjectWriters)
             {
-                EntryWriteActions[kvp.Key] = (writer, meta, entry) =>
+                actions[kvp.Key] = (writer, meta, entry) =>
                 {
                     kvp.Value(writer, entry.obj, meta, entry);
                 };
             }
 
             // Special case for Trans which has different parameters
-            EntryWriteActions["Trans"] = (writer, meta, entry) =>
+            actions["Trans"] = (writer, meta, entry) =>
             {
                 ((RndTrans)entry.obj).Write(writer, true, meta, false);
             };
@@ -566,7 +572,7 @@ namespace MiloLib.Assets
             // Helper to create simple directory entry writers (write obj, set isProxy false, write dir)
             Action<string, Action<EndianWriter, Object, DirectoryMeta, Entry>> AddSimpleDirEntryWriter = (typeName, objWriter) =>
             {
-                EntryWriteActions[typeName] = (writer, meta, entry) =>
+                actions[typeName] = (writer, meta, entry) =>
                 {
                     objWriter(writer, entry.obj, meta, entry);
                     entry.dir.Write(writer);
@@ -600,7 +606,7 @@ namespace MiloLib.Assets
             AddSimpleDirEntryWriter("BandCharacter", (w, o, m, e) => ((BandCharacter)o).Write(w, true, m, e));
 
             // Character - conditional dir write based on proxyPath
-            EntryWriteActions["Character"] = (writer, meta, entry) =>
+            actions["Character"] = (writer, meta, entry) =>
             {
                 ((Character)entry.obj).Write(writer, true, meta, entry);
                 if (((Character)entry.obj).proxyPath != String.Empty)
@@ -610,7 +616,7 @@ namespace MiloLib.Assets
             };
 
             // CharClipSet - write as CharClipSet (includes PostLoad fields for non-proxy)
-            EntryWriteActions["CharClipSet"] = (writer, meta, entry) =>
+            actions["CharClipSet"] = (writer, meta, entry) =>
             {
                 ((CharClipSet)entry.obj).Write(writer, true, meta, entry);
                 if (entry.dir != null)
@@ -620,7 +626,7 @@ namespace MiloLib.Assets
             };
 
             // MoveDir - conditional dir write
-            EntryWriteActions["MoveDir"] = (writer, meta, entry) =>
+            actions["MoveDir"] = (writer, meta, entry) =>
             {
                 ((MoveDir)entry.obj).Write(writer, true, meta, entry);
                 if (entry.dir != null)
@@ -630,7 +636,7 @@ namespace MiloLib.Assets
             };
 
             // ObjectDir - conditional dir write
-            EntryWriteActions["ObjectDir"] = (writer, meta, entry) =>
+            actions["ObjectDir"] = (writer, meta, entry) =>
             {
                 ((ObjectDir)entry.obj).Write(writer, true, meta, entry);
                 if (entry.dir != null)
@@ -640,7 +646,7 @@ namespace MiloLib.Assets
             };
 
             // RndDir - conditional dir write
-            EntryWriteActions["RndDir"] = (writer, meta, entry) =>
+            actions["RndDir"] = (writer, meta, entry) =>
             {
                 ((RndDir)entry.obj).Write(writer, true, meta, entry);
                 if (entry.dir != null)
@@ -650,13 +656,13 @@ namespace MiloLib.Assets
             };
 
             // WorldInstance - fuck
-            EntryWriteActions["WorldInstance"] = (writer, meta, entry) =>
+            actions["WorldInstance"] = (writer, meta, entry) =>
             {
                 ((WorldInstance)entry.obj).Write(writer, false, meta, entry);
 
                 if (((WorldInstance)entry.obj).revision == 0)
                 {
-                    writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
+                    writer.WriteEndBytes();
                     return;
                 }
 
@@ -678,6 +684,8 @@ namespace MiloLib.Assets
                     ((WorldInstance)entry.obj).persistentObjects.Write(writer, meta, entry, ((WorldInstance)entry.obj).revision);
                 }
             };
+
+            return actions;
         }
 
         public class Entry
@@ -743,7 +751,12 @@ namespace MiloLib.Assets
             /// The raw bytes of the object. If we can't deserialize/serialize a particular type yet, we just read and write this directly.
             /// Also used to enable extracting assets.
             /// </summary>
-            public List<byte> objBytes = new List<byte>();
+            public byte[] objBytes = Array.Empty<byte>();
+
+            /// <summary>
+            /// Absolute stream position where objBytes starts. Used by MiloVerifier to exclude string table bytes from hash.
+            /// </summary>
+            public long objBytesAbsolutePosition = -1;
 
             public Entry(Symbol type, Symbol name, Object obj)
             {
@@ -752,7 +765,7 @@ namespace MiloLib.Assets
                 this.obj = obj;
             }
 
-            public static Entry CreateDirtyAssetFromBytes(string type, string name, List<byte> bytes)
+            public static Entry CreateDirtyAssetFromBytes(string type, string name, byte[] bytes)
             {
                 Entry entry = new Entry(new Symbol(0, ""), new Symbol(0, ""), null);
                 entry.type = type;
@@ -814,6 +827,16 @@ namespace MiloLib.Assets
         /// </summary>
         public uint stringTableSize;
 
+        /// <summary>
+        /// Absolute stream position where stringTableCount was read. Used by MiloVerifier to exclude from hash.
+        /// </summary>
+        public long stringTableAbsolutePosition = -1;
+
+        /// <summary>
+        /// Absolute stream position where DirObjBytes starts.
+        /// </summary>
+        public long dirDataStartAbsolutePosition = -1;
+
         private uint externalResourceCount;
 
         /// <summary>
@@ -835,7 +858,7 @@ namespace MiloLib.Assets
         /// </summary>
         public Platform platform = Platform.PS3;
 
-        public List<byte> DirObjBytes { get; set; } = new List<byte>();
+        public byte[] DirObjBytes { get; set; } = Array.Empty<byte>();
 
         public DirectoryMeta Read(EndianReader reader)
         {
@@ -861,6 +884,7 @@ namespace MiloLib.Assets
                 type = Symbol.Read(reader);
                 name = Symbol.Read(reader);
 
+                stringTableAbsolutePosition = reader.BaseStream.Position;
                 stringTableCount = reader.ReadUInt32();
                 stringTableSize = reader.ReadUInt32();
 
@@ -888,7 +912,8 @@ namespace MiloLib.Assets
                 }
             }
 
-            long dirDataStart = reader.BaseStream.Position;
+            dirDataStartAbsolutePosition = reader.BaseStream.Position;
+            long dirDataStart = dirDataStartAbsolutePosition;
 
             if (type.value == "")
             {
@@ -910,13 +935,15 @@ namespace MiloLib.Assets
             if (dirDataEnd > dirDataStart)
             {
                 reader.BaseStream.Position = dirDataStart;
-                this.DirObjBytes = reader.ReadBlock((int)(dirDataEnd - dirDataStart)).ToList();
+                this.DirObjBytes = reader.ReadBlock((int)(dirDataEnd - dirDataStart));
             }
 
             foreach (Entry entry in entries)
             {
                 long startPos = reader.BaseStream.Position;
+                entry.objBytesAbsolutePosition = startPos;
 
+                var objBytesList = new List<byte>();
                 while (true)
                 {
                     byte b = reader.ReadByte();
@@ -934,8 +961,9 @@ namespace MiloLib.Assets
                         reader.BaseStream.Position = currentPos;
                     }
 
-                    entry.objBytes.Add(b);
+                    objBytesList.Add(b);
                 }
+                entry.objBytes = objBytesList.ToArray();
 
                 reader.BaseStream.Position = startPos;
 
@@ -1066,8 +1094,8 @@ namespace MiloLib.Assets
 
             if (entry.dirty)
             {
-                writer.WriteBlock(entry.objBytes.ToArray());
-                writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
+                writer.WriteBlock(entry.objBytes);
+                writer.WriteEndBytes();
                 return;
             }
 
@@ -1087,10 +1115,10 @@ namespace MiloLib.Assets
                 Debug.WriteLine("Unknown entry type, dumping raw bytes for " + entry.type.value + " of name " + entry.name.value);
 
                 // this should allow saving Milos with types that have yet to be implemented
-                writer.WriteBlock(entry.objBytes.ToArray());
+                writer.WriteBlock(entry.objBytes);
 
                 // write the ending bytes
-                writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
+                writer.WriteEndBytes();
             }
 
             entry.OnAfterWrite(writer);
@@ -1136,7 +1164,7 @@ namespace MiloLib.Assets
         }
 
         // factories for constructing various objs
-        private static readonly Dictionary<string, Func<Object>> EntryObjectFactories = new Dictionary<string, Func<Object>>
+        private static readonly FrozenDictionary<string, Func<Object>> EntryObjectFactories = new Dictionary<string, Func<Object>>
         {
             { "AnimFilter", () => new RndAnimFilter() },
             { "BandButton", () => new BandButton() },
@@ -1188,6 +1216,7 @@ namespace MiloLib.Assets
             { "Mat", () => new RndMat() },
             { "MatAnim", () => new RndMatAnim() },
             { "Mesh", () => new RndMesh() },
+            { "MidiInstrument", () => new MidiInstrument() },
             { "MotionBlur", () => new RndMotionBlur() },
             { "MoveGraph", () => new MoveGraph() },
             { "MsgSource", () => new Object() },
@@ -1267,7 +1296,7 @@ namespace MiloLib.Assets
             { "VocalTrackDir", () => new VocalTrackDir(0) },
             { "WorldDir", () => new WorldDir(0) },
             { "WorldInstance", () => new WorldInstance(0) },
-        };
+        }.ToFrozenDictionary();
 
         public static DirectoryMeta New(string type, string name, uint sceneRevision, ushort rootDirRevision)
         {

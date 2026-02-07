@@ -141,16 +141,19 @@ namespace MiloLib.Assets.Rnd
                 return;
             }
 
-            writer.WriteUInt32(animEntryCount);
-            foreach (var entry in animEntries)
+            if (revision < 1)
             {
-                entry.Write(writer);
-            }
+                writer.WriteUInt32((uint)animEntries.Count);
+                foreach (var entry in animEntries)
+                {
+                    entry.Write(writer);
+                }
 
-            writer.WriteUInt32(animCount);
-            foreach (var anim in anims)
-            {
-                Symbol.Write(writer, anim);
+                writer.WriteUInt32((uint)anims.Count);
+                foreach (var anim in anims)
+                {
+                    Symbol.Write(writer, anim);
+                }
             }
         }
 

@@ -10,29 +10,29 @@ namespace ImMilo;
 public static class CharAssetFixer
 {
     
-    private static List<byte> templateBytes = new();
+    private static byte[] templateBytes = Array.Empty<byte>();
 
     private static RndGroup AddTemplateTranslucentGroup(DirectoryMeta dir)
     {
         var assembly = typeof(CharAssetFixer).Assembly;
 
 
-        if (templateBytes.Count == 0)
+        if (templateBytes.Length == 0)
         {
             using (Stream s = assembly.GetManifestResourceStream("translucentGroupTemplate"))
             {
                 byte[] bytes = new byte[s.Length];
-            
+
                 s.ReadExactly(bytes, 0, bytes.Length);
-                templateBytes = bytes.ToList();
+                templateBytes = bytes;
             }
         }
-        
+
         var entry = DirectoryMeta.Entry.CreateDirtyAssetFromBytes("Group", "translucent.grp", templateBytes);
         entry.dirty = false; // this is probably stupid, whatever!
         dir.entries.Add(entry);
 
-        var groupObj = new RndGroup().Read(new EndianReader(new MemoryStream(templateBytes.ToArray()), Endian.BigEndian), false, dir, entry);
+        var groupObj = new RndGroup().Read(new EndianReader(new MemoryStream(templateBytes), Endian.BigEndian), false, dir, entry);
         entry.obj = groupObj;
         return groupObj;
     }

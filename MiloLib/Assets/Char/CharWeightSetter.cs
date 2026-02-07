@@ -1,4 +1,4 @@
-﻿using MiloLib.Classes;
+using MiloLib.Classes;
 using MiloLib.Utils;
 
 namespace MiloLib.Assets.Char
@@ -168,14 +168,14 @@ namespace MiloLib.Assets.Char
             }
             else
             {
-                if (revision > 6 && minWeights.Count > 0)
+                if (revision > 6)
                     Symbol.Write(writer, minWeights[0]);
-                if (revision > 7 && maxWeights.Count > 0)
+                if (revision > 7)
                     Symbol.Write(writer, maxWeights[0]);
             }
 
             if (standalone)
-                writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
+                writer.WriteEndBytes();
         }
 
     }

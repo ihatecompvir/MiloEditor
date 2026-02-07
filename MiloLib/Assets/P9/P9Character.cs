@@ -87,7 +87,7 @@ namespace MiloLib.Assets.P9
             Symbol.Write(writer, micIk);
 
             if (standalone)
-                writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
+                writer.WriteEndBytes();
         }
 
         public override bool IsDirectory()

@@ -557,7 +557,10 @@ namespace MiloLib.Assets.Rnd
                 writer.WriteBoolean(perspectiveStretch);
             }
 
-            writer.WriteFloat(relativeMotion);
+            if (revision > 19)
+                writer.WriteFloat(relativeMotion);
+            else if (revision > 12)
+                writer.WriteBoolean(relativeMotion != 0.0f);
 
             if (26 < revision)
                 Symbol.Write(writer, relativeParent);
@@ -593,7 +596,7 @@ namespace MiloLib.Assets.Rnd
 
 
             if (standalone)
-                writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
+                writer.WriteEndBytes();
 
 
         }

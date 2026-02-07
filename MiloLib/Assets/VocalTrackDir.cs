@@ -1,4 +1,4 @@
-﻿using MiloLib.Assets.Band;
+using MiloLib.Assets.Band;
 using MiloLib.Assets.Rnd;
 using MiloLib.Classes;
 using MiloLib.Utils;
@@ -642,7 +642,7 @@ namespace MiloLib.Assets
                     writer.WriteFloat(unkFloat8);
                     writer.WriteUInt32(unkInt3);
 
-                    writer.WriteUInt32(configurableObjectsCount);
+                    writer.WriteUInt32((uint)configurableObjects.Count);
                     foreach (var obj in configurableObjects)
                     {
                         Symbol.Write(writer, obj);
@@ -684,13 +684,13 @@ namespace MiloLib.Assets
                     writer.WriteFloat(unkFloat14);
                     writer.WriteFloat(unkFloat15);
 
-                    writer.WriteUInt32(colorsCount);
+                    writer.WriteUInt32((uint)colors.Count);
                     foreach (var color in colors)
                     {
                         color.Write(writer);
                     }
 
-                    writer.WriteUInt32(floatsCount);
+                    writer.WriteUInt32((uint)floats.Count);
                     foreach (var value in floats)
                     {
                         writer.WriteFloat(value);
@@ -735,7 +735,7 @@ namespace MiloLib.Assets
                 }
                 else
                 {
-                    writer.WriteUInt32(configurableObjectsCount);
+                    writer.WriteUInt32((uint)configurableObjects.Count);
                     foreach (var obj in configurableObjects)
                     {
                         Symbol.Write(writer, obj);
@@ -753,7 +753,7 @@ namespace MiloLib.Assets
 
                     if (revision < 3)
                     {
-                        writer.WriteUInt32(colorsCount);
+                        writer.WriteUInt32((uint)colors.Count);
                         foreach (var color in colors)
                         {
                             color.Write(writer);
@@ -775,13 +775,13 @@ namespace MiloLib.Assets
                     Symbol.Write(writer, spotlightSparklesOnlyTrig);
                     Symbol.Write(writer, spotlightPhraseSuccessTrig);
 
-                    writer.WriteUInt32(lyricColorsCount);
+                    writer.WriteUInt32((uint)lyricColors.Count);
                     foreach (var lyricColor in lyricColors)
                     {
                         lyricColor.Write(writer);
                     }
 
-                    writer.WriteUInt32(lyricAlphaMapCount);
+                    writer.WriteUInt32((uint)lyricAlphaMaps.Count);
                     foreach (var lyricAlphaMap in lyricAlphaMaps)
                     {
                         lyricAlphaMap.Write(writer);
@@ -872,7 +872,7 @@ namespace MiloLib.Assets
 
             if (standalone)
             {
-                writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
+                writer.WriteEndBytes();
             }
         }
 

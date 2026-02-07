@@ -1,4 +1,4 @@
-﻿using MiloLib.Utils;
+using MiloLib.Utils;
 using MiloLib.Classes;
 
 namespace MiloLib.Assets.Rnd
@@ -50,6 +50,8 @@ namespace MiloLib.Assets.Rnd
         [Name("Bitmap"), Description("The bitmap data.")]
         public RndBitmap bitmap = new();
 
+        public uint legoUnk;
+
         public ushort unkShort;
 
         public uint unkInt;
@@ -77,7 +79,7 @@ namespace MiloLib.Assets.Rnd
             // lego gotta be special
             if (parent.revision == 25 && revision == 11)
             {
-                reader.ReadUInt32();
+                legoUnk = reader.ReadUInt32();
             }
 
             externalPath = Symbol.Read(reader);
@@ -157,6 +159,11 @@ namespace MiloLib.Assets.Rnd
 
             writer.WriteUInt32(bpp);
 
+            if (parent.revision == 25 && revision == 11)
+            {
+                writer.WriteUInt32(legoUnk);
+            }
+
             Symbol.Write(writer, externalPath);
 
             if (revision >= 8)
@@ -174,7 +181,7 @@ namespace MiloLib.Assets.Rnd
                 writer.WriteBoolean(isRegular);
             }
 
-            if (revision >= 11)
+            if (revision >= 11 && parent.revision != 25)
                 writer.WriteBoolean(optimizeForPS3);
 
             if (revision != 7)
@@ -182,7 +189,14 @@ namespace MiloLib.Assets.Rnd
             else
                 writer.WriteUInt32(useExternalPath ? 1u : 0u);
 
-            if (parent.platform == DirectoryMeta.Platform.Wii && altRevision == 1)
+            if (revision == 5)
+            {
+                if (standalone)
+                    writer.WriteEndBytes();
+                return;
+            }
+
+            if (parent.platform == DirectoryMeta.Platform.Wii && revision > 10)
                 writer.WriteUInt16(unkShort);
 
             Endian origEndian = writer.Endianness;
@@ -203,7 +217,7 @@ namespace MiloLib.Assets.Rnd
 
             if (standalone)
             {
-                writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
+                writer.WriteEndBytes();
             }
 
         }

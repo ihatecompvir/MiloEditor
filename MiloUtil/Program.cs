@@ -371,7 +371,7 @@ class Program
                 Console.WriteLine($"Found asset '{asset}' of type '{entry.type}' in directory '{miloFile.dirMeta.name}'");
 
                 // extract the asset
-                System.IO.File.WriteAllBytes(outputPath, entry.objBytes.ToArray());
+                System.IO.File.WriteAllBytes(outputPath, entry.objBytes);
 
                 Console.WriteLine($"Extracted asset to: {outputPath}");
                 return;
@@ -391,7 +391,7 @@ class Program
                         Console.WriteLine($"Found asset '{asset}' of type '{entry.type}' in inlined subdirectory '{dir.name}'");
 
                         // extract the asset
-                        System.IO.File.WriteAllBytes(outputPath, entry.objBytes.ToArray());
+                        System.IO.File.WriteAllBytes(outputPath, entry.objBytes);
 
                         Console.WriteLine($"Extracted asset to: {outputPath}");
                         return;
@@ -415,7 +415,7 @@ class Program
                             Console.WriteLine($"Found asset '{asset}' of type '{subEntry.type}' in directory '{entry.name}'");
 
                             // extract the asset
-                            System.IO.File.WriteAllBytes(outputPath, subEntry.objBytes.ToArray());
+                            System.IO.File.WriteAllBytes(outputPath, subEntry.objBytes);
 
                             Console.WriteLine($"Extracted asset to: {outputPath}");
                             return;
@@ -435,7 +435,7 @@ class Program
                                     Console.WriteLine($"Found asset '{asset}' of type '{subEntry.type}' in inlined subdirectory '{dir.name}' of directory '{entry.name}'");
 
                                     // extract the asset
-                                    System.IO.File.WriteAllBytes(outputPath, subEntry.objBytes.ToArray());
+                                    System.IO.File.WriteAllBytes(outputPath, subEntry.objBytes);
 
                                     Console.WriteLine($"Extracted asset to: {outputPath}");
                                     return;

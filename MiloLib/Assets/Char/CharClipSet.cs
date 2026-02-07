@@ -1,4 +1,4 @@
-﻿using MiloLib.Utils;
+using MiloLib.Utils;
 using MiloLib.Classes;
 using MiloLib.Assets;
 
@@ -262,7 +262,7 @@ namespace MiloLib.Assets.Char
             if (entry != null && entry.isProxy && proxyPath.value != "")
             {
                 if (standalone)
-                    writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
+                    writer.WriteEndBytes();
                 return;
             }
 
@@ -305,7 +305,7 @@ namespace MiloLib.Assets.Char
             }
             else
             {
-                writer.WriteUInt32(unkSymbolListCount);
+                writer.WriteUInt32((uint)unkSymbolList.Count);
                 foreach (Symbol symbol in unkSymbolList)
                 {
                     Symbol.Write(writer, symbol);
@@ -314,13 +314,13 @@ namespace MiloLib.Assets.Char
 
             if (revision >= 5 && revision <= 0x17)
             {
-                writer.WriteUInt32(unkStrings1Count);
+                writer.WriteUInt32((uint)unkStrings1.Count);
                 foreach (Symbol str in unkStrings1)
                 {
                     Symbol.Write(writer, str);
                 }
 
-                writer.WriteUInt32(unkStrings2Count);
+                writer.WriteUInt32((uint)unkStrings2.Count);
                 foreach (Symbol str in unkStrings2)
                 {
                     Symbol.Write(writer, str);
@@ -354,7 +354,7 @@ namespace MiloLib.Assets.Char
                 Symbol.Write(writer, stillClip);
 
             if (standalone)
-                writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
+                writer.WriteEndBytes();
         }
 
         public override bool IsDirectory()

@@ -1,4 +1,4 @@
-﻿using MiloLib.Classes;
+using MiloLib.Classes;
 using MiloLib.Utils;
 using static MiloLib.Assets.Rnd.PropKey;
 
@@ -219,7 +219,7 @@ namespace MiloLib.Assets.Rnd
                 writer.WriteBoolean(rotSpline);
 
             if (standalone)
-                writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
+                writer.WriteEndBytes();
         }
     }
 }

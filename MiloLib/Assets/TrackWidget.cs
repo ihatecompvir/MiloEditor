@@ -1,4 +1,4 @@
-﻿using MiloLib.Assets.Rnd;
+using MiloLib.Assets.Rnd;
 using MiloLib.Classes; // Added for attributes
 using MiloLib.Utils;
 using System; // Added for Exception, BitConverter
@@ -363,7 +363,7 @@ namespace MiloLib.Assets
 
 
             if (standalone)
-                writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
+                writer.WriteEndBytes();
         }
 
         public static TrackWidget New(ushort revision, ushort altRevision)

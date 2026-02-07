@@ -1,4 +1,4 @@
-﻿using MiloLib.Assets.Rnd;
+using MiloLib.Assets.Rnd;
 using MiloLib.Classes;
 using MiloLib.Utils;
 
@@ -137,7 +137,7 @@ namespace MiloLib.Assets.World
                     }
                 }
 
-                writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
+                writer.WriteEndBytes();
             }
         }
 
@@ -199,7 +199,7 @@ namespace MiloLib.Assets.World
             base.Write(writer, false, parent, entry);
 
             if (standalone && !entry.isProxy)
-                writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
+                writer.WriteEndBytes();
         }
 
         public override bool IsDirectory()

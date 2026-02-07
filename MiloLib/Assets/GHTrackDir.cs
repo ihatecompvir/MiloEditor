@@ -1,4 +1,4 @@
-﻿using MiloLib.Assets.Rnd;
+using MiloLib.Assets.Rnd;
 using MiloLib.Assets.UI;
 using MiloLib.Classes;
 using MiloLib.Utils;
@@ -101,31 +101,31 @@ namespace MiloLib.Assets
 
             Symbol.Write(writer, spCam);
 
-            writer.WriteUInt32(mpCamCount);
+            writer.WriteUInt32((uint)mpCams.Count);
             foreach (Symbol mpCam in mpCams)
             {
                 Symbol.Write(writer, mpCam);
             }
 
-            writer.WriteUInt32(gemWidgetCount);
+            writer.WriteUInt32((uint)gemWidgets.Count);
             foreach (Symbol gemWidget in gemWidgets)
             {
                 Symbol.Write(writer, gemWidget);
             }
 
-            writer.WriteUInt32(hopoWidgetCount);
+            writer.WriteUInt32((uint)hopoWidgets.Count);
             foreach (Symbol hopoWidget in hopoWidgets)
             {
                 Symbol.Write(writer, hopoWidget);
             }
 
-            writer.WriteUInt32(starWidgetCount);
+            writer.WriteUInt32((uint)starWidgets.Count);
             foreach (Symbol starWidget in starWidgets)
             {
                 Symbol.Write(writer, starWidget);
             }
 
-            writer.WriteUInt32(starHopoWidgetCount);
+            writer.WriteUInt32((uint)starHopoWidgets.Count);
             foreach (Symbol starHopoWidget in starHopoWidgets)
             {
                 Symbol.Write(writer, starHopoWidget);
@@ -134,7 +134,7 @@ namespace MiloLib.Assets
             base.Write(writer, false, parent, entry);
 
             if (standalone)
-                writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
+                writer.WriteEndBytes();
         }
 
         public override bool IsDirectory()

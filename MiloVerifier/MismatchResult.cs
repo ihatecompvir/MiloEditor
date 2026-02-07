@@ -18,5 +18,6 @@ namespace MiloBench
         public string AfterHash { get; set; } = "";
         public string ErrorMessage { get; set; } = "";
         public bool IsError => !string.IsNullOrEmpty(ErrorMessage);
+        public bool IsUnsupported { get; set; } = false;
     }
 }

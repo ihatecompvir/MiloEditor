@@ -1,4 +1,4 @@
-﻿using MiloLib.Classes;
+using MiloLib.Classes;
 using MiloLib.Utils;
 using System;
 using System.Collections.Generic;
@@ -1024,7 +1024,7 @@ namespace MiloLib.Assets.Rnd
             }
 
             if (standalone)
-                writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
+                writer.WriteEndBytes();
         }
 
         public static RndMesh New(ushort revision, ushort altRevision, uint vertexCount, uint faceCount)

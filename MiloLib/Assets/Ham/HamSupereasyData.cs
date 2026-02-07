@@ -68,14 +68,14 @@ namespace MiloLib.Assets.Ham
 
             base.Write(writer, false, parent, entry);
 
-            writer.WriteUInt32(numSuperEasyMeasures);
+            writer.WriteUInt32((uint)mRoutine.Count);
             foreach (var measure in mRoutine)
             {
                 measure.Write(writer);
             }
 
             if (standalone)
-                writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
+                writer.WriteEndBytes();
         }
     }
 }

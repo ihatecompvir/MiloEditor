@@ -1,4 +1,4 @@
-﻿using MiloLib.Assets.World;
+using MiloLib.Assets.World;
 using MiloLib.Classes;
 using MiloLib.Utils;
 using System;
@@ -79,6 +79,8 @@ namespace MiloLib.Assets
 
         [Name("Inline Sub Directories"), MinVersion(21)]
         public List<DirectoryMeta> inlineSubDirs = new List<DirectoryMeta>();
+
+        public List<bool> inlineCachedBooleans = new();
 
         [Name("Unknown String 1"), MinVersion(3), MaxVersion(10)]
         public Symbol unknownString = new(0, "");
@@ -270,7 +272,7 @@ namespace MiloLib.Assets
                             {
                                 if (referenceTypes[i] == ReferenceType.kInlineCached && referenceTypesAlt[i] == ReferenceType.kInlineCached)
                                 {
-                                    reader.ReadBoolean();
+                                    inlineCachedBooleans.Add(reader.ReadBoolean());
                                 }
                             }
                             if (referenceTypes.Count > i && referenceTypesAlt.Count > i &&
@@ -356,9 +358,16 @@ namespace MiloLib.Assets
             }
             else
             {
-                writer.WriteUInt16(objFields.altRevision);
-                writer.WriteUInt16(objFields.revision);
-                Symbol.Write(writer, objFields.type);
+                if (revision != 26)
+                {
+                    writer.WriteUInt16(objFields.altRevision);
+                    writer.WriteUInt16(objFields.revision);
+                    Symbol.Write(writer, objFields.type);
+                }
+                else
+                {
+                    objFields.Write(writer, parent);
+                }
             }
 
             if (revision > 1)
@@ -419,7 +428,7 @@ namespace MiloLib.Assets
                         Symbol.Write(writer, inlineSubDirName);
                     }
 
-                    if (revision >= 27)
+                    if (revision >= 26)
                     {
                         foreach (var referenceType in referenceTypes)
                         {
@@ -434,13 +443,14 @@ namespace MiloLib.Assets
 
 
                     int inlineIdx = 0;
+                    int cachedBoolIdx = 0;
                     for (int i = 0; i < inlineSubDirNames.Count; i++)
                     {
                         if (referenceTypes.Count > i && referenceTypesAlt.Count > i)
                         {
                             if (referenceTypes[i] == ReferenceType.kInlineCached && referenceTypesAlt[i] == ReferenceType.kInlineCached)
                             {
-                                writer.WriteBoolean(false);
+                                writer.WriteBoolean(cachedBoolIdx < inlineCachedBooleans.Count ? inlineCachedBooleans[cachedBoolIdx++] : false);
                             }
                         }
                         if (referenceTypes.Count > i && referenceTypesAlt.Count > i &&
@@ -502,7 +512,7 @@ namespace MiloLib.Assets
 
             if (standalone)
             {
-                writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
+                writer.WriteEndBytes();
             }
         }
 

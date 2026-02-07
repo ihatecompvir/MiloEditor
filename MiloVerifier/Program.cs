@@ -1,5 +1,6 @@
 ﻿using MiloBench;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -8,13 +9,21 @@ using System.Threading;
 
 class Program
 {
-    // flag to indicate cancellation request
-    private static volatile bool _cancellationRequested = false;
+    private static readonly object _consoleLock = new();
 
     static void Main(string[] args)
     {
-        // set up handler for ctrl C
-        Console.CancelKeyPress += new ConsoleCancelEventHandler(OnCancelKeyPress);
+        using var cts = new CancellationTokenSource();
+
+        Console.CancelKeyPress += (sender, e) =>
+        {
+            e.Cancel = true;
+            cts.Cancel();
+            lock (_consoleLock)
+            {
+                Console.WriteLine("\n\nCtrl+C detected. Graceful shutdown initiated...");
+            }
+        };
 
         if (args.Length == 0)
         {
@@ -58,88 +67,112 @@ class Program
             return;
         }
 
-        var verifier = new MiloVerifier();
-        var allResults = new List<MismatchResult>();
+        var allResults = new ConcurrentBag<MismatchResult>();
+        int processedCount = 0;
+        int okCount = 0;
+        int mismatchCount = 0;
+        int errorCount = 0;
         var stopwatch = Stopwatch.StartNew();
 
-        Console.WriteLine($"Found {filesToProcess.Length} files. Starting verification... (Press Ctrl+C to cancel gracefully)");
+        Console.WriteLine($"Found {filesToProcess.Length} files. Starting verification with {Environment.ProcessorCount} threads... (Press Ctrl+C to cancel gracefully)");
 
-        for (int i = 0; i < filesToProcess.Length; i++)
+        var parallelOptions = new ParallelOptions
         {
-            // alow graceful cancellation
-            if (_cancellationRequested)
-            {
-                Console.WriteLine("\n\nCancellation acknowledged. Stopping file processing.");
-                break;
-            }
+            MaxDegreeOfParallelism = Environment.ProcessorCount,
+            CancellationToken = cts.Token
+        };
 
-            string file = filesToProcess[i];
-            Console.Write($"  ({i + 1}/{filesToProcess.Length}) Processing {Path.GetFileName(file)}... ");
-            try
+        try
+        {
+            Parallel.ForEach(filesToProcess, parallelOptions, file =>
             {
-                var results = verifier.ProcessFile(file);
-                if (results.Any())
+                var verifier = new MiloVerifier();
+                List<MismatchResult> results;
+
+                try
                 {
-                    bool wasError = results.First().IsError;
-                    if (wasError)
+                    results = verifier.ProcessFile(file);
+                }
+                catch (Exception ex)
+                {
+                    results = new List<MismatchResult>
                     {
+                        new MismatchResult
+                        {
+                            FilePath = file,
+                            ErrorMessage = "An unhandled exception occurred:\n" + ex.ToString()
+                        }
+                    };
+                }
+
+                foreach (var r in results)
+                    allResults.Add(r);
+
+                int current = Interlocked.Increment(ref processedCount);
+
+                lock (_consoleLock)
+                {
+                    var errors = results.Where(r => r.IsError).ToList();
+                    var actualMismatches = results.Where(r => !r.IsError && !r.IsUnsupported).ToList();
+                    var unsupported = results.Where(r => r.IsUnsupported).ToList();
+
+                    Console.Write($"  ({current}/{filesToProcess.Length}) {Path.GetFileName(file)}... ");
+                    if (errors.Any())
+                    {
+                        Interlocked.Increment(ref errorCount);
                         Console.ForegroundColor = ConsoleColor.DarkRed;
                         Console.WriteLine("ERROR.");
                     }
+                    else if (actualMismatches.Any())
+                    {
+                        Interlocked.Add(ref mismatchCount, actualMismatches.Count);
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.Write($"Found {actualMismatches.Count} mismatch(es).");
+                        if (unsupported.Any())
+                            Console.Write($" ({unsupported.Count} unsupported)");
+                        Console.WriteLine();
+                    }
+                    else if (unsupported.Any())
+                    {
+                        Interlocked.Increment(ref okCount);
+                        Console.ForegroundColor = ConsoleColor.Yellow;
+                        Console.WriteLine($"OK. ({unsupported.Count} unsupported)");
+                    }
                     else
                     {
-                        Console.ForegroundColor = ConsoleColor.Red;
-                        Console.WriteLine($"Found {results.Count} mismatch(es).");
+                        Interlocked.Increment(ref okCount);
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        Console.WriteLine("OK.");
                     }
                     Console.ResetColor();
-                    allResults.AddRange(results);
                 }
-                else
-                {
-                    Console.ForegroundColor = ConsoleColor.Green;
-                    Console.WriteLine("OK.");
-                    Console.ResetColor();
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.ForegroundColor = ConsoleColor.DarkRed;
-                Console.WriteLine($"UNHANDLED ERROR: {ex.Message}");
-                Console.ResetColor();
-                allResults.Add(new MismatchResult
-                {
-                    FilePath = file,
-                    ErrorMessage = "An unhandled exception occurred in the main loop:\n" + ex.ToString()
-                });
-            }
+            });
+        }
+        catch (OperationCanceledException)
+        {
+            Console.WriteLine("\n\nCancellation acknowledged. Stopping file processing.");
         }
 
         stopwatch.Stop();
 
-        if (_cancellationRequested)
+        if (cts.IsCancellationRequested)
         {
-            Console.WriteLine($"\nProcessing was cancelled. Generating report for the {allResults.Count(r => !r.IsError)} mismatches and {allResults.Count(r => r.IsError)} errors found so far.");
+            Console.WriteLine($"\nProcessing was cancelled after {processedCount}/{filesToProcess.Length} files. {okCount} OK, {mismatchCount} mismatches, {errorCount} errors.");
         }
         else
         {
-            Console.WriteLine($"\nVerification complete in {stopwatch.Elapsed.TotalSeconds:F2} seconds.");
+            Console.WriteLine($"\nVerification complete in {stopwatch.Elapsed.TotalSeconds:F2} seconds. {okCount} OK, {mismatchCount} mismatches, {errorCount} errors.");
         }
 
         // print the output report
+        var resultList = allResults.ToList();
         string reportPath = Path.Combine(AppContext.BaseDirectory, "verification_report.html");
         var reportGenerator = new ReportGenerator();
-        reportGenerator.Generate(allResults, reportPath);
+        reportGenerator.Generate(resultList, reportPath);
 
         Console.WriteLine($"A detailed HTML report has been saved to:");
         Console.ForegroundColor = ConsoleColor.Cyan;
         Console.WriteLine(reportPath);
         Console.ResetColor();
-    }
-
-    private static void OnCancelKeyPress(object sender, ConsoleCancelEventArgs e)
-    {
-        Console.WriteLine("\n\nCtrl+C detected. Graceful shutdown initiated...");
-        _cancellationRequested = true;
-        e.Cancel = true;
     }
 }

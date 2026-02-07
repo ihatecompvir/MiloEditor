@@ -697,7 +697,7 @@ namespace MiloEditor
 
 
                 // create a new entry
-                DirectoryMeta.Entry entry = Entry.CreateDirtyAssetFromBytes(assetType, Path.GetFileName(openFileDialog.FileName), fileBytes.ToList<byte>());
+                DirectoryMeta.Entry entry = Entry.CreateDirtyAssetFromBytes(assetType, Path.GetFileName(openFileDialog.FileName), fileBytes);
 
                 // add the entry to the parent dir
                 directoryEntry.entries.Add(entry);

@@ -1,4 +1,4 @@
-﻿using MiloLib.Assets.Rnd;
+using MiloLib.Assets.Rnd;
 using MiloLib.Classes;
 using MiloLib.Utils;
 
@@ -122,6 +122,8 @@ namespace MiloLib.Assets.World
         private uint charCount;
         public List<CharData> characters = new();
 
+        public List<List<OldMultiMeshInstance>> oldMultiMeshInstances = new();
+
         private List<uint> transformCount = new();
         public List<List<Matrix>> transforms = new();
 
@@ -172,6 +174,7 @@ namespace MiloLib.Assets.World
                         {
                             oldmm.Add(new OldMultiMeshInstance().Read(reader));
                         }
+                        oldMultiMeshInstances.Add(oldmm);
                     }
                 }
                 else
@@ -248,7 +251,18 @@ namespace MiloLib.Assets.World
                 {
                     for (int i = 0; i < charCount; i++)
                     {
-                        writer.WriteUInt32(0);
+                        if (i < oldMultiMeshInstances.Count)
+                        {
+                            writer.WriteUInt32((uint)oldMultiMeshInstances[i].Count);
+                            foreach (var inst in oldMultiMeshInstances[i])
+                            {
+                                inst.Write(writer);
+                            }
+                        }
+                        else
+                        {
+                            writer.WriteUInt32(0);
+                        }
                     }
                 }
                 else
@@ -298,7 +312,7 @@ namespace MiloLib.Assets.World
                 highlightable.Write(writer, false, parent, entry);
 
             if (standalone)
-                writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
+                writer.WriteEndBytes();
         }
 
     }

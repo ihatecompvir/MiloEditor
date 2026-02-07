@@ -1,4 +1,4 @@
-﻿using MiloLib.Assets.Char;
+using MiloLib.Assets.Char;
 using MiloLib.Classes;
 using MiloLib.Utils;
 
@@ -105,7 +105,7 @@ namespace MiloLib.Assets.Band
             if (revision == 1)
             {
                 if (standalone)
-                    writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
+                    writer.WriteEndBytes();
 
                 return;
             }
@@ -147,7 +147,7 @@ namespace MiloLib.Assets.Band
             }
 
             if (standalone)
-                writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
+                writer.WriteEndBytes();
         }
 
         public override bool IsDirectory()

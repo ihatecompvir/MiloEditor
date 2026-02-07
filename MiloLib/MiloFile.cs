@@ -293,7 +293,7 @@ namespace MiloLib
             return DirectoryMeta.Platform.PS3;
         }
 
-        private void WriteHandler(object sender, DirectoryMeta.Entry.EntryOperationEventArgs args, uint startingOffset, List<uint> blockSizes, ref uint bytesWritten, MiloFile.Type? type = MiloFile.Type.Uncompressed)
+        private void WriteHandler(object sender, DirectoryMeta.Entry.EntryOperationEventArgs args, uint startingOffset, List<uint> blockSizes, ref uint bytesWritten, ref uint cumulativeBlockSize, MiloFile.Type? type = MiloFile.Type.Uncompressed)
         {
             if (blockSizes.Count == 0)
             {
@@ -301,6 +301,7 @@ namespace MiloLib
                 {
                     bytesWritten = (uint)args.Writer.BaseStream.Position;
                     blockSizes.Add(bytesWritten);
+                    cumulativeBlockSize += bytesWritten;
                     bytesWritten = 0;
                     return;
                 }
@@ -311,13 +312,13 @@ namespace MiloLib
             }
             else
             {
-                uint cumulativeSize = blockSizes.Aggregate(0u, (total, next) => total + next);
-                bytesWritten = (uint)args.Writer.BaseStream.Position - (cumulativeSize);
+                bytesWritten = (uint)args.Writer.BaseStream.Position - cumulativeBlockSize;
             }
 
             if (bytesWritten > MAX_BLOCK_SIZE)
             {
                 blockSizes.Add(bytesWritten);
+                cumulativeBlockSize += bytesWritten;
                 bytesWritten = 0;
             }
         }
@@ -388,10 +389,11 @@ namespace MiloLib
                 EndianWriter uncompressedWriter = new EndianWriter(uncompressedStream, bodyEndian);
 
                 uint bytesWritten = 0;
+                uint cumulativeBlockSize = 0;
 
                 // handler fired after any asset is saved
                 EventHandler<DirectoryMeta.Entry.EntryOperationEventArgs> handler = (sender, args) =>
-                        WriteHandler(sender, args, actualStartingOffset, uncompressedBlockSizes, ref bytesWritten, type);
+                        WriteHandler(sender, args, actualStartingOffset, uncompressedBlockSizes, ref bytesWritten, ref cumulativeBlockSize, type);
 
                 // recursively traverse all entries to add our handler
                 foreach (var entry in dirMeta.entries)
@@ -416,7 +418,7 @@ namespace MiloLib
                 // get the last block's uncompressed size by taking the length of the uncompressed stream and subtracting all the blocks combined
                 if (uncompressedBlockSizes.Count > 0)
                 {
-                    uint lastBlockSize = (uint)uncompressedStream.Length - uncompressedBlockSizes.Aggregate(0u, (total, next) => total + next);
+                    uint lastBlockSize = (uint)uncompressedStream.Length - cumulativeBlockSize;
                     if (lastBlockSize > 0)
                     {
                         uncompressedBlockSizes.Add(lastBlockSize);
@@ -424,6 +426,7 @@ namespace MiloLib
                 }
 
                 // now that we have the entire uncompressed stream, we can begin splitting it into blocks depending on compression type
+                uint maxBlockSize = uncompressedBlockSizes.Max();
 
                 switch (type)
                 {
@@ -448,8 +451,7 @@ namespace MiloLib
                         writer.WriteUInt32((uint)uncompressedBlockSizes.Count);
 
                         // get the size of the largest block and write it
-                        uint largestBlockSize = uncompressedBlockSizes.Max();
-                        writer.WriteUInt32(largestBlockSize);
+                        writer.WriteUInt32(maxBlockSize);
 
                         foreach (uint blockSize in uncompressedBlockSizes)
                         {
@@ -496,7 +498,7 @@ namespace MiloLib
                         writer.Endianness = Endian.LittleEndian;
 
                         writer.WriteUInt32((uint)compressedBlocks.Count);
-                        uint maxUncompressedBlockSize = (uint)uncompressedBlockSizes.Max();
+                        uint maxUncompressedBlockSize = maxBlockSize;
                         writer.WriteUInt32(maxUncompressedBlockSize);
                         foreach (var block in compressedBlocks)
                         {
@@ -524,7 +526,7 @@ namespace MiloLib
                             if (i == 0)
                             {
                                 // first block always uncompressed
-                                writer.WriteBlock(uncompressedStream.GetBuffer(), 0, (int)uncompressedBlockSizes.First());
+                                writer.WriteBlock(uncompressedStream.GetBuffer(), 0, (int)uncompressedBlockSizes[0]);
                             }
                             else
                             {
@@ -542,7 +544,7 @@ namespace MiloLib
                             if (i == 0)
                             {
                                 // apply flag to the first block to indicate it's uncompressed
-                                writer.WriteUInt32(uncompressedBlockSizes.First() | 0x01000000);
+                                writer.WriteUInt32(uncompressedBlockSizes[0] | 0x01000000);
                             }
                             else
                             {

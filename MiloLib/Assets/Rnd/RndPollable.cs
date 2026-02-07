@@ -24,7 +24,7 @@ namespace MiloLib.Assets.Rnd
             Symbol.Write(writer, exit);
             Symbol.Write(writer, enter);
             if (standalone)
-                writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
+                writer.WriteEndBytes();
         }
     }
 }

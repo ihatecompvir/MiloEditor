@@ -635,7 +635,7 @@ public partial class Program
 
                     if (!canceled)
                     {
-                        File.WriteAllBytes(path, entry.objBytes.ToArray());
+                        File.WriteAllBytes(path, entry.objBytes);
                     }
                 }
 
@@ -656,7 +656,7 @@ public partial class Program
                             var path = paths.First();
 
                             byte[] fileBytes = File.ReadAllBytes(path);
-                            entry.objBytes = fileBytes.ToList();
+                            entry.objBytes = fileBytes;
                             // Use reflection to call the read method as the comment below only calls the Object's Read()
                             entry.obj.GetType().GetMethod("Read").Invoke(entry.obj, [new EndianReader(new MemoryStream(fileBytes), currentScene.endian), false, dir, entry]);
                             //entry.obj.Read(new EndianReader(new MemoryStream(fileBytes), currentScene.endian), false, dir, entry);

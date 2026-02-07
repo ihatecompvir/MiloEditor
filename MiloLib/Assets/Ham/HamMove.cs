@@ -323,7 +323,7 @@ namespace MiloLib.Assets.Ham
 
             if (revision > 4)
             {
-                writer.WriteUInt32(languageCount);
+                writer.WriteUInt32((uint)languages.Count);
                 foreach (var lang in languages)
                 {
                     lang.Write(writer);
@@ -334,7 +334,7 @@ namespace MiloLib.Assets.Ham
 
             if (revision > 12)
             {
-                writer.WriteUInt32(numMoveFrames);
+                writer.WriteUInt32((uint)frames.Count);
                 foreach (var frame in frames)
                 {
                     frame.Write(writer);
@@ -348,7 +348,7 @@ namespace MiloLib.Assets.Ham
 
             if (revision > 21)
             {
-                writer.WriteUInt32(numRatingStates);
+                writer.WriteUInt32((uint)mRatingStates.Count);
                 foreach (var state in mRatingStates)
                 {
                     writer.WriteFloat(state);
@@ -368,7 +368,7 @@ namespace MiloLib.Assets.Ham
 
             if (revision > 42)
             {
-                writer.WriteUInt32(numConfusabilities);
+                writer.WriteUInt32((uint)mConfusabilities.Count);
                 foreach (var confusability in mConfusabilities)
                 {
                     writer.WriteUInt32(confusability.Key);
@@ -392,7 +392,7 @@ namespace MiloLib.Assets.Ham
             }
 
             if (standalone)
-                writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
+                writer.WriteEndBytes();
         }
     }
 }

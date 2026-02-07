@@ -1,4 +1,4 @@
-﻿using MiloLib.Classes;
+using MiloLib.Classes;
 using MiloLib.Utils;
 
 namespace MiloLib.Assets.Char
@@ -134,6 +134,8 @@ namespace MiloLib.Assets.Char
 
         public float beatsPerSecond;
 
+        public byte[] unkBytes19 = Array.Empty<byte>();
+
         private uint transitionsCount;
         public List<Symbol> transitions = new();
 
@@ -185,7 +187,7 @@ namespace MiloLib.Assets.Char
 
             if (revision >= 19)
             {
-                reader.Skip(17);
+                unkBytes19 = reader.ReadBlock(17);
 
                 transitionsCount = reader.ReadUInt32();
                 for (int i = 0; i < transitionsCount; i++)
@@ -278,8 +280,95 @@ namespace MiloLib.Assets.Char
 
             base.Write(writer, false, parent, entry);
 
+            writer.WriteFloat(startBeat);
+            writer.WriteFloat(endBeat);
+
+            writer.WriteFloat(beatsPerSecond);
+
+            if (revision >= 19)
+            {
+                writer.WriteBlock(unkBytes19);
+
+                writer.WriteUInt32((uint)transitions.Count);
+                foreach (var transition in transitions)
+                {
+                    Symbol.Write(writer, transition);
+                }
+            }
+
+            writer.WriteUInt32((uint)flags);
+            writer.WriteUInt32((uint)playFlags);
+
+            writer.WriteFloat(blendWidth);
+
+            if (revision > 3)
+                writer.WriteFloat(range);
+
+            if (revision == 5)
+            {
+                writer.WriteBoolean(unkBool1);
+            }
+            else if (revision > 5)
+            {
+                Symbol.Write(writer, relative);
+            }
+
+            if ((revision - 9) < 2)
+            {
+                writer.WriteBoolean(unkBool2);
+            }
+
+            if (revision > 9)
+            {
+                writer.WriteInt32(unkInt);
+            }
+
+            if (revision > 11)
+            {
+                writer.WriteBoolean(doNotDecompress);
+            }
+
+            if (revision < 8)
+            {
+                writer.WriteUInt32((uint)clipNode.Count);
+                foreach (var node in clipNode)
+                {
+                    node.Write(writer);
+                }
+            }
+            else
+            {
+                writer.WriteUInt32(nodesSize);
+                writer.WriteUInt32(nodeCount);
+                foreach (var node in clipNode)
+                {
+                    node.Write(writer);
+                }
+            }
+
+            if (revision < 3)
+            {
+                writer.WriteUInt32((uint)unkSyms.Count);
+                foreach (var sym in unkSyms)
+                {
+                    Symbol.Write(writer, sym);
+                }
+            }
+
+            if (revision < 7)
+            {
+                Symbol.Write(writer, enterEvent);
+                Symbol.Write(writer, exitEvent);
+
+                writer.WriteUInt32((uint)frameEvents.Count);
+                foreach (var frameEvent in frameEvents)
+                {
+                    frameEvent.Write(writer);
+                }
+            }
+
             if (standalone)
-                writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
+                writer.WriteEndBytes();
         }
 
     }

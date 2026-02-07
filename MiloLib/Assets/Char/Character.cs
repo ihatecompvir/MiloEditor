@@ -1,4 +1,4 @@
-﻿using MiloLib.Assets.Rnd;
+using MiloLib.Assets.Rnd;
 using MiloLib.Classes;
 using MiloLib.Utils;
 using System;
@@ -437,7 +437,7 @@ namespace MiloLib.Assets.Char
                 if (revision <= 9)
                 {
                     if (standalone)
-                        writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
+                        writer.WriteEndBytes();
                     return;
                 }
 
@@ -462,7 +462,7 @@ namespace MiloLib.Assets.Char
 
 
             if (standalone)
-                writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
+                writer.WriteEndBytes();
         }
 
         public static Character New(ushort revision, ushort altRevision)

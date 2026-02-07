@@ -64,14 +64,14 @@ namespace MiloLib.Assets.Ham
 
             base.Write(writer, false, parent, entry);
 
-            writer.WriteUInt32(numPhrases);
+            writer.WriteUInt32((uint)mPhrases.Count);
             foreach (BAMPhrase phrase in mPhrases)
             {
                 phrase.Write(writer);
             }
 
             if (standalone)
-                writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
+                writer.WriteEndBytes();
         }
     }
 }

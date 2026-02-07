@@ -45,7 +45,7 @@ namespace MiloLib.Assets.Ham
 
             base.Write(writer, false, parent, entry);
 
-            writer.WriteUInt32(numJumps);
+            writer.WriteUInt32((uint)mJumps.Count);
             foreach (var jump in mJumps)
             {
                 writer.WriteInt32(jump.Item1);
@@ -53,7 +53,7 @@ namespace MiloLib.Assets.Ham
             }
 
             if (standalone)
-                writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
+                writer.WriteEndBytes();
         }
 
     }

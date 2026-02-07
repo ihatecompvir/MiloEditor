@@ -1,4 +1,4 @@
-﻿using MiloLib.Classes;
+using MiloLib.Classes;
 using MiloLib.Utils;
 using System;
 using System.Collections.Generic;
@@ -63,7 +63,7 @@ namespace MiloLib.Assets.Band
             Symbol.Write(writer, animationGenre);
 
             if (standalone)
-                writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
+                writer.WriteEndBytes();
         }
 
     }

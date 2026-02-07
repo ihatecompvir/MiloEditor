@@ -1,4 +1,4 @@
-﻿using MiloLib.Assets.World;
+using MiloLib.Assets.World;
 using MiloLib.Utils;
 using MiloLib.Classes;
 
@@ -103,7 +103,8 @@ namespace MiloLib.Assets.Rnd
 
             anim.Write(writer);
             draw.Write(writer, false, parent, true);
-            trans.Write(writer, false, parent, true);
+            if (revision != 0)
+                trans.Write(writer, false, parent, true);
 
             if (revision < 9)
             {
@@ -128,7 +129,7 @@ namespace MiloLib.Assets.Rnd
 
             if (standalone)
             {
-                writer.WriteBlock(new byte[4] { 0xAD, 0xDE, 0xAD, 0xDE });
+                writer.WriteEndBytes();
             }
 
         }
