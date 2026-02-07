@@ -246,6 +246,18 @@ public class EditorPanel
                     continue;
                 }
 
+                // check MinVersion/MaxVersion attributes against the object's revision
+                var minVersionAttr = field.GetCustomAttribute<MinVersionAttribute>();
+                var maxVersionAttr = field.GetCustomAttribute<MaxVersionAttribute>();
+
+                int minVersion = minVersionAttr?.Version ?? 0;
+                int maxVersion = maxVersionAttr?.Version ?? ushort.MaxValue;
+
+                if (revision < minVersion || revision > maxVersion)
+                {
+                    continue;
+                }
+
                 ImGui.PushID(subID);
 
                 var nameAttr = field.GetCustomAttribute<NameAttribute>();
