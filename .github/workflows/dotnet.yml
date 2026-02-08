@@ -28,6 +28,17 @@ jobs:
       - name: Test
         run: dotnet test --no-build --verbosity normal --blame-hang-timeout 5min
 
+      # copy the HTML report to a guaranteed path
+      - name: Locate test report
+        shell: pwsh
+        run: |
+          $report = Get-ChildItem -Recurse -Filter MiloLib_RoundTrip_TestReport.html | Select-Object -First 1
+          if (-not $report) {
+            Write-Error "MiloLib_RoundTrip_TestReport.html not found"
+            exit 1
+          }
+          Copy-Item $report.FullName -Destination MiloLib_RoundTrip_TestReport.html -Force
+
       - name: Publish
         run: dotnet publish -c Release -o publish
 
@@ -54,7 +65,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: '**/MiloLib_RoundTrip_TestReport.html'
+          asset_path: MiloLib_RoundTrip_TestReport.html
           asset_name: MiloLib_RoundTrip_TestReport.html
           asset_content_type: text/html
 
