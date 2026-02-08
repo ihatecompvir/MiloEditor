@@ -12,52 +12,58 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 8.0.x
-    - name: Restore dependencies
-      run: dotnet restore
-    - name: Build
-      run: dotnet build --no-restore
-    - name: Test
-      run: dotnet test --no-build --verbosity normal --blame-hang-timeout 5min
+      - uses: actions/checkout@v4
 
-    - name: Upload Test Report
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: test-report
-        path: '**/MiloLib_RoundTrip_TestReport.html'
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
 
-    - name: Publish
-      run: dotnet publish -c Release -o publish
+      - name: Restore dependencies
+        run: dotnet restore
 
-    - name: Create Zip Archive
-      run: |
-        Compress-Archive -Path publish/* -DestinationPath MiloEditor.zip
+      - name: Build
+        run: dotnet build --no-restore
 
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: continuous-${{ github.run_number }}
-        release_name: Continuous Build ${{ github.run_number }}
-        body: |
-          Build automatically generated from commit ${{ github.sha }}. This build may have bugs and/or corrupt Milo scenes - use with caution.
-        draft: false
-        prerelease: true # make it a pre-release
+      - name: Test
+        run: dotnet test --no-build --verbosity normal --blame-hang-timeout 5min
 
-    - name: Upload Release Asset
-      id: upload-release-asset 
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: MiloEditor.zip
-        asset_name: MiloEditor.zip
-        asset_content_type: application/zip
+      - name: Publish
+        run: dotnet publish -c Release -o publish
+
+      - name: Create Zip Archive
+        run: |
+          Compress-Archive -Path publish/* -DestinationPath MiloEditor.zip
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: continuous-${{ github.run_number }}
+          release_name: Continuous Build ${{ github.run_number }}
+          body: |
+            Build automatically generated from commit ${{ github.sha }}. This build may have bugs and/or corrupt Milo scenes - use with caution.
+          draft: false
+          prerelease: true
+
+      - name: Upload Test Report to Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: '**/MiloLib_RoundTrip_TestReport.html'
+          asset_name: MiloLib_RoundTrip_TestReport.html
+          asset_content_type: text/html
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: MiloEditor.zip
+          asset_name: MiloEditor.zip
+          asset_content_type: application/zip
