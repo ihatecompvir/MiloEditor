@@ -58,15 +58,11 @@ namespace MiloLib.Assets.Rnd
         [MaxVersion(3)]
         public List<ColorKey> colorKeys3 = new();
 
-        private uint vec3KeysCount1;
-        public List<Vec3Key> vec3Keys1 = new();
-        private uint vec3KeysCount2;
-        public List<Vec3Key> vec3Keys2 = new();
-        private uint vec3KeysCount3;
-        public List<Vec3Key> vec3Keys3 = new();
+        public List<List<Vec3Key>> vec3Keys1PerStage = new();
+        public List<List<Vec3Key>> vec3Keys2PerStage = new();
+        public List<List<Vec3Key>> vec3Keys3PerStage = new();
 
-        private uint symbolKeysCount;
-        public List<SymbolKey> symbolKeys = new();
+        public List<List<SymbolKey>> symbolKeysPerStage = new();
 
         private uint stageCount;
 
@@ -96,38 +92,47 @@ namespace MiloLib.Assets.Rnd
                 {
                     if (revision != 0)
                     {
-                        vec3KeysCount1 = reader.ReadUInt32();
+                        var stageVec3Keys1 = new List<Vec3Key>();
+                        uint vec3KeysCount1 = reader.ReadUInt32();
                         for (int j = 0; j < vec3KeysCount1; j++)
                         {
                             Vec3Key vec3Key = new();
                             vec3Key.Read(reader);
-                            vec3Keys1.Add(vec3Key);
+                            stageVec3Keys1.Add(vec3Key);
                         }
-                        vec3KeysCount2 = reader.ReadUInt32();
+                        vec3Keys1PerStage.Add(stageVec3Keys1);
+
+                        var stageVec3Keys2 = new List<Vec3Key>();
+                        uint vec3KeysCount2 = reader.ReadUInt32();
                         for (int j = 0; j < vec3KeysCount2; j++)
                         {
                             Vec3Key vec3Key = new();
                             vec3Key.Read(reader);
-                            vec3Keys2.Add(vec3Key);
+                            stageVec3Keys2.Add(vec3Key);
                         }
-                        vec3KeysCount3 = reader.ReadUInt32();
+                        vec3Keys2PerStage.Add(stageVec3Keys2);
+
+                        var stageVec3Keys3 = new List<Vec3Key>();
+                        uint vec3KeysCount3 = reader.ReadUInt32();
                         for (int j = 0; j < vec3KeysCount3; j++)
                         {
                             Vec3Key vec3Key = new();
                             vec3Key.Read(reader);
-                            vec3Keys3.Add(vec3Key);
+                            stageVec3Keys3.Add(vec3Key);
                         }
-
+                        vec3Keys3PerStage.Add(stageVec3Keys3);
                     }
                     if (revision > 1)
                     {
-                        symbolKeysCount = reader.ReadUInt32();
+                        var stageSymbolKeys = new List<SymbolKey>();
+                        uint symbolKeysCount = reader.ReadUInt32();
                         for (int j = 0; j < symbolKeysCount; j++)
                         {
                             SymbolKey symbolKey = new();
                             symbolKey.Read(reader);
-                            symbolKeys.Add(symbolKey);
+                            stageSymbolKeys.Add(symbolKey);
                         }
+                        symbolKeysPerStage.Add(stageSymbolKeys);
                     }
                 }
             }
@@ -246,23 +251,23 @@ namespace MiloLib.Assets.Rnd
                 {
                     if (revision != 0)
                     {
-                        vec3KeysCount1 = (uint)vec3Keys1.Count;
-                        writer.WriteUInt32(vec3KeysCount1);
-                        foreach (Vec3Key vec3Key in vec3Keys1)
+                        var stageKeys1 = i < vec3Keys1PerStage.Count ? vec3Keys1PerStage[i] : new List<Vec3Key>();
+                        writer.WriteUInt32((uint)stageKeys1.Count);
+                        foreach (Vec3Key vec3Key in stageKeys1)
                         {
                             vec3Key.Write(writer);
                         }
 
-                        vec3KeysCount2 = (uint)vec3Keys2.Count;
-                        writer.WriteUInt32(vec3KeysCount2);
-                        foreach (Vec3Key vec3Key in vec3Keys2)
+                        var stageKeys2 = i < vec3Keys2PerStage.Count ? vec3Keys2PerStage[i] : new List<Vec3Key>();
+                        writer.WriteUInt32((uint)stageKeys2.Count);
+                        foreach (Vec3Key vec3Key in stageKeys2)
                         {
                             vec3Key.Write(writer);
                         }
 
-                        vec3KeysCount3 = (uint)vec3Keys3.Count;
-                        writer.WriteUInt32(vec3KeysCount3);
-                        foreach (Vec3Key vec3Key in vec3Keys3)
+                        var stageKeys3 = i < vec3Keys3PerStage.Count ? vec3Keys3PerStage[i] : new List<Vec3Key>();
+                        writer.WriteUInt32((uint)stageKeys3.Count);
+                        foreach (Vec3Key vec3Key in stageKeys3)
                         {
                             vec3Key.Write(writer);
                         }
@@ -270,9 +275,9 @@ namespace MiloLib.Assets.Rnd
 
                     if (revision > 1)
                     {
-                        symbolKeysCount = (uint)symbolKeys.Count;
-                        writer.WriteUInt32(symbolKeysCount);
-                        foreach (SymbolKey symbolKey in symbolKeys)
+                        var stageSymKeys = i < symbolKeysPerStage.Count ? symbolKeysPerStage[i] : new List<SymbolKey>();
+                        writer.WriteUInt32((uint)stageSymKeys.Count);
+                        foreach (SymbolKey symbolKey in stageSymKeys)
                         {
                             symbolKey.Write(writer);
                         }

@@ -121,7 +121,7 @@ namespace MiloLib.Assets.Char
             writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
 
             base.Write(writer, false, parent, entry);
-            trans.Write(writer, false, parent, true);
+            trans.Write(writer, false, parent, null);
 
             writer.WriteUInt32((uint)shape);
 

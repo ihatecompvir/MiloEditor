@@ -170,7 +170,7 @@ namespace MiloLib.Assets.Rnd
 
             base.objFields.Write(writer, parent);
 
-            trans.Write(writer, false, parent, true);
+            trans.Write(writer, false, parent, null);
 
 
             color.Write(writer);

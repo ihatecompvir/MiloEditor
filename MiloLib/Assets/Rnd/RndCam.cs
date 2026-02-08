@@ -113,16 +113,16 @@ namespace MiloLib.Assets.Rnd
                 base.Write(writer, false, parent, entry);
             }
 
-            trans.Write(writer, false, parent, true);
+            trans.Write(writer, false, parent, null);
 
             if (revision < 10)
             {
-                draw.Write(writer, false, parent, true);
+                draw.Write(writer, false, parent, null);
             }
 
             if (revision == 8)
             {
-                writer.WriteUInt32(objectsCount);
+                writer.WriteUInt32((uint)objects.Count);
                 foreach (var obj in objects)
                 {
                     Symbol.Write(writer, obj);

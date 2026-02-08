@@ -106,11 +106,11 @@ namespace MiloLib.Assets.Rnd
             return this;
         }
 
-        public void Write(EndianWriter writer, bool standalone, DirectoryMeta parent, bool skipMetadata = false)
+        public new void Write(EndianWriter writer, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry? entry = null)
         {
             writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
 
-            if (standalone && !skipMetadata)
+            if (standalone)
             {
                 base.objFields.Write(writer, parent);
             }

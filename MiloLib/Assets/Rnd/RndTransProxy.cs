@@ -43,7 +43,7 @@ namespace MiloLib.Assets.Rnd
             base.Write(writer, false, parent, entry);
 
             if (revision != 0)
-                trans.Write(writer, false, parent, true);
+                trans.Write(writer, false, parent, null);
 
             Symbol.Write(writer, proxy);
             Symbol.Write(writer, part);

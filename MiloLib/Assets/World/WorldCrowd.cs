@@ -217,11 +217,11 @@ namespace MiloLib.Assets.World
             return this;
         }
 
-        public override void Write(EndianWriter writer, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry? entry)
+        public new void Write(EndianWriter writer, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry? entry)
         {
             writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)(altRevision << 16 | revision) : (uint)(revision << 16 | altRevision));
 
-            ((RndDrawable)this).Write(writer, false, parent, true);
+            ((RndDrawable)this).Write(writer, false, parent, null);
 
             Symbol.Write(writer, placementMesh);
 

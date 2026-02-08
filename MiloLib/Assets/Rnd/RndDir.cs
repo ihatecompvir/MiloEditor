@@ -102,9 +102,9 @@ namespace MiloLib.Assets.Rnd
             }
 
             anim.Write(writer);
-            draw.Write(writer, false, parent, true);
+            draw.Write(writer, false, parent, null);
             if (revision != 0)
-                trans.Write(writer, false, parent, true);
+                trans.Write(writer, false, parent, null);
 
             if (revision < 9)
             {

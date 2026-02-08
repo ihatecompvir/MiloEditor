@@ -78,8 +78,8 @@ namespace MiloLib.Assets.World
             writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
 
             base.Write(writer, false, parent, entry);
-            trans.Write(writer, false, parent, true);
-            draw.Write(writer, false, parent, true);
+            trans.Write(writer, false, parent, null);
+            draw.Write(writer, false, parent, null);
 
             writer.WriteFloat(verticalStretch);
 

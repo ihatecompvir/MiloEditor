@@ -418,6 +418,20 @@ public class AssetFuzzer
             currentType = currentType.BaseType;
         }
 
+        // Post-fuzz fixup: clamp currentViewportIdx for ObjectDir subclasses
+        if (instance is ObjectDir objDir)
+        {
+            objDir.currentViewportIdx = objDir.viewports.Count > 0
+                ? (uint)_random.Next(objDir.viewports.Count)
+                : 0;
+            objDir.inlineSubDirNames.Clear();
+            objDir.subDirs.Clear();
+            objDir.referenceTypes.Clear();
+            objDir.referenceTypesAlt.Clear();
+            objDir.inlineCachedBooleans.Clear();
+            objDir.inlineSubDirs.Clear();
+        }
+
         return instance;
     }
 

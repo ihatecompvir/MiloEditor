@@ -188,7 +188,7 @@ namespace MiloLib.Assets.Rnd
             if (revision > 15)
                 base.Write(writer, false, parent, entry);
 
-            draw.Write(writer, false, parent, true);
+            draw.Write(writer, false, parent, null);
 
             if (revision < 7)
             {
@@ -201,7 +201,7 @@ namespace MiloLib.Assets.Rnd
             }
 
             if (revision > 1)
-                trans.Write(writer, false, parent, true);
+                trans.Write(writer, false, parent, null);
 
             Symbol.Write(writer, font);
             writer.WriteInt32(align);

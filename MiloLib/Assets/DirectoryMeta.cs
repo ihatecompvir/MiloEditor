@@ -566,7 +566,7 @@ namespace MiloLib.Assets
             // Special case for Trans which has different parameters
             actions["Trans"] = (writer, meta, entry) =>
             {
-                ((RndTrans)entry.obj).Write(writer, true, meta, false);
+                ((RndTrans)entry.obj).Write(writer, true, meta, entry);
             };
 
             // Complex directory entry write actions

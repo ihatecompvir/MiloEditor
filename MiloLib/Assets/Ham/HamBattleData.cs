@@ -97,7 +97,7 @@ namespace MiloLib.Assets.Ham
 
                 base.Write(writer, false, parent, entry);
 
-                writer.WriteUInt32(numSteps);
+                writer.WriteUInt32((uint)mBattleSteps.Count);
                 foreach (BattleStep step in mBattleSteps)
                 {
                     step.Write(writer, revision);

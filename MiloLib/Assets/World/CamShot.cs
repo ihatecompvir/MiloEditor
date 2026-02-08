@@ -194,7 +194,7 @@ namespace MiloLib.Assets.World
                 }
                 else
                 {
-                    writer.WriteInt32(oldTargetCount);
+                    writer.WriteInt32(oldTargets.Count);
                     foreach (var sp in oldTargets)
                         sp.Write(writer, camRev);
                 }
@@ -635,7 +635,7 @@ namespace MiloLib.Assets.World
                     writer.WriteBoolean(oldRateBool);
                 writer.WriteFloat(filter);
                 writer.WriteFloat(clampHeight);
-                writer.WriteInt32(oldSubPartCount);
+                writer.WriteInt32(oldSubParts.Count);
                 foreach (var sp in oldSubParts)
                     sp.Write(writer, revision);
                 oldParentSubPart.Write(writer, revision);

@@ -118,7 +118,7 @@ namespace MiloLib.Assets
 
             if (revision > 0)
             {
-                draw.Write(writer, false, parent, true);
+                draw.Write(writer, false, parent, null);
             }
             else
             {

@@ -46,8 +46,8 @@ namespace MiloLib.Assets.Band
 
             objFields.Write(writer, parent);
 
-            draw.Write(writer, false, parent, true);
-            trans.Write(writer, false, parent, true);
+            draw.Write(writer, false, parent, null);
+            trans.Write(writer, false, parent, null);
 
             Symbol.Write(writer, center);
 

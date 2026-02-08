@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using MiloLib.Assets;
 using MiloLib.Classes;
 using MiloLib.Utils;
@@ -46,97 +48,77 @@ public class AssetIOTests : IClassFixture<ReportGeneratorClassFixture>
     [MemberData(nameof(GetAssetTypes))]
     public void RoundTrip_VerifyByteEquality(Type assetType)
     {
-        var failures = new List<string>();
-        var fuzzer = new AssetFuzzer(seed: 42); // Use fixed seed for determinism
-        
-        // Create dummy DirectoryMeta (platform: PS3)
-        var directoryMeta = new DirectoryMeta
+        var failures = new ConcurrentBag<string>();
+
+        // Cache reflection lookups once per asset type (not per revision)
+        var writeMethod = GetWriteMethod(assetType);
+        var readMethod = GetReadMethod(assetType);
+
+        if (writeMethod == null || readMethod == null)
         {
-            revision = 32, // Use a known valid revision
-            platform = DirectoryMeta.Platform.Xbox,
-            type = new Symbol(0, "ObjectDir"),
-            name = new Symbol(0, "TestDir")
-        };
-        
-        // Create dummy DirectoryMeta.Entry (isProxy: false)
-        // The dummy object is replaced each iteration (line entry.obj = ...), so just use a base Object
-        var entry = new DirectoryMeta.Entry(
-            new Symbol(0, assetType.Name),
-            new Symbol(0, "TestAsset"),
-            new MiloLib.Assets.Object());
-        entry.isProxy = false;
-        
-        // Iterate through revisions 0 to 50
-        for (ushort revision = 0; revision <= 50; revision++)
+            var msg = writeMethod == null ? "No Write method found" : "No Read method found";
+            for (ushort r = 0; r <= 50; r++)
+                TestResultCollector.RecordResult(assetType.Name, r, TestResultCollector.TestStatus.Failed, msg);
+            return;
+        }
+
+        // sweet sweet parallelism
+        Parallel.For(0, 51, revision =>
         {
+            ushort rev = (ushort)revision;
             string? errorMessage = null;
-            TestResultCollector.TestStatus status = TestResultCollector.TestStatus.Passed;
-            
+            var status = TestResultCollector.TestStatus.Passed;
+
+            var fuzzer = new AssetFuzzer(seed: 42 + revision);
+
+            var directoryMeta = new DirectoryMeta
+            {
+                revision = 32,
+                platform = DirectoryMeta.Platform.Xbox,
+                type = new Symbol(0, "ObjectDir"),
+                name = new Symbol(0, "TestDir")
+            };
+            var entry = new DirectoryMeta.Entry(
+                new Symbol(0, assetType.Name),
+                new Symbol(0, "TestAsset"),
+                new MiloLib.Assets.Object());
+            entry.isProxy = false;
+
             try
             {
-                // 1. Fuzz & Setup: Create an instance of assetType
                 var originalInstance = fuzzer.Create(assetType);
                 if (originalInstance == null)
                 {
                     errorMessage = "Failed to create instance";
                     status = TestResultCollector.TestStatus.Failed;
-                    TestResultCollector.RecordResult(assetType.Name, revision, status, errorMessage);
-                    failures.Add($"Rev {revision}: {errorMessage}");
-                    continue;
+                    TestResultCollector.RecordResult(assetType.Name, rev, status, errorMessage);
+                    failures.Add($"Rev {rev}: {errorMessage}");
+                    return;
                 }
-                
-                // Set the revision field using reflection
-                SetRevisionField(originalInstance, revision);
-                
-                // Update entry.obj to point to the actual instance
+
+                SetRevisionField(originalInstance, rev);
                 entry.obj = originalInstance as MiloLib.Assets.Object;
-                
-                // 2. Write (A): Write this object to a MemoryStream (Stream A)
+
                 byte[] streamABytes;
                 try
                 {
-                    using (var streamA = new MemoryStream())
-                    using (var writerA = new EndianWriter(streamA, Endian.BigEndian))
-                    {
-                        // Check if the instance has a Write method
-                        var writeMethod = GetWriteMethod(originalInstance.GetType());
-                        if (writeMethod == null)
-                        {
-                            errorMessage = "No Write method found";
-                            status = TestResultCollector.TestStatus.Failed;
-                            TestResultCollector.RecordResult(assetType.Name, revision, status, errorMessage);
-                            failures.Add($"Rev {revision}: {errorMessage}");
-                            continue;
-                        }
-                        
-                        writeMethod.Invoke(originalInstance, new object[] { writerA, true, directoryMeta, entry });
-                        streamABytes = streamA.ToArray();
-                    }
+                    using var streamA = new MemoryStream();
+                    using var writerA = new EndianWriter(streamA, Endian.BigEndian);
+                    writeMethod.Invoke(originalInstance, new object[] { writerA, true, directoryMeta, entry });
+                    streamABytes = streamA.ToArray();
                 }
                 catch (Exception ex)
                 {
-                    // Unwrap TargetInvocationException to get the actual exception
-                    Exception actualException = ex;
-                    if (ex is System.Reflection.TargetInvocationException targetEx && targetEx.InnerException != null)
-                    {
-                        actualException = targetEx.InnerException;
-                    }
-                    
-                    errorMessage = $"Write failed - {actualException.GetType().Name}: {actualException.Message}";
-                    if (ex != actualException)
-                    {
-                        errorMessage += $"\n(Wrapped in {ex.GetType().Name})";
-                    }
-                    
-                    // If Write fails, assume this specific revision is not supported
+                    var actual = UnwrapException(ex);
+                    errorMessage = $"Write failed - {actual.GetType().Name}: {actual.Message}";
+                    if (ex != actual) errorMessage += $"\n(Wrapped in {ex.GetType().Name})";
                     status = TestResultCollector.TestStatus.Skipped;
-                    TestResultCollector.RecordResult(assetType.Name, revision, status, errorMessage);
-                    failures.Add($"Rev {revision}: {errorMessage}");
-                    continue;
+                    TestResultCollector.RecordResult(assetType.Name, rev, status, errorMessage);
+                    failures.Add($"Rev {rev}: {errorMessage}");
+                    return;
                 }
-                
-                // 3. Read: Instantiate a fresh empty instance and call .Read()
-                object? readInstance = null;
+
+                object? readInstance;
                 try
                 {
                     readInstance = CreateInstance(assetType);
@@ -144,115 +126,55 @@ public class AssetIOTests : IClassFixture<ReportGeneratorClassFixture>
                     {
                         errorMessage = "Failed to create instance for reading";
                         status = TestResultCollector.TestStatus.Failed;
-                        TestResultCollector.RecordResult(assetType.Name, revision, status, errorMessage);
-                        failures.Add($"Rev {revision}: {errorMessage}");
-                        continue;
+                        TestResultCollector.RecordResult(assetType.Name, rev, status, errorMessage);
+                        failures.Add($"Rev {rev}: {errorMessage}");
+                        return;
                     }
-                    
-                    var readMethod = GetReadMethod(assetType);
-                    if (readMethod == null)
-                    {
-                        errorMessage = "No Read method found";
-                        status = TestResultCollector.TestStatus.Failed;
-                        TestResultCollector.RecordResult(assetType.Name, revision, status, errorMessage);
-                        failures.Add($"Rev {revision}: {errorMessage}");
-                        continue;
-                    }
-                    
-                    using (var streamA = new MemoryStream(streamABytes))
-                    using (var reader = new EndianReader(streamA, Endian.BigEndian))
-                    {
-                        readMethod.Invoke(readInstance, new object[] { reader, true, directoryMeta, entry });
-                    }
+
+                    using var readStream = new MemoryStream(streamABytes);
+                    using var reader = new EndianReader(readStream, Endian.BigEndian);
+                    readMethod.Invoke(readInstance, new object[] { reader, true, directoryMeta, entry });
                 }
                 catch (Exception ex)
                 {
-                    // Unwrap TargetInvocationException to get the actual exception
-                    Exception actualException = ex;
-                    if (ex is System.Reflection.TargetInvocationException targetEx && targetEx.InnerException != null)
+                    var actual = UnwrapException(ex);
+                    errorMessage = $"Read exception - {actual.GetType().Name}: {actual.Message}";
+                    if (actual.StackTrace != null)
                     {
-                        actualException = targetEx.InnerException;
-                    }
-                    
-                    // Build a detailed error message with the actual exception
-                    errorMessage = $"Read exception - {actualException.GetType().Name}: {actualException.Message}";
-                    if (actualException.StackTrace != null)
-                    {
-                        // Include first few lines of stack trace for context
-                        var stackLines = actualException.StackTrace.Split('\n').Take(3);
+                        var stackLines = actual.StackTrace.Split('\n').Take(3);
                         errorMessage += $"\nStack trace: {string.Join("\n", stackLines)}";
                     }
-                    if (ex != actualException)
-                    {
-                        errorMessage += $"\n(Wrapped in {ex.GetType().Name})";
-                    }
-                    
+                    if (ex != actual) errorMessage += $"\n(Wrapped in {ex.GetType().Name})";
                     status = TestResultCollector.TestStatus.Failed;
-                    TestResultCollector.RecordResult(assetType.Name, revision, status, errorMessage);
-                    failures.Add($"Rev {revision}: {errorMessage}");
-                    continue;
+                    TestResultCollector.RecordResult(assetType.Name, rev, status, errorMessage);
+                    failures.Add($"Rev {rev}: {errorMessage}");
+                    return;
                 }
-                
-                if (readInstance == null)
-                {
-                    errorMessage = "Read returned null";
-                    status = TestResultCollector.TestStatus.Failed;
-                    TestResultCollector.RecordResult(assetType.Name, revision, status, errorMessage);
-                    failures.Add($"Rev {revision}: {errorMessage}");
-                    continue;
-                }
-                
-                // Update entry.obj to point to the read instance
+
                 entry.obj = readInstance as MiloLib.Assets.Object;
-                
-                // 4. Write (B): Write the newly read object to a second MemoryStream
+
                 byte[] streamBBytes;
                 try
                 {
-                    using (var streamB = new MemoryStream())
-                    using (var writerB = new EndianWriter(streamB, Endian.BigEndian))
-                    {
-                        var writeMethod = GetWriteMethod(readInstance.GetType());
-                        if (writeMethod == null)
-                        {
-                            errorMessage = "No Write method found for read instance";
-                            status = TestResultCollector.TestStatus.Failed;
-                            TestResultCollector.RecordResult(assetType.Name, revision, status, errorMessage);
-                            failures.Add($"Rev {revision}: {errorMessage}");
-                            continue;
-                        }
-                        
-                        writeMethod.Invoke(readInstance, new object[] { writerB, true, directoryMeta, entry });
-                        streamBBytes = streamB.ToArray();
-                    }
+                    using var streamB = new MemoryStream();
+                    using var writerB = new EndianWriter(streamB, Endian.BigEndian);
+                    writeMethod.Invoke(readInstance, new object[] { writerB, true, directoryMeta, entry });
+                    streamBBytes = streamB.ToArray();
                 }
                 catch (Exception ex)
                 {
-                    // Unwrap TargetInvocationException to get the actual exception
-                    Exception actualException = ex;
-                    if (ex is System.Reflection.TargetInvocationException targetEx && targetEx.InnerException != null)
-                    {
-                        actualException = targetEx.InnerException;
-                    }
-                    
-                    errorMessage = $"Second Write failed - {actualException.GetType().Name}: {actualException.Message}";
-                    if (ex != actualException)
-                    {
-                        errorMessage += $"\n(Wrapped in {ex.GetType().Name})";
-                    }
-                    
+                    var actual = UnwrapException(ex);
+                    errorMessage = $"Second Write failed - {actual.GetType().Name}: {actual.Message}";
+                    if (ex != actual) errorMessage += $"\n(Wrapped in {ex.GetType().Name})";
                     status = TestResultCollector.TestStatus.Failed;
-                    TestResultCollector.RecordResult(assetType.Name, revision, status, errorMessage);
-                    failures.Add($"Rev {revision}: {errorMessage}");
-                    continue;
+                    TestResultCollector.RecordResult(assetType.Name, rev, status, errorMessage);
+                    failures.Add($"Rev {rev}: {errorMessage}");
+                    return;
                 }
-                
-                // 5. Verify: Compare the byte arrays
-                if (!streamABytes.SequenceEqual(streamBBytes))
+
+                if (!streamABytes.AsSpan().SequenceEqual(streamBBytes))
                 {
                     errorMessage = $"Byte mismatch - Stream A length: {streamABytes.Length}, Stream B length: {streamBBytes.Length}";
-                    
-                    // Find first difference for debugging
                     int minLength = Math.Min(streamABytes.Length, streamBBytes.Length);
                     for (int i = 0; i < minLength; i++)
                     {
@@ -262,43 +184,28 @@ public class AssetIOTests : IClassFixture<ReportGeneratorClassFixture>
                             break;
                         }
                     }
-                    
                     status = TestResultCollector.TestStatus.Failed;
-                    TestResultCollector.RecordResult(assetType.Name, revision, status, errorMessage);
-                    failures.Add($"Rev {revision}: {errorMessage}");
+                    TestResultCollector.RecordResult(assetType.Name, rev, status, errorMessage);
+                    failures.Add($"Rev {rev}: {errorMessage}");
                 }
                 else
                 {
-                    // Success!
-                    TestResultCollector.RecordResult(assetType.Name, revision, TestResultCollector.TestStatus.Passed);
+                    TestResultCollector.RecordResult(assetType.Name, rev, TestResultCollector.TestStatus.Passed);
                 }
             }
             catch (Exception ex)
             {
-                // Unwrap TargetInvocationException to get the actual exception
-                Exception actualException = ex;
-                if (ex is System.Reflection.TargetInvocationException targetEx && targetEx.InnerException != null)
-                {
-                    actualException = targetEx.InnerException;
-                }
-                
-                errorMessage = $"Unexpected exception - {actualException.GetType().Name}: {actualException.Message}";
-                if (ex != actualException)
-                {
-                    errorMessage += $"\n(Wrapped in {ex.GetType().Name})";
-                }
-                
+                var actual = UnwrapException(ex);
+                errorMessage = $"Unexpected exception - {actual.GetType().Name}: {actual.Message}";
+                if (ex != actual) errorMessage += $"\n(Wrapped in {ex.GetType().Name})";
                 status = TestResultCollector.TestStatus.Failed;
-                TestResultCollector.RecordResult(assetType.Name, revision, status, errorMessage);
-                failures.Add($"Rev {revision}: {errorMessage}");
+                TestResultCollector.RecordResult(assetType.Name, rev, status, errorMessage);
+                failures.Add($"Rev {rev}: {errorMessage}");
             }
-        }
-        
-        // Report all failures (but don't fail the test - we want to collect all results)
-        // The HTML report will show the failures
-        if (failures.Count > 0)
+        });
+
+        if (!failures.IsEmpty)
         {
-            // Log failures but don't fail the test - we want to generate the report
             System.Diagnostics.Debug.WriteLine($"Round-trip test had {failures.Count} failures for {assetType.Name}");
         }
     }
@@ -325,9 +232,17 @@ public class AssetIOTests : IClassFixture<ReportGeneratorClassFixture>
     }
 
     /// <summary>
+    /// Unwraps TargetInvocationException to get the actual exception.
+    /// </summary>
+    private static Exception UnwrapException(Exception ex)
+    {
+        return ex is TargetInvocationException { InnerException: not null } tie ? tie.InnerException : ex;
+    }
+
+    /// <summary>
     /// Sets the revision field on an object using reflection.
     /// </summary>
-    private void SetRevisionField(object instance, ushort revision)
+    private static void SetRevisionField(object instance, ushort revision)
     {
         Type type = instance.GetType();
         

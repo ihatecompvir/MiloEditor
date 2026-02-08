@@ -95,7 +95,7 @@ namespace MiloLib.Assets.UI
             writer.WriteBoolean(horizontal);
             writer.WriteFloat(spacing);
 
-            writer.WriteUInt32(elementsCount);
+            writer.WriteUInt32((uint)elements.Count);
             foreach (var element in elements)
             {
                 element.Write(writer, revision);

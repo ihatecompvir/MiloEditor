@@ -877,8 +877,8 @@ namespace MiloLib.Assets.Rnd
 
             base.Write(writer, false, parent, entry);
 
-            trans.Write(writer, false, parent, true);
-            draw.Write(writer, false, parent, true);
+            trans.Write(writer, false, parent, null);
+            draw.Write(writer, false, parent, null);
             Symbol.Write(writer, mat);
 
             if (revision == 27)

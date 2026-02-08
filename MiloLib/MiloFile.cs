@@ -414,10 +414,9 @@ namespace MiloLib
                     // if we have no uncompressed block sizes, add the size of the entire stream as a single block
                     uncompressedBlockSizes.Add((uint)uncompressedStream.Length);
                 }
-
-                // get the last block's uncompressed size by taking the length of the uncompressed stream and subtracting all the blocks combined
-                if (uncompressedBlockSizes.Count > 0)
+                else
                 {
+                    // get the last block's uncompressed size by taking the length of the uncompressed stream and subtracting all the blocks combined
                     uint lastBlockSize = (uint)uncompressedStream.Length - cumulativeBlockSize;
                     if (lastBlockSize > 0)
                     {

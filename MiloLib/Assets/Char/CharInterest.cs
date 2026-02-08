@@ -86,7 +86,7 @@ namespace MiloLib.Assets.Char
 
             base.Write(writer, false, parent, entry);
 
-            trans.Write(writer, false, parent, true);
+            trans.Write(writer, false, parent, null);
 
             writer.WriteFloat(maxViewAngle);
             writer.WriteFloat(priority);

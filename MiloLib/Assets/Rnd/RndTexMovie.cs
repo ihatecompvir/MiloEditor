@@ -111,7 +111,7 @@ namespace MiloLib.Assets.Rnd
             writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)(altRevision << 16 | revision) : (uint)(revision << 16 | altRevision));
             objFields.Write(writer, parent);
 
-            draw.Write(writer, false, parent, true);
+            draw.Write(writer, false, parent, null);
             obj.Write(writer, false, parent, entry);
 
             if (altRevision != 0)

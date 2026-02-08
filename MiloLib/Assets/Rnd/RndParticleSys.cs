@@ -422,8 +422,8 @@ namespace MiloLib.Assets.Rnd
             }
 
             anim.Write(writer);
-            trans.Write(writer, false, parent, true);
-            draw.Write(writer, false, parent, true);
+            trans.Write(writer, false, parent, null);
+            draw.Write(writer, false, parent, null);
 
             life.Write(writer);
 

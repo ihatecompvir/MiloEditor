@@ -234,7 +234,7 @@ namespace MiloLib.Assets.Rnd
             if (revision > 1)
                 objFields.Write(writer, parent);
             if (revision < 3)
-                draw.Write(writer, false, parent, true);
+                draw.Write(writer, false, parent, null);
 
             if (revision < 0xF)
             {

@@ -186,7 +186,7 @@ namespace MiloLib.Assets.Rnd
                 writer.WriteInt32((int)exceptionType);
                 if (revision >= 13)
                     writer.WriteBoolean(unkBool);
-                writer.WriteUInt32(keysCount);
+                writer.WriteUInt32((uint)keys.Count);
                 switch (type1)
                 {
                     case PropType.kPropFloat:

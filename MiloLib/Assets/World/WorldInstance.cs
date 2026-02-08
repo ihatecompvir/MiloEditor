@@ -101,8 +101,8 @@ namespace MiloLib.Assets.World
                     Symbol.Write(writer, objFields.note);
 
                     anim.Write(writer);
-                    draw.Write(writer, false, parent, true);
-                    trans.Write(writer, false, parent, true);
+                    draw.Write(writer, false, parent, null);
+                    trans.Write(writer, false, parent, null);
 
                     Symbol.Write(writer, environ);
                     Symbol.Write(writer, testEvent);

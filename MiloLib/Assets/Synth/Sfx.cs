@@ -214,7 +214,7 @@ namespace MiloLib.Assets
             public float panSpread;
             public bool canStop;
 
-            public Sequence Read(EndianReader reader, DirectoryMeta parent, DirectoryMeta.Entry entry)
+            public Sequence Read(EndianReader reader, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)
             {
                 uint combinedRevision = reader.ReadUInt32();
                 if (BitConverter.IsLittleEndian) (revision, altRevision) = ((ushort)(combinedRevision & 0xFFFF), (ushort)((combinedRevision >> 16) & 0xFFFF));
@@ -233,7 +233,15 @@ namespace MiloLib.Assets
                 if (1 < revision)
                     canStop = reader.ReadBoolean();
 
+                if (standalone)
+                    if ((reader.Endianness == Endian.BigEndian ? 0xADDEADDE : 0xDEADDEAD) != reader.ReadUInt32()) throw MiloLib.Exceptions.MiloAssetReadException.EndBytesNotFound(parent, entry, reader.BaseStream.Position);
+
                 return this;
+            }
+
+            public Sequence Read(EndianReader reader, DirectoryMeta parent, DirectoryMeta.Entry entry)
+            {
+                return Read(reader, false, parent, entry);
             }
 
             public override void Write(EndianWriter writer, bool standalone, DirectoryMeta parent, DirectoryMeta.Entry entry)

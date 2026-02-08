@@ -39,6 +39,8 @@ namespace MiloLib.Assets.UI
         public int unkInt3;
         public int unkInt4;
 
+        public Symbol unkSymbolRev6 = new(0, "");
+
         public bool unkBool87;
         public bool unkBool88;
 
@@ -49,6 +51,9 @@ namespace MiloLib.Assets.UI
 
         public int unkInt50;
         public int unkInt6C;
+
+        public int unkIntRevLt10;
+        public int unkIntRevLtE;
 
         public float unkFloatWidth;
         public float unkFloatHeight;
@@ -106,7 +111,7 @@ namespace MiloLib.Assets.UI
 
                 if (revision <= 6)
                 {
-                    Symbol s = Symbol.Read(reader);
+                    unkSymbolRev6 = Symbol.Read(reader);
                 }
 
                 if (revision != 0) unkBool87 = reader.ReadBoolean();
@@ -114,7 +119,7 @@ namespace MiloLib.Assets.UI
 
                 if (revision <= 6) textToken = Symbol.Read(reader);
 
-                if (revision < 10) reader.ReadInt32();
+                if (revision < 10) unkIntRevLt10 = reader.ReadInt32();
 
                 if (revision > 8)
                 {
@@ -169,7 +174,7 @@ namespace MiloLib.Assets.UI
                     unkFloatTextSize = reader.ReadFloat();
                 }
 
-                if (revision < 0xE) reader.ReadInt32();
+                if (revision < 0xE) unkIntRevLtE = reader.ReadInt32();
 
                 if (revision < 0xF)
                 {
@@ -257,13 +262,23 @@ namespace MiloLib.Assets.UI
         {
             writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
 
+            // Pre-apply lossy transforms so base UILabel.Write outputs consistent values
+            if (revision < 0xD)
+            {
+                capsMode = (CapsModes)(unkBool87 ? 2 : 0);
+            }
+            if (revision < 0xB && revision > 5 && revision < 10)
+            {
+                fitType = unkBool88 ? LabelFitTypes.kFitJust : 0;
+            }
+
             if (revision < 0xB)
             {
                 if (revision <= 6)
                 {
                     // Write Trans and Drawable members
-                    trans.Write(writer, false, parent, true);
-                    draw.Write(writer, false, parent, true);
+                    trans.Write(writer, false, parent, null);
+                    draw.Write(writer, false, parent, null);
                 }
                 else
                 {
@@ -297,12 +312,12 @@ namespace MiloLib.Assets.UI
                     writer.WriteInt32(unkIntL);
                 }
 
-                if (revision <= 6) Symbol.Write(writer, new Symbol(0, ""));
+                if (revision <= 6) Symbol.Write(writer, unkSymbolRev6);
                 if (revision != 0) writer.WriteBoolean(unkBool87);
 
                 if (revision <= 6) Symbol.Write(writer, textToken);
 
-                if (revision < 10) writer.WriteInt32(0);
+                if (revision < 10) writer.WriteInt32(unkIntRevLt10);
 
                 if (revision > 8)
                 {
@@ -325,8 +340,16 @@ namespace MiloLib.Assets.UI
                 if (revision < 0xE)
                 {
                     writer.WriteInt32((int)fitType);
-                    writer.WriteFloat(unkFloatWidth);
-                    writer.WriteFloat(unkFloatHeight);
+                    if (fitType == 0)
+                    {
+                        writer.WriteFloat(0);
+                        writer.WriteFloat(0);
+                    }
+                    else
+                    {
+                        writer.WriteFloat(unkFloatWidth);
+                        writer.WriteFloat(unkFloatHeight);
+                    }
                 }
 
                 if (revision < 0xD)
@@ -350,7 +373,7 @@ namespace MiloLib.Assets.UI
                     writer.WriteFloat(unkFloatTextSize);
                 }
 
-                if (revision < 0xE) writer.WriteInt32(0);
+                if (revision < 0xE) writer.WriteInt32(unkIntRevLtE);
 
                 if (revision < 0xF)
                 {

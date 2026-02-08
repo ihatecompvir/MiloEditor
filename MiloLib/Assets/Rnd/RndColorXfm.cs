@@ -60,6 +60,9 @@ namespace MiloLib.Assets.Rnd
         {
             writer.WriteUInt32(BitConverter.IsLittleEndian ? (uint)((altRevision << 16) | revision) : (uint)((revision << 16) | altRevision));
 
+            if (revision > 0)
+                return;
+
             colorTransform.Write(writer);
 
             writer.WriteFloat(lightness);

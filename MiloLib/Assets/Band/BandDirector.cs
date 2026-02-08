@@ -46,7 +46,7 @@ namespace MiloLib.Assets.Band
             base.Write(writer, false, parent, entry);
 
             poll.Write(writer, false, parent, entry);
-            draw.Write(writer, false, parent, true);
+            draw.Write(writer, false, parent, null);
             if (revision < 5)
                 obj3.Write(writer, false, parent, entry);
             if (revision < 6)
