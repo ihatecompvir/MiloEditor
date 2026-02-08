@@ -98,13 +98,18 @@ public static class CharAssetFixer
         var files = Directory.GetFiles(path);
         var fixedDir = Path.Join(path, "fixed");
         Directory.CreateDirectory(fixedDir);
-        foreach (var filePath in files)
+        int progress = 0;
+        Parallel.ForEach(files, filePath =>
         {
-            Console.WriteLine($"Fixing {filePath}");
+            var count = Interlocked.Increment(ref progress);
+            lock (Console.Out)
+            {
+                Console.WriteLine($"({count}/{files.Length}) Fixing {filePath}");
+            }
             var filename = Path.GetFileName(filePath);
             var newPath = Path.Join(fixedDir, filename);
             FixCharAsset(new MiloFile(filePath), newPath);
-        }
+        });
     }
     
     public static void PromptCharAssetFix()
@@ -201,13 +206,18 @@ public static class CharAssetFixer
         var files = Directory.GetFiles(path);
         var fixedDir = Path.Join(path, "fixed");
         Directory.CreateDirectory(fixedDir);
-        foreach (var filePath in files)
+        int progress = 0;
+        Parallel.ForEach(files, filePath =>
         {
-            Console.WriteLine($"Fixing {filePath}");
+            var count = Interlocked.Increment(ref progress);
+            lock (Console.Out)
+            {
+                Console.WriteLine($"({count}/{files.Length}) Fixing {filePath}");
+            }
             var filename = Path.GetFileName(filePath);
             var newPath = Path.Join(fixedDir, filename);
             FixInstrument(new MiloFile(filePath), newPath);
-        }
+        });
     }
 
     public static void PromptInstrumentFix()

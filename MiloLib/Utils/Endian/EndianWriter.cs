@@ -269,10 +269,7 @@ namespace MiloLib.Utils
 
             WriteBlock(bytes);
             int padding = length - bytes.Length;
-            for (int i = 0; i < padding; i++)
-            {
-                WriteByte(0);
-            }
+            WriteBlock(new byte[padding]);
         }
 
         /// <summary>
@@ -307,8 +304,8 @@ namespace MiloLib.Utils
         ///  <exception cref="IOException">Thrown if there is an issue writing to the stream.</exception>
         public void WriteUTF16(string str)
         {
-            foreach (char ch in str)
-                WriteInt16((short)ch);
+            byte[] bytes = (_bigEndian ? Encoding.BigEndianUnicode : Encoding.Unicode).GetBytes(str);
+            WriteBlock(bytes);
             WriteInt16(0x0000);
         }
 

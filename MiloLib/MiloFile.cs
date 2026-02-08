@@ -129,21 +129,36 @@ namespace MiloLib
                 switch (compressionType)
                 {
                     case Type.CompressedZlib:
+                    {
                         reader.SeekTo(startOffset);
                         reader.Endianness = Endian.BigEndian;
 
-                        MemoryStream compressedStream = new MemoryStream();
-
+                        // Pre-read all raw block data sequentially
+                        byte[][] rawBlocks = new byte[numBlocks][];
                         for (int i = 0; i < numBlocks; i++)
                         {
-                            MemoryStream blockStream = new MemoryStream(reader.ReadBlock((int)blockSizes[i]));
+                            rawBlocks[i] = reader.ReadBlock((int)blockSizes[i]);
+                        }
 
-                            InflaterInputStream inflater = new InflaterInputStream(blockStream, new Inflater(true));
-                            inflater.CopyTo(compressedStream);
+                        // Decompress all blocks in parallel
+                        byte[][] decompressedBlocks = new byte[numBlocks][];
+                        Parallel.For(0, (int)numBlocks, i =>
+                        {
+                            using MemoryStream blockStream = new MemoryStream(rawBlocks[i]);
+                            using InflaterInputStream inflater = new InflaterInputStream(blockStream, new Inflater(true));
+                            using MemoryStream output = new MemoryStream();
+                            inflater.CopyTo(output);
+                            decompressedBlocks[i] = output.ToArray();
+                        });
+
+                        // Concatenate in order
+                        MemoryStream compressedStream = new MemoryStream();
+                        for (int i = 0; i < numBlocks; i++)
+                        {
+                            compressedStream.Write(decompressedBlocks[i], 0, decompressedBlocks[i].Length);
                         }
 
                         EndianReader decompressedReader = new EndianReader(compressedStream, Endian.BigEndian);
-
                         compressedStream.Seek(0, SeekOrigin.Begin);
 
                         DirectoryMeta meta = new DirectoryMeta();
@@ -151,92 +166,116 @@ namespace MiloLib
                         dirMeta = meta.Read(decompressedReader);
                         endian = decompressedReader.Endianness;
                         break;
+                    }
                     case Type.CompressedZlibAlt:
+                    {
                         reader.SeekTo(startOffset);
                         reader.Endianness = Endian.BigEndian;
 
-                        compressedStream = new MemoryStream();
-
+                        // Pre-read all raw block data sequentially, tracking per-block metadata
+                        byte[][] rawBlocks = new byte[numBlocks][];
+                        bool[] blockUncompressed = new bool[numBlocks];
                         for (int i = 0; i < numBlocks; i++)
                         {
-                            bool uncompressed = (blockSizes[i] & 0xFF000000) != 0;
+                            blockUncompressed[i] = (blockSizes[i] & 0xFF000000) != 0;
 
-                            uint uncompressedSize;
-
-                            if (uncompressed)
+                            if (blockUncompressed[i])
                             {
                                 blockSizes[i] &= 0x00FFFFFF;
-                                uncompressedSize = blockSizes[i];
+                                rawBlocks[i] = reader.ReadBlock((int)blockSizes[i]);
                             }
                             else
                             {
-                                uncompressedSize = reader.ReadUInt32();
-                            }
-
-                            MemoryStream blockStream;
-
-                            if (uncompressed)
-                            {
-                                blockStream = new MemoryStream(reader.ReadBlock((int)blockSizes[i]));
-                            }
-                            else
-                            {
-                                blockStream = new MemoryStream(reader.ReadBlock((int)blockSizes[i] - 4));
-                            }
-
-                            if (!uncompressed)
-                            {
-                                InflaterInputStream inflater = new InflaterInputStream(blockStream, new Inflater(true));
-                                inflater.CopyTo(compressedStream);
-                            }
-                            else
-                            {
-                                blockStream.CopyTo(compressedStream);
+                                uint uncompressedSize = reader.ReadUInt32();
+                                rawBlocks[i] = reader.ReadBlock((int)blockSizes[i] - 4);
                             }
                         }
 
-                        decompressedReader = new EndianReader(compressedStream, Endian.BigEndian);
+                        // Decompress all blocks in parallel
+                        byte[][] decompressedBlocks = new byte[numBlocks][];
+                        Parallel.For(0, (int)numBlocks, i =>
+                        {
+                            if (!blockUncompressed[i])
+                            {
+                                using MemoryStream blockStream = new MemoryStream(rawBlocks[i]);
+                                using InflaterInputStream inflater = new InflaterInputStream(blockStream, new Inflater(true));
+                                using MemoryStream output = new MemoryStream();
+                                inflater.CopyTo(output);
+                                decompressedBlocks[i] = output.ToArray();
+                            }
+                            else
+                            {
+                                decompressedBlocks[i] = rawBlocks[i];
+                            }
+                        });
 
-                        compressedStream.Seek(0, SeekOrigin.Begin);
-
-                        meta = new DirectoryMeta();
-                        meta.platform = DetectPlatform();
-                        dirMeta = meta.Read(decompressedReader);
-                        endian = decompressedReader.Endianness;
-                        break;
-                    case Type.CompressedGzip:
-                        reader.SeekTo(startOffset);
-                        reader.Endianness = Endian.BigEndian;
-
-                        compressedStream = new MemoryStream();
-
+                        // Concatenate in order
+                        MemoryStream compressedStream = new MemoryStream();
                         for (int i = 0; i < numBlocks; i++)
                         {
-                            MemoryStream blockStream = new MemoryStream(reader.ReadBlock((int)blockSizes[i]));
-
-                            GZipInputStream inflater = new GZipInputStream(blockStream);
-                            inflater.CopyTo(compressedStream);
+                            compressedStream.Write(decompressedBlocks[i], 0, decompressedBlocks[i].Length);
                         }
 
-                        decompressedReader = new EndianReader(compressedStream, Endian.BigEndian);
-
+                        EndianReader decompressedReader = new EndianReader(compressedStream, Endian.BigEndian);
                         compressedStream.Seek(0, SeekOrigin.Begin);
 
-                        meta = new DirectoryMeta();
+                        DirectoryMeta meta = new DirectoryMeta();
                         meta.platform = DetectPlatform();
                         dirMeta = meta.Read(decompressedReader);
                         endian = decompressedReader.Endianness;
                         break;
+                    }
+                    case Type.CompressedGzip:
+                    {
+                        reader.SeekTo(startOffset);
+                        reader.Endianness = Endian.BigEndian;
+
+                        // Pre-read all raw block data sequentially
+                        byte[][] rawBlocks = new byte[numBlocks][];
+                        for (int i = 0; i < numBlocks; i++)
+                        {
+                            rawBlocks[i] = reader.ReadBlock((int)blockSizes[i]);
+                        }
+
+                        // Decompress all blocks in parallel
+                        byte[][] decompressedBlocks = new byte[numBlocks][];
+                        Parallel.For(0, (int)numBlocks, i =>
+                        {
+                            using MemoryStream blockStream = new MemoryStream(rawBlocks[i]);
+                            using GZipInputStream inflater = new GZipInputStream(blockStream);
+                            using MemoryStream output = new MemoryStream();
+                            inflater.CopyTo(output);
+                            decompressedBlocks[i] = output.ToArray();
+                        });
+
+                        // Concatenate in order
+                        MemoryStream compressedStream = new MemoryStream();
+                        for (int i = 0; i < numBlocks; i++)
+                        {
+                            compressedStream.Write(decompressedBlocks[i], 0, decompressedBlocks[i].Length);
+                        }
+
+                        EndianReader decompressedReader = new EndianReader(compressedStream, Endian.BigEndian);
+                        compressedStream.Seek(0, SeekOrigin.Begin);
+
+                        DirectoryMeta meta = new DirectoryMeta();
+                        meta.platform = DetectPlatform();
+                        dirMeta = meta.Read(decompressedReader);
+                        endian = decompressedReader.Endianness;
+                        break;
+                    }
                     case Type.Uncompressed:
+                    {
                         reader.SeekTo(startOffset);
 
                         reader.Endianness = Endian.BigEndian;
 
-                        meta = new DirectoryMeta();
+                        DirectoryMeta meta = new DirectoryMeta();
                         meta.platform = DetectPlatform();
                         dirMeta = meta.Read(reader);
                         endian = reader.Endianness;
                         break;
+                    }
                     default:
                         break;
                 }
@@ -362,7 +401,7 @@ namespace MiloLib
                 fs.SetLength(0);
             }
 
-            using (EndianWriter writer = new EndianWriter(File.Create(path), headerEndian))
+            using (EndianWriter writer = new EndianWriter(new BufferedStream(File.Create(path), 65536), headerEndian))
             {
                 if (type == null)
                 {
@@ -459,35 +498,38 @@ namespace MiloLib
                         break;
                     case Type.CompressedZlib:
                     case Type.CompressedGzip:
-                        int offset = 0;
-                        List<byte[]> compressedBlocks = new();
-                        foreach (var block in uncompressedBlockSizes)
+                    {
+                        // Pre-compute block offsets
+                        int[] blockOffsets = new int[uncompressedBlockSizes.Count];
+                        int runningOffset = 0;
+                        for (int i = 0; i < uncompressedBlockSizes.Count; i++)
                         {
-                            using (MemoryStream blockStream = new MemoryStream())
-                            {
-                                if (type == Type.CompressedGzip)
-                                {
-                                    // gzip
-                                    GZipOutputStream gzipStream = new GZipOutputStream(blockStream);
-                                    gzipStream.Write(uncompressedStream.GetBuffer(), offset, (int)block);
-                                    gzipStream.Close();
-                                    compressedBlocks.Add(blockStream.ToArray());
-                                    offset += (int)block;
-                                }
-                                else
-                                {
-                                    // deflate (zlib)
-                                    // "best compression" and also skip the header
-                                    DeflaterOutputStream deflater = new DeflaterOutputStream(blockStream, new Deflater(Deflater.BEST_COMPRESSION, true));
-                                    deflater.Write(uncompressedStream.GetBuffer(), offset, (int)block);
-                                    deflater.Close();
-                                    compressedBlocks.Add(blockStream.ToArray());
-                                    offset += (int)block;
-                                }
-                            }
+                            blockOffsets[i] = runningOffset;
+                            runningOffset += (int)uncompressedBlockSizes[i];
                         }
 
-                        // write the compressed blocks to the writer
+                        // Compress all blocks in parallel
+                        byte[] uncompressedBuffer = uncompressedStream.GetBuffer();
+                        byte[][] compressedBlocks = new byte[uncompressedBlockSizes.Count][];
+                        Parallel.For(0, uncompressedBlockSizes.Count, i =>
+                        {
+                            using MemoryStream blockStream = new MemoryStream();
+                            if (type == Type.CompressedGzip)
+                            {
+                                using GZipOutputStream gzipStream = new GZipOutputStream(blockStream);
+                                gzipStream.Write(uncompressedBuffer, blockOffsets[i], (int)uncompressedBlockSizes[i]);
+                                gzipStream.Close();
+                            }
+                            else
+                            {
+                                using DeflaterOutputStream deflater = new DeflaterOutputStream(blockStream, new Deflater(Deflater.BEST_COMPRESSION, true));
+                                deflater.Write(uncompressedBuffer, blockOffsets[i], (int)uncompressedBlockSizes[i]);
+                                deflater.Close();
+                            }
+                            compressedBlocks[i] = blockStream.ToArray();
+                        });
+
+                        // Write compressed blocks sequentially
                         foreach (var block in compressedBlocks)
                         {
                             writer.WriteBlock(block);
@@ -496,7 +538,7 @@ namespace MiloLib
                         writer.SeekTo(0x8);
                         writer.Endianness = Endian.LittleEndian;
 
-                        writer.WriteUInt32((uint)compressedBlocks.Count);
+                        writer.WriteUInt32((uint)compressedBlocks.Length);
                         uint maxUncompressedBlockSize = maxBlockSize;
                         writer.WriteUInt32(maxUncompressedBlockSize);
                         foreach (var block in compressedBlocks)
@@ -504,22 +546,31 @@ namespace MiloLib
                             writer.WriteUInt32((uint)block.Length);
                         }
                         break;
+                    }
                     case Type.CompressedZlibAlt:
-                        offset = 0;
-                        compressedBlocks = new();
-                        foreach (var block in uncompressedBlockSizes)
+                    {
+                        // Pre-compute block offsets
+                        int[] blockOffsets = new int[uncompressedBlockSizes.Count];
+                        int runningOffset = 0;
+                        for (int i = 0; i < uncompressedBlockSizes.Count; i++)
                         {
-                            using (MemoryStream blockStream = new MemoryStream())
-                            {
-                                DeflaterOutputStream deflater = new DeflaterOutputStream(blockStream, new Deflater(Deflater.BEST_COMPRESSION, true));
-                                deflater.Write(uncompressedStream.GetBuffer(), offset, (int)block);
-                                deflater.Close();
-                                compressedBlocks.Add(blockStream.ToArray());
-                                offset += (int)block;
-                            }
+                            blockOffsets[i] = runningOffset;
+                            runningOffset += (int)uncompressedBlockSizes[i];
                         }
-                        // write the compressed blocks to the writer
-                        for (int i = 0; i < compressedBlocks.Count; i++)
+
+                        // Compress all blocks in parallel (block 0 is written uncompressed but still compress for size header)
+                        byte[] uncompressedBuffer = uncompressedStream.GetBuffer();
+                        byte[][] compressedBlocks = new byte[uncompressedBlockSizes.Count][];
+                        Parallel.For(0, uncompressedBlockSizes.Count, i =>
+                        {
+                            using MemoryStream blockStream = new MemoryStream();
+                            using DeflaterOutputStream deflater = new DeflaterOutputStream(blockStream, new Deflater(Deflater.BEST_COMPRESSION, true));
+                            deflater.Write(uncompressedBuffer, blockOffsets[i], (int)uncompressedBlockSizes[i]);
+                            deflater.Close();
+                            compressedBlocks[i] = blockStream.ToArray();
+                        });
+                        // Write compressed blocks sequentially
+                        for (int i = 0; i < compressedBlocks.Length; i++)
                         {
                             byte[] block = compressedBlocks[i];
                             if (i == 0)
@@ -535,10 +586,10 @@ namespace MiloLib
                         }
                         writer.SeekTo(0x8);
                         writer.Endianness = Endian.LittleEndian;
-                        writer.WriteUInt32((uint)compressedBlocks.Count);
-                        maxUncompressedBlockSize = (uint)uncompressedBlockSizes.Max();
+                        writer.WriteUInt32((uint)compressedBlocks.Length);
+                        uint maxUncompressedBlockSize = (uint)uncompressedBlockSizes.Max();
                         writer.WriteUInt32(maxUncompressedBlockSize);
-                        for (int i = 0; i < compressedBlocks.Count; i++)
+                        for (int i = 0; i < compressedBlocks.Length; i++)
                         {
                             if (i == 0)
                             {
@@ -551,6 +602,7 @@ namespace MiloLib
                             }
                         }
                         break;
+                    }
                 }
             }
         }

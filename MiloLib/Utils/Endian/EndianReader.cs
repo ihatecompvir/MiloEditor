@@ -422,11 +422,7 @@ namespace MiloLib.Utils
 
         public string ReadBytesWithEncoding(int size, Encoding encoding)
         {
-            byte[] bytes = new byte[size];
-            for (int i = 0; i < size; i++)
-            {
-                bytes[i] = ReadByte();
-            }
+            byte[] bytes = ReadBlock(size);
 
             int nullIndex = Array.IndexOf<byte>(bytes, 0);
             if (nullIndex >= 0)

@@ -940,32 +940,53 @@ namespace MiloLib.Assets
                 this.DirObjBytes = reader.ReadBlock((int)(dirDataEnd - dirDataStart));
             }
 
+            // HMX's DEADDEAD magic value used to signify an object has ended
+            ReadOnlySpan<byte> endMarker = stackalloc byte[] { 0xAD, 0xDE, 0xAD, 0xDE };
+
             foreach (Entry entry in entries)
             {
                 long startPos = reader.BaseStream.Position;
                 entry.objBytesAbsolutePosition = startPos;
 
-                var objBytesList = new List<byte>();
-                while (true)
+                // SIMD go brrrrrrrrrrr
+                if (reader.BaseStream is MemoryStream ms)
                 {
-                    byte b = reader.ReadByte();
-                    if (b == 0xAD)
+                    byte[] buffer = ms.GetBuffer();
+                    int pos = (int)ms.Position;
+                    int end = (int)ms.Length;
+                    int idx = buffer.AsSpan(pos, end - pos).IndexOf(endMarker);
+                    if (idx >= 0)
                     {
-                        long currentPos = reader.BaseStream.Position;
-
-                        if (reader.ReadByte() == 0xDE &&
-                            reader.ReadByte() == 0xAD &&
-                            reader.ReadByte() == 0xDE)
-                        {
-                            break;
-                        }
-
-                        reader.BaseStream.Position = currentPos;
+                        entry.objBytes = new byte[idx];
+                        Buffer.BlockCopy(buffer, pos, entry.objBytes, 0, idx);
                     }
-
-                    objBytesList.Add(b);
+                    else
+                    {
+                        entry.objBytes = Array.Empty<byte>();
+                    }
                 }
-                entry.objBytes = objBytesList.ToArray();
+                else
+                {
+                    // fall back to the old byte-by-byte method if needed
+                    var objBytesList = new List<byte>();
+                    while (true)
+                    {
+                        byte b = reader.ReadByte();
+                        if (b == 0xAD)
+                        {
+                            long currentPos = reader.BaseStream.Position;
+                            if (reader.ReadByte() == 0xDE &&
+                                reader.ReadByte() == 0xAD &&
+                                reader.ReadByte() == 0xDE)
+                            {
+                                break;
+                            }
+                            reader.BaseStream.Position = currentPos;
+                        }
+                        objBytesList.Add(b);
+                    }
+                    entry.objBytes = objBytesList.ToArray();
+                }
 
                 reader.BaseStream.Position = startPos;
 
@@ -1054,22 +1075,41 @@ namespace MiloLib.Assets
 
                     entry.typeRecognized = false;
 
-                    // TODO: improve this shit
-                    while (true)
+                    // again, try to use SIMD accel when possible
+                    ReadOnlySpan<byte> unknownEndMarker = stackalloc byte[] { 0xAD, 0xDE, 0xAD, 0xDE };
+                    if (reader.BaseStream is MemoryStream ums)
                     {
-                        byte b = reader.ReadByte();
-                        if (b == 0xAD)
+                        byte[] buffer = ums.GetBuffer();
+                        int pos = (int)ums.Position;
+                        int end = (int)ums.Length;
+                        int idx = buffer.AsSpan(pos, end - pos).IndexOf(unknownEndMarker);
+                        if (idx >= 0)
                         {
-                            byte b2 = reader.ReadByte();
-                            if (b2 == 0xDE)
+                            ums.Position = pos + idx + 4; // skip past end marker
+                        }
+                        else
+                        {
+                            throw new EndOfStreamException("Could not find end marker for unknown entry type " + entry.type.value);
+                        }
+                    }
+                    else
+                    {
+                        while (true)
+                        {
+                            byte b = reader.ReadByte();
+                            if (b == 0xAD)
                             {
-                                byte b3 = reader.ReadByte();
-                                if (b3 == 0xAD)
+                                byte b2 = reader.ReadByte();
+                                if (b2 == 0xDE)
                                 {
-                                    byte b4 = reader.ReadByte();
-                                    if (b4 == 0xDE)
+                                    byte b3 = reader.ReadByte();
+                                    if (b3 == 0xAD)
                                     {
-                                        break;
+                                        byte b4 = reader.ReadByte();
+                                        if (b4 == 0xDE)
+                                        {
+                                            break;
+                                        }
                                     }
                                 }
                             }

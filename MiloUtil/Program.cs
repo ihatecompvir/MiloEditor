@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using MiloLib;
 using MiloLib.Assets;
 using MiloLib.Utils;
@@ -115,33 +117,56 @@ class Program
             return;
         }
 
-        var revisionMap = new Dictionary<string, HashSet<(ushort, ushort)>>();
+        var revisionMap = new ConcurrentDictionary<string, ConcurrentBag<(ushort, ushort)>>();
         var stopwatch = Stopwatch.StartNew();
+        int progress = 0;
 
         Console.WriteLine($"Found {filesToProcess.Length} files. Starting revision scan...");
 
-        for (int i = 0; i < filesToProcess.Length; i++)
+        Parallel.ForEach(filesToProcess, file =>
         {
-            string file = filesToProcess[i];
-            Console.WriteLine($"  ({i + 1}/{filesToProcess.Length}) Processing {file}");
+            var count = Interlocked.Increment(ref progress);
+            lock (Console.Out)
+            {
+                Console.WriteLine($"  ({count}/{filesToProcess.Length}) Processing {file}");
+            }
             try
             {
                 var miloFile = new MiloFile(file);
-                TraverseAndCollectRevisions(miloFile.dirMeta, revisionMap);
+
+                var localMap = new Dictionary<string, HashSet<(ushort, ushort)>>();
+                TraverseAndCollectRevisions(miloFile.dirMeta, localMap);
+                foreach (var kvp in localMap)
+                {
+                    var bag = revisionMap.GetOrAdd(kvp.Key, _ => new ConcurrentBag<(ushort, ushort)>());
+                    foreach (var item in kvp.Value)
+                    {
+                        bag.Add(item);
+                    }
+                }
             }
             catch (Exception ex)
             {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"    ERROR processing file: {ex.Message}");
-                Console.ResetColor();
+                lock (Console.Out)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine($"    ERROR processing file: {ex.Message}");
+                    Console.ResetColor();
+                }
             }
-        }
+        });
 
         stopwatch.Stop();
         Console.WriteLine($"\nScan complete in {stopwatch.Elapsed.TotalSeconds:F2} seconds.");
 
+        var finalMap = new Dictionary<string, HashSet<(ushort, ushort)>>();
+        foreach (var kvp in revisionMap)
+        {
+            finalMap[kvp.Key] = new HashSet<(ushort, ushort)>(kvp.Value);
+        }
+
         string outputFileName = $"GameRevisions_{gameIdentifier}.cs";
-        GenerateCSharpSourceFile(gameIdentifier, revisionMap, outputFileName);
+        GenerateCSharpSourceFile(gameIdentifier, finalMap, outputFileName);
 
         Console.WriteLine($"C# source file with revision data has been saved to:");
         Console.ForegroundColor = ConsoleColor.Cyan;
