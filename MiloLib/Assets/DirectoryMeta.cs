@@ -951,18 +951,29 @@ namespace MiloLib.Assets
                 // SIMD go brrrrrrrrrrr
                 if (reader.BaseStream is MemoryStream ms)
                 {
-                    byte[] buffer = ms.GetBuffer();
-                    int pos = (int)ms.Position;
-                    int end = (int)ms.Length;
-                    int idx = buffer.AsSpan(pos, end - pos).IndexOf(endMarker);
-                    if (idx >= 0)
+                    if (ms.TryGetBuffer(out ArraySegment<byte> seg))
                     {
-                        entry.objBytes = new byte[idx];
-                        Buffer.BlockCopy(buffer, pos, entry.objBytes, 0, idx);
+                        var span = seg.AsSpan((int)ms.Position, (int)(ms.Length - ms.Position));
+                        int idx = span.IndexOf(endMarker);
+
+                        if (idx >= 0)
+                        {
+                            entry.objBytes = span.Slice(0, idx).ToArray();
+                        }
+                        else
+                        {
+                            entry.objBytes = Array.Empty<byte>();
+                        }
                     }
                     else
                     {
-                        entry.objBytes = Array.Empty<byte>();
+                        // fallback
+                        var span = ms.ToArray().AsSpan((int)ms.Position);
+                        int idx = span.IndexOf(endMarker);
+
+                        entry.objBytes = idx >= 0
+                            ? span.Slice(0, idx).ToArray()
+                            : Array.Empty<byte>();
                     }
                 }
                 else
@@ -1079,17 +1090,39 @@ namespace MiloLib.Assets
                     ReadOnlySpan<byte> unknownEndMarker = stackalloc byte[] { 0xAD, 0xDE, 0xAD, 0xDE };
                     if (reader.BaseStream is MemoryStream ums)
                     {
-                        byte[] buffer = ums.GetBuffer();
-                        int pos = (int)ums.Position;
-                        int end = (int)ums.Length;
-                        int idx = buffer.AsSpan(pos, end - pos).IndexOf(unknownEndMarker);
-                        if (idx >= 0)
+                        if (ums.TryGetBuffer(out ArraySegment<byte> seg))
                         {
-                            ums.Position = pos + idx + 4; // skip past end marker
+                            int pos = (int)ums.Position;
+                            int len = (int)ums.Length - pos;
+
+                            var span = seg.AsSpan(pos, len);
+                            int idx = span.IndexOf(unknownEndMarker);
+
+                            if (idx >= 0)
+                            {
+                                ums.Position = pos + idx + unknownEndMarker.Length;
+                            }
+                            else
+                            {
+                                throw new EndOfStreamException(
+                                    "Could not find end marker for unknown entry type " + entry.type.value);
+                            }
                         }
                         else
                         {
-                            throw new EndOfStreamException("Could not find end marker for unknown entry type " + entry.type.value);
+                            // fallback
+                            var span = ums.ToArray().AsSpan((int)ums.Position);
+                            int idx = span.IndexOf(unknownEndMarker);
+
+                            if (idx >= 0)
+                            {
+                                ums.Position += idx + unknownEndMarker.Length;
+                            }
+                            else
+                            {
+                                throw new EndOfStreamException(
+                                    "Could not find end marker for unknown entry type " + entry.type.value);
+                            }
                         }
                     }
                     else
