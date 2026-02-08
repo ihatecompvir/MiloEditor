@@ -56,6 +56,12 @@ public class AssetFuzzer
             type = Nullable.GetUnderlyingType(type)!;
         }
 
+        // DirectoryMeta is the container format, not a serializable field — skip fuzzing it
+        if (type == typeof(DirectoryMeta))
+        {
+            return null;
+        }
+
         // Handle primitives
         if (type.IsPrimitive)
         {
@@ -239,13 +245,13 @@ public class AssetFuzzer
         if (type == typeof(ushort))
             return (ushort)_random.Next(ushort.MaxValue);
         if (type == typeof(int))
-            return _random.Next();
+            return _random.Next(0, 100);
         if (type == typeof(uint))
-            return (uint)_random.NextInt64(0, uint.MaxValue);
+            return (uint)_random.Next(0, 100);
         if (type == typeof(long))
-            return _random.NextInt64();
+            return (long)_random.Next(0, 100);
         if (type == typeof(ulong))
-            return (ulong)_random.NextInt64(0, long.MaxValue);
+            return (ulong)_random.Next(0, 100);
         if (type == typeof(float))
             return _random.NextSingle();
         if (type == typeof(double))

@@ -59,12 +59,11 @@ public class AssetIOTests : IClassFixture<ReportGeneratorClassFixture>
         };
         
         // Create dummy DirectoryMeta.Entry (isProxy: false)
-        // We'll create a dummy object for the entry - it will be replaced when we create the actual instance
-        var dummyObj = Activator.CreateInstance(assetType);
+        // The dummy object is replaced each iteration (line entry.obj = ...), so just use a base Object
         var entry = new DirectoryMeta.Entry(
             new Symbol(0, assetType.Name),
             new Symbol(0, "TestAsset"),
-            dummyObj as MiloLib.Assets.Object ?? new MiloLib.Assets.Object());
+            new MiloLib.Assets.Object());
         entry.isProxy = false;
         
         // Iterate through revisions 0 to 50
@@ -140,7 +139,7 @@ public class AssetIOTests : IClassFixture<ReportGeneratorClassFixture>
                 object? readInstance = null;
                 try
                 {
-                    readInstance = Activator.CreateInstance(assetType);
+                    readInstance = CreateInstance(assetType);
                     if (readInstance == null)
                     {
                         errorMessage = "Failed to create instance for reading";
@@ -305,6 +304,27 @@ public class AssetIOTests : IClassFixture<ReportGeneratorClassFixture>
     }
     
     /// <summary>
+    /// Creates an instance of the given type, trying (ushort, ushort) and (ushort) constructors
+    /// before falling back to parameterless. Matches how real assets are constructed.
+    /// </summary>
+    private static object? CreateInstance(Type type)
+    {
+        var ctor = type.GetConstructor(new[] { typeof(ushort), typeof(ushort) });
+        if (ctor != null)
+            return ctor.Invoke(new object[] { (ushort)0, (ushort)0 });
+
+        ctor = type.GetConstructor(new[] { typeof(ushort) });
+        if (ctor != null)
+            return ctor.Invoke(new object[] { (ushort)0 });
+
+        ctor = type.GetConstructor(Type.EmptyTypes);
+        if (ctor != null)
+            return ctor.Invoke(Array.Empty<object>());
+
+        return null;
+    }
+
+    /// <summary>
     /// Sets the revision field on an object using reflection.
     /// </summary>
     private void SetRevisionField(object instance, ushort revision)
@@ -464,124 +484,17 @@ public class RoundTripTestCollection : ICollectionFixture<ReportGeneratorFixture
 }
 
 /// <summary>
-/// Class fixture that generates the HTML report after all tests complete.
+/// Class fixture for round-trip tests. Report generation is handled by the GenerateHtmlReport test.
 /// </summary>
 public class ReportGeneratorClassFixture : IDisposable
 {
     public ReportGeneratorClassFixture()
     {
-        // Clear any previous results when starting
         TestResultCollector.Clear();
     }
-    
+
     public void Dispose()
     {
-        // Generate HTML report after all tests in the class complete
-        GenerateReport();
-    }
-    
-    private void GenerateReport()
-    {
-        try
-        {
-            // Get the base directory (where the test assembly is located)
-            string baseDir = AppContext.BaseDirectory;
-            
-            // Try multiple locations, prioritizing TestResults directory
-            var possibleDirs = new List<string>
-            {
-                // xUnit TestResults directory (most common)
-                Path.Combine(baseDir, "TestResults"),
-                // Project root TestResults
-                Path.Combine(Directory.GetCurrentDirectory(), "TestResults"),
-                // Solution root TestResults
-                Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "..", "TestResults"),
-                // Bin directory TestResults
-                Path.Combine(baseDir, "..", "..", "..", "TestResults"),
-                // Current directory
-                Directory.GetCurrentDirectory(),
-                // Base directory
-                baseDir
-            };
-            
-            // Also try to find TestResults in parent directories
-            var currentDir = new DirectoryInfo(Directory.GetCurrentDirectory());
-            for (int i = 0; i < 3 && currentDir != null; i++)
-            {
-                var testResultsDir = Path.Combine(currentDir.FullName, "TestResults");
-                if (!possibleDirs.Contains(testResultsDir))
-                {
-                    possibleDirs.Add(testResultsDir);
-                }
-                currentDir = currentDir.Parent;
-            }
-            
-            string? testOutputDir = null;
-            foreach (var dir in possibleDirs)
-            {
-                try
-                {
-                    var normalizedDir = Path.GetFullPath(dir);
-                    if (Directory.Exists(normalizedDir))
-                    {
-                        testOutputDir = normalizedDir;
-                        break;
-                    }
-                }
-                catch
-                {
-                    // Skip invalid paths
-                }
-            }
-            
-            // Fallback to base directory
-            if (testOutputDir == null)
-            {
-                testOutputDir = Path.GetFullPath(baseDir);
-            }
-            
-            // Ensure directory exists
-            Directory.CreateDirectory(testOutputDir);
-            
-            string reportPath = Path.Combine(testOutputDir, "MiloLib_RoundTrip_TestReport.html");
-            string fullPath = Path.GetFullPath(HtmlReportGenerator.GenerateReport(reportPath));
-            
-            // Also save a copy to the project root for easy access
-            try
-            {
-                var projectRoot = Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "..");
-                var projectRootFull = Path.GetFullPath(projectRoot);
-                if (Directory.Exists(projectRootFull))
-                {
-                    var projectReportPath = Path.Combine(projectRootFull, "MiloLib_RoundTrip_TestReport.html");
-                    File.Copy(fullPath, projectReportPath, overwrite: true);
-                    Console.WriteLine($"Also saved to project root: {projectReportPath}");
-                }
-            }
-            catch
-            {
-                // Ignore if we can't save to project root
-            }
-            
-            // Write to console with clear formatting
-            Console.WriteLine($"\n{new string('=', 80)}");
-            Console.WriteLine($"HTML REPORT GENERATED");
-            Console.WriteLine($"{new string('=', 80)}");
-            Console.WriteLine($"Location: {fullPath}");
-            Console.WriteLine($"{new string('=', 80)}\n");
-            
-            // Also write to standard error to ensure it's visible
-            Console.Error.WriteLine($"\nHTML Report: {fullPath}\n");
-            
-            System.Diagnostics.Debug.WriteLine($"HTML Report generated: {fullPath}");
-        }
-        catch (Exception ex)
-        {
-            string errorMsg = $"Failed to generate HTML report: {ex.Message}\n{ex.StackTrace}";
-            Console.WriteLine(errorMsg);
-            Console.Error.WriteLine(errorMsg);
-            System.Diagnostics.Debug.WriteLine(errorMsg);
-        }
     }
 }
 
@@ -589,113 +502,10 @@ public class ReportGeneratorFixture : IDisposable
 {
     public ReportGeneratorFixture()
     {
-        // Clear any previous results when starting
-        TestResultCollector.Clear();
     }
-    
+
     public void Dispose()
     {
-        // Generate HTML report after all tests in the collection complete
-        try
-        {
-            // Get the base directory (where the test assembly is located)
-            string baseDir = AppContext.BaseDirectory;
-            
-            // Try multiple locations, prioritizing TestResults directory
-            var possibleDirs = new List<string>
-            {
-                // xUnit TestResults directory (most common)
-                Path.Combine(baseDir, "TestResults"),
-                // Project root TestResults
-                Path.Combine(Directory.GetCurrentDirectory(), "TestResults"),
-                // Solution root TestResults
-                Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "..", "TestResults"),
-                // Bin directory TestResults
-                Path.Combine(baseDir, "..", "..", "..", "TestResults"),
-                // Current directory
-                Directory.GetCurrentDirectory(),
-                // Base directory
-                baseDir
-            };
-            
-            // Also try to find TestResults in parent directories
-            var currentDir = new DirectoryInfo(Directory.GetCurrentDirectory());
-            for (int i = 0; i < 3 && currentDir != null; i++)
-            {
-                var testResultsDir = Path.Combine(currentDir.FullName, "TestResults");
-                if (!possibleDirs.Contains(testResultsDir))
-                {
-                    possibleDirs.Add(testResultsDir);
-                }
-                currentDir = currentDir.Parent;
-            }
-            
-            string? testOutputDir = null;
-            foreach (var dir in possibleDirs)
-            {
-                try
-                {
-                    var normalizedDir = Path.GetFullPath(dir);
-                    if (Directory.Exists(normalizedDir))
-                    {
-                        testOutputDir = normalizedDir;
-                        break;
-                    }
-                }
-                catch
-                {
-                    // Skip invalid paths
-                }
-            }
-            
-            // Fallback to base directory
-            if (testOutputDir == null)
-            {
-                testOutputDir = Path.GetFullPath(baseDir);
-            }
-            
-            // Ensure directory exists
-            Directory.CreateDirectory(testOutputDir);
-            
-            string reportPath = Path.Combine(testOutputDir, "MiloLib_RoundTrip_TestReport.html");
-            string fullPath = Path.GetFullPath(HtmlReportGenerator.GenerateReport(reportPath));
-            
-            // Also save a copy to the project root for easy access
-            try
-            {
-                var projectRoot = Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "..");
-                var projectRootFull = Path.GetFullPath(projectRoot);
-                if (Directory.Exists(projectRootFull))
-                {
-                    var projectReportPath = Path.Combine(projectRootFull, "MiloLib_RoundTrip_TestReport.html");
-                    File.Copy(fullPath, projectReportPath, overwrite: true);
-                    Console.WriteLine($"Also saved to project root: {projectReportPath}");
-                }
-            }
-            catch
-            {
-                // Ignore if we can't save to project root
-            }
-            
-            // Write to console with clear formatting
-            Console.WriteLine($"\n{new string('=', 80)}");
-            Console.WriteLine($"HTML REPORT GENERATED");
-            Console.WriteLine($"{new string('=', 80)}");
-            Console.WriteLine($"Location: {fullPath}");
-            Console.WriteLine($"{new string('=', 80)}\n");
-            
-            // Also write to standard error to ensure it's visible
-            Console.Error.WriteLine($"\nHTML Report: {fullPath}\n");
-            
-            System.Diagnostics.Debug.WriteLine($"HTML Report generated: {fullPath}");
-        }
-        catch (Exception ex)
-        {
-            string errorMsg = $"Failed to generate HTML report: {ex.Message}\n{ex.StackTrace}";
-            Console.WriteLine(errorMsg);
-            Console.Error.WriteLine(errorMsg);
-            System.Diagnostics.Debug.WriteLine(errorMsg);
-        }
     }
 }
 
