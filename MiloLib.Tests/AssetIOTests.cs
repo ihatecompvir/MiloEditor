@@ -57,13 +57,13 @@ public class AssetIOTests : IClassFixture<ReportGeneratorClassFixture>
         if (writeMethod == null || readMethod == null)
         {
             var msg = writeMethod == null ? "No Write method found" : "No Read method found";
-            for (ushort r = 0; r <= 50; r++)
+            for (ushort r = 0; r <= 100; r++)
                 TestResultCollector.RecordResult(assetType.Name, r, TestResultCollector.TestStatus.Failed, msg);
             return;
         }
 
         // sweet sweet parallelism
-        Parallel.For(0, 51, revision =>
+        Parallel.For(0, 101, revision =>
         {
             ushort rev = (ushort)revision;
             string? errorMessage = null;

@@ -140,12 +140,18 @@ h1{{font-size:20px;font-weight:600;color:#fff;margin-bottom:4px}}
 .count-badge{{font-size:11px;padding:1px 6px;border-radius:10px;font-weight:600}}
 .count-badge.p-badge{{background:#1b3a1b;color:#4caf50}}.count-badge.f-badge{{background:#3a1b1b;color:#ef5350}}.count-badge.s-badge{{background:#3a2a0f;color:#ffa726}}
 #no-match{{display:none;text-align:center;padding:40px;color:#555;font-size:14px}}
+.caveat{{background:#1e3a2a;border-left:4px solid #4caf50;border-radius:4px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:#b0bec5;line-height:1.5}}
+.caveat strong{{color:#e0e0e0}}
 </style>
 </head>
 <body>
 
 <h1>MiloLib Round-Trip Serialization Test Report</h1>
 <p class=""subtitle"">Generated {DateTime.Now:yyyy-MM-dd HH:mm:ss} &mdash; {allResults.Count} asset types, revisions 0&ndash;{(allRevisions.Count > 0 ? allRevisions.Max : 0)}</p>
+
+<div class=""caveat"">
+  <strong>⚠ Caveat:</strong> This test only verifies that each asset's <code>Read()</code> and <code>Write()</code> functions are symmetric (i.e., write-read produces identical bytes). It does <strong>not</strong> validate that the implementation is correct. Missing or incorrect revision checks, invalid data, or other bugs will still pass if both Read and Write apply the same logic. Additionally, support for assets introduced after Rock Band 3 is limited.
+</div>
 
 <div class=""stats"">
   <div class=""stat""><div class=""label"">Total Tests</div><div class=""val blue"">{totalTests}</div></div>
