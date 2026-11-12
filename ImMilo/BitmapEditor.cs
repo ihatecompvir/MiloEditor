@@ -117,7 +117,7 @@ public static class BitmapEditor
                      texture.bitmap.encoding == RndBitmap.TextureEncoding.TPL_CMP_2)
             {
                 // Handle Wii TPL textures using WiiTextureCodec
-                if (texture.bitmap.textures.Count == 0 || texture.bitmap.textures[0].Count == 0)
+                if (texture.bitmap.textures.Count == 0 || texture.bitmap.textures[0].Length == 0)
                 {
                     throw new Exception("No texture data available for TPL texture.");
                 }
@@ -217,7 +217,7 @@ public static class BitmapEditor
                      texture.bitmap.encoding == RndBitmap.TextureEncoding.ARGB)
             {
                 // Handle uncompressed RGBA/ARGB textures
-                if (texture.bitmap.textures.Count == 0 || texture.bitmap.textures[0].Count == 0)
+                if (texture.bitmap.textures.Count == 0 || texture.bitmap.textures[0].Length == 0)
                 {
                     throw new Exception("No texture data available for RGBA/ARGB texture.");
                 }
@@ -232,7 +232,7 @@ public static class BitmapEditor
                 if (bpp == 8 || bpp == 4)
                 {
                     // Check if we have a color palette
-                    if (texture.bitmap.colorPalette == null || texture.bitmap.colorPalette.Count == 0)
+                    if (texture.bitmap.colorPalette == null || texture.bitmap.colorPalette.Length == 0)
                     {
                         throw new Exception($"Paletted texture ({bpp}bpp) has no color palette data.");
                     }
@@ -240,9 +240,9 @@ public static class BitmapEditor
                     int paletteColorCount = 1 << bpp;
                     int expectedPaletteSize = paletteColorCount * 4;
 
-                    if (texture.bitmap.colorPalette.Count != expectedPaletteSize)
+                    if (texture.bitmap.colorPalette.Length != expectedPaletteSize)
                     {
-                        throw new Exception($"Expected {expectedPaletteSize} bytes in palette for {bpp}bpp, but got {texture.bitmap.colorPalette.Count}.");
+                        throw new Exception($"Expected {expectedPaletteSize} bytes in palette for {bpp}bpp, but got {texture.bitmap.colorPalette.Length}.");
                     }
 
                     int pixelCount = width * height;
@@ -531,23 +531,21 @@ public static class BitmapEditor
         {
 
             // scramble every 4 dds pixels for 360
-            List<List<byte>> swappedBytes = new List<List<byte>>();
+            byte[] swappedBytes = new byte[dds.pixels.Count];
             for (int i = 0; i < dds.pixels.Count; i += 4)
             {
-                List<byte> swapped = new List<byte>();
-                swapped.Add(dds.pixels[i + 1]);
-                swapped.Add(dds.pixels[i]);
-                swapped.Add(dds.pixels[i + 3]);
-                swapped.Add(dds.pixels[i + 2]);
-                swappedBytes.Add(swapped);
+                swappedBytes[i] = dds.pixels[i + 1];
+                swappedBytes[i + 1] = dds.pixels[i];
+                swappedBytes[i + 2] = dds.pixels[i + 3];
+                swappedBytes[i + 3] = dds.pixels[i + 2];
             }
 
-            curTexture.bitmap.textures = swappedBytes;
+            curTexture.bitmap.textures = new List<byte[]>() { swappedBytes };
         }
         else
         {
             // don't do anything special for other platforms
-            curTexture.bitmap.textures = new List<List<byte>>() { dds.pixels };
+            curTexture.bitmap.textures = new List<byte[]>() { dds.pixels.ToArray() };
         }
 
         curTexture.height = dds.dwHeight;

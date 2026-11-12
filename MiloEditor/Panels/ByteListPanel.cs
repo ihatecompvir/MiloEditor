@@ -26,6 +26,7 @@ public class ByteListPanel : Panel
     }
 
     [Browsable(false)]
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     public List<byte> ByteList
     {
         get => _byteList;

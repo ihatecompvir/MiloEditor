@@ -13,31 +13,19 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: 10.0.x
 
       - name: Restore dependencies
         run: dotnet restore
 
       - name: Build
         run: dotnet build --no-restore
-
-      - name: Test
-        run: dotnet test --no-build --verbosity normal --blame-hang-timeout 5min
-
-      # copy the HTML report to a guaranteed path
-      - name: Locate test report
-        shell: pwsh
-        run: |
-          $report = Get-ChildItem -Recurse -Filter MiloLib_RoundTrip_TestReport.html | Select-Object -First 1
-          if (-not $report) {
-            Write-Error "MiloLib_RoundTrip_TestReport.html not found"
-            exit 1
-          }
-          Copy-Item $report.FullName -Destination MiloLib_RoundTrip_TestReport.html -Force
 
       - name: Publish
         run: dotnet publish -c Release -o publish
@@ -58,16 +46,6 @@ jobs:
             Build automatically generated from commit ${{ github.sha }}. This build may have bugs and/or corrupt Milo scenes - use with caution.
           draft: false
           prerelease: true
-
-      - name: Upload Test Report to Release
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: MiloLib_RoundTrip_TestReport.html
-          asset_name: MiloLib_RoundTrip_TestReport.html
-          asset_content_type: text/html
 
       - name: Upload Release Asset
         uses: actions/upload-release-asset@v1

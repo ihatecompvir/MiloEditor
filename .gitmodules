@@ -1,0 +1,3 @@
+[submodule "MiloLib"]
+	path = MiloLib
+	url = https://github.com/ihatecompvir/MiloLib

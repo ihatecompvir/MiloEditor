@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -16,6 +17,7 @@ public class ColorPicker : Panel
     }
 
 
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     public Color Color
     {
         get => _color;

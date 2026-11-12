@@ -8,7 +8,7 @@
 
 MiloEditor is an editor for Milo scenes. There is currently varying levels of support for various Milo games, although Rock Band 3 and Dance Central 1 are the most supported. The end goal is to have support for every Milo game ever made, within reason.
 
-Also included is MiloLib, the .NET Standard library powering MiloEditor, and MiloUtil, a cross-platform command line utility powered by MiloLib. MiloLib can be used to create your own tools and utilities to manipulate Milo scenes. While there is no documentation as of now, it is designed to be simple and straightforward to open, manipulate, and save scenes. Please see MiloUtil for an example of its usage.
+MiloEditor is powered by [MiloLib](https://github.com/ihatecompvir/MiloLib), a .NET library included here as a Git submodule. Also included is MiloUtil, a cross-platform command line utility powered by MiloLib. MiloLib can be used to create your own tools and utilities to manipulate Milo scenes. While there is no documentation as of now, it is designed to be simple and straightforward to open, manipulate, and save scenes. Please see MiloUtil for an example of its usage.
 
 ## Features
 

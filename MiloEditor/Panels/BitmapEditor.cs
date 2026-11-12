@@ -72,7 +72,7 @@ namespace MiloEditor.Panels
         private void exportButton_Click(object sender, EventArgs e)
         {
             // convert the bitmap to an image
-            List<byte> bytes = tex.bitmap.ConvertToImage();
+            byte[] bytes = tex.bitmap.ConvertToImage();
 
             SaveFileDialog dialog = new SaveFileDialog();
 
@@ -82,18 +82,18 @@ namespace MiloEditor.Panels
 
             if (dialog.FileName != "")
             {
-                File.WriteAllBytes(dialog.FileName, bytes.ToArray());
+                File.WriteAllBytes(dialog.FileName, bytes);
             }
         }
 
-        public static void LoadDdsIntoPictureBox(List<byte> ddsData, PictureBox pictureBox)
+        public static void LoadDdsIntoPictureBox(byte[] ddsData, PictureBox pictureBox)
         {
-            if (ddsData == null || ddsData.Count == 0)
+            if (ddsData == null || ddsData.Length == 0)
             {
                 return;
             }
 
-            using (MemoryStream ddsStream = new MemoryStream(ddsData.ToArray()))
+            using (MemoryStream ddsStream = new MemoryStream(ddsData))
             using (var image = Pfimage.FromStream(ddsStream))
             {
                 PixelFormat format;
@@ -195,23 +195,21 @@ namespace MiloEditor.Panels
                 {
 
                     // scramble every 4 dds pixels for 360
-                    List<List<byte>> swappedBytes = new List<List<byte>>();
+                    byte[] swappedBytes = new byte[dds.pixels.Count];
                     for (int i = 0; i < dds.pixels.Count; i += 4)
                     {
-                        List<byte> swapped = new List<byte>();
-                        swapped.Add(dds.pixels[i + 1]);
-                        swapped.Add(dds.pixels[i]);
-                        swapped.Add(dds.pixels[i + 3]);
-                        swapped.Add(dds.pixels[i + 2]);
-                        swappedBytes.Add(swapped);
+                        swappedBytes[i] = dds.pixels[i + 1];
+                        swappedBytes[i + 1] = dds.pixels[i];
+                        swappedBytes[i + 2] = dds.pixels[i + 3];
+                        swappedBytes[i + 3] = dds.pixels[i + 2];
                     }
 
-                    tex.bitmap.textures = swappedBytes;
+                    tex.bitmap.textures = new List<byte[]>() { swappedBytes };
                 }
                 else
                 {
                     // don't do anything special for other platforms
-                    tex.bitmap.textures = new List<List<byte>>() { dds.pixels };
+                    tex.bitmap.textures = new List<byte[]>() { dds.pixels.ToArray() };
                 }
 
                 tex.height = dds.dwHeight;
@@ -239,7 +237,7 @@ namespace MiloEditor.Panels
                 }
 
                 // update the picturebox with the new image
-                LoadDdsIntoPictureBox(bytes.ToList(), bitmapBox);
+                LoadDdsIntoPictureBox(bytes, bitmapBox);
 
 
             }
